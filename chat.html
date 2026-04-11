@@ -244,7 +244,7 @@
     .notif-time{margin-top:6px; color:#7f8ba0; font-size:11px; font-weight:700}
     .notif-empty{padding:18px 10px; color:#9eb0c8; font-size:13px; font-weight:700; text-align:center}
 
-    .page{padding:16px 0 34px}
+    .page{padding:10px 0 28px}
 
     .hero{
       margin-bottom:16px;
@@ -751,43 +751,7 @@ body{
 
   <main class="page">
     <div class="container">
-      <section class="hero">
-        <div class="hero-top">
-          <div class="chat-chip">
-            <span class="chat-chip-dot"></span>
-            Chat privado da oferta
-          </div>
-        </div>
-
-        <div class="hero-main">
-          <div class="hero-copy">
-            <h1 id="chatTitleHero">Carregando conversa...</h1>
-            <p id="chatSubHero">Aguarde enquanto o chat da oferta é carregado.</p>
-          </div>
-
-          <div class="offer-bar">
-            <div class="offer-mini">
-              <div class="offer-mini-k">Código</div>
-              <div class="offer-mini-v" id="infoOfferCode">-</div>
-            </div>
-
-            <div class="offer-mini">
-              <div class="offer-mini-k">Status</div>
-              <div class="offer-mini-v" id="infoStatus">-</div>
-            </div>
-
-            <div class="offer-mini">
-              <div class="offer-mini-k">Dono da oferta</div>
-              <div class="offer-mini-v" id="infoOwner">-</div>
-            </div>
-
-            <div class="offer-mini">
-              <div class="offer-mini-k">Seu papel</div>
-              <div class="offer-mini-v" id="infoRole">-</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       <section class="chat-layout">
         <section class="main-card">
@@ -1188,12 +1152,7 @@ body{
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const infoOfferCode = document.getElementById("infoOfferCode");
     const infoOfferId = document.getElementById("infoOfferId");
-    const infoOwner = document.getElementById("infoOwner");
-    const infoRole = document.getElementById("infoRole");
-    const infoStatus = document.getElementById("infoStatus");
-    const infoLastMessage = document.getElementById("infoLastMessage");
     const chatTitle = document.getElementById("chatTitle");
     const chatSub = document.getElementById("chatSub");
     const chatStatusChip = document.getElementById("chatStatusChip");
@@ -1202,8 +1161,6 @@ body{
     const sendBtn = document.getElementById("sendBtn");
     const statusBox = document.getElementById("statusBox");
 
-    const chatTitleHero = document.getElementById("chatTitleHero");
-    const chatSubHero = document.getElementById("chatSubHero");
     const profilePhoto = document.getElementById("profilePhoto");
     const profileRole = document.getElementById("profileRole");
     const profileName = document.getElementById("profileName");
@@ -1572,17 +1529,10 @@ body{
       const statusLabel = chat.status || "open";
       const lastMessage = chat.lastMessage || "Sem mensagens ainda.";
 
-      infoOfferCode.textContent = offerCode;
       infoOfferId.textContent = chat.offerId || chat.id;
-      infoOwner.textContent = ownerLabel;
-      infoRole.textContent = roleLabel;
-      infoStatus.textContent = statusLabel;
-      infoLastMessage.textContent = lastMessage;
 
       chatTitle.textContent = `Chat da oferta ${offerCode}`;
       chatSub.textContent = `Conversa privada com ${ownerLabel}.`;
-      chatTitleHero.textContent = `Oferta ${offerCode} em conversa.`;
-      chatSubHero.textContent = `Fale direto no chat privado da oferta com ${ownerLabel}.`;
       chatStatusChip.textContent = statusLabel;
       hideStatus();
     }
