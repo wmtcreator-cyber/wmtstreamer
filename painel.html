@@ -1,0 +1,2541 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel | WMT Market</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  
+  <style>
+    :root{
+      --bg:#04070d;
+      --bg-2:#09111d;
+      --bg-3:#0d1828;
+
+      --panel:#0d1521;
+      --panel-2:#111b2b;
+      --panel-3:#15243a;
+      --panel-4:#1a2a43;
+      --panel-5:#203455;
+
+      --text:#f5f8ff;
+      --text-2:#dce6f8;
+      --text-3:#c4d2e9;
+      --muted:#a6b2c7;
+      --muted-2:#7f8ba0;
+
+      --line:rgba(255,255,255,.08);
+      --line-2:rgba(255,255,255,.12);
+      --line-strong:rgba(255,255,255,.16);
+
+      --blue:#7aa8ff;
+      --blue-2:#5d92ff;
+      --blue-3:#3a72f0;
+      --blue-4:#2958cd;
+      --blue-soft:rgba(122,168,255,.16);
+      --blue-soft-2:rgba(122,168,255,.22);
+
+      --green:#58d791;
+      --green-2:#35ba71;
+      --green-soft:rgba(88,215,145,.14);
+      --green-soft-2:rgba(88,215,145,.20);
+
+      --yellow:#f2c94c;
+      --yellow-soft:rgba(242,201,76,.14);
+      --yellow-soft-2:rgba(242,201,76,.20);
+
+      --danger:#ff6b83;
+      --danger-soft:rgba(255,107,131,.12);
+      --danger-soft-2:rgba(255,107,131,.20);
+
+      --shadow-xs:0 8px 18px rgba(0,0,0,.12);
+      --shadow-sm:0 14px 30px rgba(0,0,0,.18);
+      --shadow:0 20px 55px rgba(0,0,0,.28);
+      --shadow-lg:0 28px 80px rgba(0,0,0,.36);
+
+      --max:1480px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+
+    body{
+      display:none;
+      margin:0;
+      font-family:'Plus Jakarta Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(122,168,255,.12), transparent 24%),
+        radial-gradient(circle at 92% 8%, rgba(88,215,145,.08), transparent 20%),
+        radial-gradient(circle at 50% 100%, rgba(61,115,239,.10), transparent 28%),
+        linear-gradient(rgba(4,7,13,.90), rgba(4,7,13,.96)),
+        url('background.jpg') center center / cover no-repeat fixed;
+      min-height:100vh;
+      overflow-x:hidden;
+      position:relative;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(to right, rgba(255,255,255,.012) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,.012) 1px, transparent 1px);
+      background-size:34px 34px;
+      mask-image:linear-gradient(to bottom, rgba(0,0,0,.30), transparent 88%);
+      opacity:.24;
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font-family:inherit}
+
+    .container{
+      width:min(var(--max), calc(100% - 24px));
+      margin:0 auto;
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:80;
+      backdrop-filter:blur(10px);
+      background:linear-gradient(180deg, rgba(4,7,13,.88), rgba(4,7,13,.78));
+      border-bottom:1px solid var(--line);
+      box-shadow:0 8px 24px rgba(0,0,0,.16);
+    }
+
+    .topbar-inner{
+      min-height:74px;
+      display:flex;
+      flex-direction:column;
+      align-items:stretch;
+      justify-content:center;
+      gap:12px;
+      padding:12px 0;
+    }
+
+    .brand-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
+    .brand-logo{
+      width:46px;
+      height:46px;
+      flex:none;
+      border-radius:16px;
+      display:grid;
+      place-items:center;
+      color:#fff;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.03em;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.02)),
+        linear-gradient(135deg, var(--blue), var(--blue-2));
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.18),
+        0 12px 24px rgba(94,145,255,.22);
+    }
+
+    .brand-copy{
+      min-width:0;
+    }
+
+    .brand-text{
+      font-size:18px;
+      font-weight:800;
+      letter-spacing:-.01em;
+      color:#fff;
+      line-height:1.08;
+    }
+
+    .brand-sub{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      line-height:1.5;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      letter-spacing:.01em;
+    }
+
+    .nav{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:8px;
+    }
+
+    .nav a,
+    .nav button{
+      min-height:44px;
+      padding:11px 10px;
+      border-radius:999px;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.01em;
+      transition:.2s ease;
+      border:1px solid transparent;
+      background:rgba(255,255,255,.03);
+      cursor:pointer;
+      text-align:center;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
+    }
+
+    .nav a:hover,
+    .nav button:hover{
+      color:var(--text);
+      background:rgba(255,255,255,.06);
+      border-color:rgba(255,255,255,.08);
+      transform:translateY(-1px);
+    }
+
+    .nav .config-link{
+      color:#eef5ff;
+      background:linear-gradient(180deg, rgba(77,141,255,.14), rgba(255,255,255,.03));
+      border:1px solid rgba(77,141,255,.18);
+      box-shadow:0 10px 24px rgba(77,141,255,.10), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .nav .config-link:hover{
+      color:#fff;
+      background:linear-gradient(180deg, rgba(77,141,255,.24), rgba(255,255,255,.05));
+      border-color:rgba(77,141,255,.30);
+      box-shadow:0 12px 28px rgba(77,141,255,.16);
+    }
+
+    .page{
+      padding:14px 0 28px;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:28px;
+      border:1px solid rgba(255,255,255,.10);
+      background:
+        linear-gradient(180deg, rgba(10,16,27,.95), rgba(8,13,22,.88));
+      box-shadow:var(--shadow);
+      padding:22px 16px 18px;
+      isolation:isolate;
+      margin-bottom:14px;
+    }
+
+    .hero::before{
+      content:"";
+      position:absolute;
+      top:-90px;
+      right:-80px;
+      width:220px;
+      height:220px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(122,168,255,.18), transparent 66%);
+      pointer-events:none;
+    }
+
+    .hero::after{
+      content:"";
+      position:absolute;
+      left:-90px;
+      bottom:-100px;
+      width:220px;
+      height:220px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(88,215,145,.10), transparent 68%);
+      pointer-events:none;
+    }
+
+    .hero-content{
+      position:relative;
+      z-index:1;
+      display:grid;
+      gap:18px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 13px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.05);
+      color:#e6efff;
+      font-size:10px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      margin-bottom:12px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .hero-title{
+      margin:0;
+      font-size:clamp(34px, 12vw, 54px);
+      line-height:1.02;
+      font-weight:800;
+      letter-spacing:-.04em;
+      color:#fff;
+      text-shadow:0 8px 20px rgba(0,0,0,.18);
+      max-width:860px;
+    }
+
+    .hero-sub{
+      margin:14px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.8;
+      font-weight:600;
+      letter-spacing:.01em;
+      max-width:700px;
+    }
+
+    .stats{
+      margin-top:16px;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+
+    .stat-card{
+      position:relative;
+      overflow:hidden;
+      border-radius:20px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      padding:18px;
+      box-shadow:var(--shadow-sm);
+    }
+
+    .stat-card::after{
+      content:"";
+      position:absolute;
+      width:120px;
+      height:120px;
+      right:-40px;
+      top:-40px;
+      border-radius:50%;
+      opacity:.18;
+      pointer-events:none;
+    }
+
+    .stat-card:nth-child(1)::after{ background:radial-gradient(circle, var(--blue), transparent 70%); }
+    .stat-card:nth-child(2)::after{ background:radial-gradient(circle, #9dc0ff, transparent 70%); }
+    .stat-card:nth-child(3)::after{ background:radial-gradient(circle, var(--yellow), transparent 70%); }
+    .stat-card:nth-child(4)::after{ background:radial-gradient(circle, var(--green), transparent 70%); }
+
+    .stat-label{
+      color:#b8c6dc;
+      font-size:12px;
+      font-weight:800;
+      margin-bottom:10px;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+
+    .stat-value{
+      font-size:32px;
+      line-height:1.05;
+      font-weight:800;
+      letter-spacing:-.03em;
+      color:#fff;
+    }
+
+    .toolbar-shell{
+      margin-bottom:14px;
+      display:grid;
+      gap:12px;
+    }
+
+    .toolbar-card{
+      position:relative;
+      overflow:hidden;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(10,16,27,.94), rgba(8,13,22,.88));
+      box-shadow:var(--shadow);
+      padding:16px;
+    }
+
+    .toolbar-grid{
+      display:grid;
+      gap:10px;
+    }
+
+    .search-wrap,
+    .select-wrap{
+      position:relative;
+    }
+
+    .search,
+    .select{
+      width:100%;
+      border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(18,27,43,.98), rgba(12,18,30,.96));
+      color:#eef4ff;
+      border-radius:18px;
+      padding:15px 15px;
+      font-size:14px;
+      outline:none;
+      font-weight:700;
+      letter-spacing:.01em;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.04),
+        0 12px 24px rgba(0,0,0,.14);
+      transition:.22s ease;
+      appearance:none;
+      -webkit-appearance:none;
+      -moz-appearance:none;
+    }
+
+    .search::placeholder{
+      color:#a8b7ca;
+      font-weight:600;
+    }
+
+    .search:hover,
+    .select:hover{
+      border-color:rgba(255,255,255,.16);
+      background:linear-gradient(180deg, rgba(20,30,47,.99), rgba(13,20,33,.97));
+    }
+
+    .search:focus,
+    .select:focus{
+      border-color:rgba(122,168,255,.60);
+      box-shadow:
+        0 0 0 4px rgba(122,168,255,.10),
+        0 16px 28px rgba(0,0,0,.18);
+      background:linear-gradient(180deg, rgba(21,31,49,.99), rgba(13,20,33,.97));
+    }
+
+    .select{
+      padding-right:42px;
+    }
+
+    .select-wrap::after{
+      content:"⌄";
+      position:absolute;
+      right:16px;
+      top:50%;
+      transform:translateY(-50%);
+      color:#eef4ff;
+      font-size:16px;
+      font-weight:800;
+      pointer-events:none;
+      opacity:.95;
+    }
+
+    .select option{
+      background:#0f1825;
+      color:#eef4ff;
+    }
+
+    .cards-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+      align-items:start;
+    }
+
+    .offer-card{
+      position:relative;
+      overflow:hidden;
+      background:
+        linear-gradient(180deg, rgba(10,16,27,.97), rgba(7,12,21,.93));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      padding:16px;
+      box-shadow:var(--shadow);
+      display:grid;
+      gap:13px;
+      transition:.25s ease;
+      isolation:isolate;
+    }
+
+    .offer-card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:22px;
+      padding:1px;
+      background:linear-gradient(145deg, rgba(122,168,255,.14), rgba(255,255,255,.02), rgba(89,212,143,.06));
+      -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite:xor;
+      mask-composite:exclude;
+      pointer-events:none;
+      z-index:0;
+    }
+
+    .offer-card::after{
+      content:"";
+      position:absolute;
+      width:180px;
+      height:180px;
+      right:-70px;
+      top:-80px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(122,168,255,.10), transparent 70%);
+      pointer-events:none;
+      z-index:0;
+    }
+
+    .offer-card > *{
+      position:relative;
+      z-index:1;
+    }
+
+    .offer-card:hover{
+      transform:translateY(-3px);
+      border-color:rgba(122,168,255,.16);
+      box-shadow:0 26px 70px rgba(0,0,0,.34);
+    }
+
+    .offer-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+    }
+
+    .offer-code{
+      font-size:21px;
+      font-weight:800;
+      letter-spacing:-.02em;
+      margin-bottom:4px;
+      color:#fff;
+      word-break:break-word;
+      line-height:1.15;
+    }
+
+    .offer-date{
+      color:#98a7bb;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:.02em;
+      line-height:1.5;
+    }
+
+    .streamer-badge{
+      padding:9px 12px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800;
+      border:1px solid var(--line);
+      white-space:nowrap;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .streamer-badge.wmt{
+      color:#eef5ff;
+      background:linear-gradient(180deg, rgba(122,168,255,.18), rgba(122,168,255,.10));
+      border-color:rgba(122,168,255,.28);
+    }
+
+    .streamer-badge.pius{
+      color:#eafff2;
+      background:linear-gradient(180deg, rgba(89,212,143,.18), rgba(89,212,143,.10));
+      border-color:rgba(89,212,143,.28);
+    }
+
+    .offer-images{
+      display:flex;
+      gap:10px;
+      overflow-x:auto;
+      padding:2px 2px 4px;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(122,168,255,.45) transparent;
+    }
+
+    .offer-images::-webkit-scrollbar{
+      height:8px;
+    }
+
+    .offer-images::-webkit-scrollbar-track{
+      background:rgba(255,255,255,.04);
+      border-radius:999px;
+    }
+
+    .offer-images::-webkit-scrollbar-thumb{
+      background:linear-gradient(90deg, rgba(122,168,255,.5), rgba(122,168,255,.26));
+      border-radius:999px;
+    }
+
+    .offer-images img{
+      width:88px;
+      height:88px;
+      object-fit:cover;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      flex:none;
+      cursor:pointer;
+      transition:.22s ease;
+      background:#0f151d;
+      box-shadow:0 8px 18px rgba(0,0,0,.18);
+    }
+
+    .offer-images img:hover{
+      transform:translateY(-2px) scale(1.03);
+      border-color:rgba(122,168,255,.26);
+      box-shadow:0 14px 26px rgba(0,0,0,.24);
+    }
+
+    .meta{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+
+    .meta-item{
+      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.025));
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:16px;
+      padding:13px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+      min-height:82px;
+    }
+
+    .meta-item .k{
+      color:#9fb0c7;
+      font-size:11px;
+      font-weight:800;
+      margin-bottom:7px;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+
+    .meta-item .v{
+      color:#fff;
+      font-size:14px;
+      font-weight:800;
+      word-break:break-word;
+      line-height:1.55;
+      letter-spacing:.01em;
+    }
+
+    .copy-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .copy-btn{
+      border:1px solid rgba(255,255,255,.10);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:11px;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.01em;
+      cursor:pointer;
+      transition:.2s ease;
+      box-shadow:var(--shadow-xs);
+    }
+
+    .copy-btn:hover{
+      transform:translateY(-1px);
+      border-color:rgba(122,168,255,.18);
+      background:linear-gradient(180deg, rgba(122,168,255,.16), rgba(122,168,255,.08));
+    }
+
+    .message-box{
+      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.025));
+      border:1px solid rgba(255,255,255,.07);
+      border-radius:16px;
+      padding:13px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    .message-box .k{
+      color:#9fb0c7;
+      font-size:11px;
+      font-weight:800;
+      margin-bottom:7px;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+
+    .message-box .v{
+      color:#edf3ff;
+      font-size:14px;
+      line-height:1.8;
+      white-space:pre-wrap;
+      word-break:break-word;
+      font-weight:600;
+      letter-spacing:.01em;
+    }
+
+    .status-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .status-chip{
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800;
+      border:1px solid var(--line);
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .status-chip.pendente{
+      color:#edf3ff;
+      background:linear-gradient(180deg, rgba(122,168,255,.16), rgba(122,168,255,.08));
+      border-color:rgba(122,168,255,.24);
+    }
+
+    .status-chip.analise{
+      color:#fff2cb;
+      background:linear-gradient(180deg, rgba(242,201,76,.18), rgba(242,201,76,.08));
+      border-color:rgba(242,201,76,.24);
+    }
+
+    .status-chip.aceita{
+      color:#ddffea;
+      background:linear-gradient(180deg, rgba(89,212,143,.18), rgba(89,212,143,.08));
+      border-color:rgba(89,212,143,.24);
+    }
+
+    .status-chip.recusada{
+      color:#ffe1e8;
+      background:linear-gradient(180deg, rgba(255,107,131,.18), rgba(255,107,131,.08));
+      border-color:rgba(255,107,131,.24);
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .action-btn{
+      border:none;
+      cursor:pointer;
+      border-radius:13px;
+      padding:11px 12px;
+      font-weight:800;
+      font-size:12px;
+      letter-spacing:.01em;
+      transition:.2s ease;
+      box-shadow:var(--shadow-xs);
+    }
+
+    .action-btn:hover{
+      transform:translateY(-1px);
+      filter:brightness(1.05);
+    }
+
+    .btn-analise{
+      color:#fff3d0;
+      background:linear-gradient(180deg, rgba(242,201,76,.20), rgba(242,201,76,.10));
+      border:1px solid rgba(242,201,76,.25);
+    }
+
+    .btn-aceita{
+      color:#dcf8e8;
+      background:linear-gradient(180deg, rgba(89,212,143,.20), rgba(89,212,143,.10));
+      border:1px solid rgba(89,212,143,.25);
+    }
+
+    .btn-aprovada{
+      color:#e8fff1;
+      background:linear-gradient(180deg, rgba(89,212,143,.24), rgba(89,212,143,.12));
+      border:1px solid rgba(89,212,143,.30);
+    }
+
+    .btn-recusada{
+      color:#ffdbe2;
+      background:linear-gradient(180deg, rgba(255,107,131,.20), rgba(255,107,131,.10));
+      border:1px solid rgba(255,107,131,.25);
+    }
+
+    .btn-delete{
+      color:#ffe5eb;
+      background:linear-gradient(180deg, rgba(255,107,131,.16), rgba(255,107,131,.09));
+      border:1px solid rgba(255,107,131,.22);
+    }
+
+    .btn-chat{
+      color:#edf4ff;
+      background:linear-gradient(180deg, rgba(122,168,255,.22), rgba(122,168,255,.10));
+      border:1px solid rgba(122,168,255,.28);
+    }
+
+    .empty{
+      text-align:center;
+      padding:42px 20px;
+      color:var(--muted);
+      background:linear-gradient(180deg, rgba(10,16,27,.92), rgba(8,13,22,.88));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      grid-column:1 / -1;
+      font-size:15px;
+      font-weight:700;
+      letter-spacing:.01em;
+    }
+
+    .footer{
+      padding:14px 0 28px;
+      text-align:center;
+      color:var(--muted-2);
+      font-size:13px;
+      font-weight:600;
+      letter-spacing:.01em;
+    }
+
+    .modal-backdrop,
+    .viewer-backdrop,
+    .notice-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.62);
+      backdrop-filter:blur(6px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+    }
+
+    .modal-backdrop{ z-index:100; }
+    .viewer-backdrop{
+      z-index:110;
+      background:rgba(0,0,0,.80);
+      padding:20px;
+    }
+    .notice-backdrop{ z-index:120; }
+
+    .modal,
+    .notice-modal{
+      width:min(470px, 100%);
+      background:
+        linear-gradient(180deg, rgba(12,18,29,.98), rgba(10,15,25,.94));
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:var(--shadow-lg);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .modal::before,
+    .notice-modal::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:24px;
+      padding:1px;
+      -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite:xor;
+      mask-composite:exclude;
+      pointer-events:none;
+    }
+
+    .modal::before{
+      background:linear-gradient(140deg, rgba(255,255,255,.10), rgba(255,107,131,.18));
+    }
+
+    .notice-modal::before{
+      background:linear-gradient(145deg, rgba(255,255,255,.10), rgba(122,168,255,.18), rgba(255,255,255,.02));
+    }
+
+    .modal h3,
+    .notice-modal h3{
+      margin:0 0 10px;
+      font-size:24px;
+      letter-spacing:-.02em;
+      color:#fff;
+      line-height:1.15;
+    }
+
+    .modal p,
+    .notice-modal p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.8;
+      font-weight:600;
+      letter-spacing:.01em;
+    }
+
+    .notice-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      margin-bottom:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      color:#eef4ff;
+    }
+
+    .modal-actions,
+    .notice-actions{
+      margin-top:20px;
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+
+    .modal-btn,
+    .notice-btn{
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding:12px 15px;
+      font-weight:800;
+      font-size:13px;
+      letter-spacing:.01em;
+      transition:.2s ease;
+    }
+
+    .modal-btn:hover,
+    .notice-btn:hover{
+      transform:translateY(-1px);
+    }
+
+    .modal-btn.cancel,
+    .notice-btn.secondary{
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.10);
+    }
+
+    .modal-btn.confirm{
+      background:linear-gradient(135deg, #ff5b75, #ff7c93);
+      color:#fff;
+      box-shadow:0 18px 28px rgba(255,91,117,.20);
+    }
+
+    .notice-btn.primary{
+      background:linear-gradient(135deg, var(--blue-3), var(--blue));
+      color:#fff;
+      box-shadow:0 18px 28px rgba(61,115,239,.20);
+    }
+
+    .viewer-content{
+      position:relative;
+      max-width:min(1100px, 100%);
+      max-height:90vh;
+    }
+
+    .viewer-content img{
+      max-width:100%;
+      max-height:90vh;
+      border-radius:20px;
+      display:block;
+      box-shadow:0 24px 60px rgba(0,0,0,.40);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .viewer-close{
+      position:absolute;
+      top:-12px;
+      right:-12px;
+      width:40px;
+      height:40px;
+      border:none;
+      border-radius:999px;
+      background:#fff;
+      color:#000;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 12px 22px rgba(0,0,0,.22);
+      transition:.2s ease;
+    }
+
+    .viewer-close:hover{
+      transform:scale(1.05);
+    }
+
+    @media (max-width: 760px){
+      body{
+        background:
+          radial-gradient(circle at 8% 0%, rgba(122,168,255,.10), transparent 24%),
+          radial-gradient(circle at 92% 8%, rgba(88,215,145,.06), transparent 20%),
+          linear-gradient(rgba(4,7,13,.92), rgba(4,7,13,.98)),
+          url('background.jpg') center center / cover no-repeat;
+      }
+    }
+
+    @media (min-width: 761px){
+      .container{
+        width:min(var(--max), calc(100% - 40px));
+      }
+
+      .topbar-inner{
+        min-height:78px;
+        flex-direction:row;
+        align-items:center;
+        justify-content:space-between;
+        padding:0;
+      }
+
+      .nav{
+        width:auto;
+        display:flex;
+        align-items:center;
+        gap:8px;
+      }
+
+      .nav a,
+      .nav button{
+        min-height:auto;
+        padding:10px 14px;
+        background:transparent;
+      }
+
+      .page{
+        padding:22px 0 34px;
+      }
+
+      .hero{
+        border-radius:34px;
+        padding:30px 28px 24px;
+      }
+
+      .stats{
+        grid-template-columns:repeat(4, minmax(0,1fr));
+        gap:12px;
+      }
+
+      .toolbar-card{
+        padding:18px;
+      }
+
+      .toolbar-grid{
+        grid-template-columns:1.3fr .7fr .7fr;
+      }
+
+      .cards-grid{
+        grid-template-columns:repeat(2, minmax(0,1fr));
+        gap:16px;
+      }
+
+      .meta{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media (min-width: 1180px){
+      .cards-grid{
+        grid-template-columns:repeat(3, minmax(0,1fr));
+      }
+    }
+  
+  /* ===== Painel admin estilo usuario ===== */
+  .toolbar-card{
+    padding:14px;
+    border-color:rgba(77,141,255,.12);
+    background:linear-gradient(180deg, rgba(9,16,30,.97), rgba(6,11,21,.93));
+  }
+
+  .search, .select{
+    height:54px;
+    border-radius:18px;
+    border-color:rgba(77,141,255,.16);
+  }
+
+  .cards-grid{
+    grid-template-columns:1fr !important;
+    gap:14px !important;
+  }
+
+  .offer-card{
+    border-radius:28px;
+    padding:16px;
+    background:
+      radial-gradient(circle at 92% 18%, rgba(77,141,255,.12), transparent 22%),
+      linear-gradient(180deg, rgba(8,14,25,.99), rgba(5,9,18,.97));
+    border:1px solid rgba(77,141,255,.14);
+    box-shadow:0 16px 44px rgba(0,0,0,.24);
+  }
+
+  .offer-card::after{ display:none; }
+
+  .offer-top{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:14px;
+    align-items:center;
+  }
+
+  .admin-line{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:14px;
+    align-items:center;
+  }
+
+  .admin-left{
+    display:grid;
+    grid-template-columns:92px minmax(0,1fr);
+    gap:16px;
+    align-items:center;
+    min-width:0;
+  }
+
+  .admin-thumb{
+    width:92px;
+    height:92px;
+    border-radius:22px;
+    overflow:hidden;
+    position:relative;
+    background:#0f151d;
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 12px 22px rgba(0,0,0,.22);
+    flex:none;
+  }
+
+  .admin-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .admin-thumb-badge{
+    position:absolute;
+    right:8px;
+    bottom:8px;
+    min-width:26px;
+    height:26px;
+    padding:0 8px;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.72);
+    border:1px solid rgba(255,255,255,.10);
+    color:#fff;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.03em;
+    box-shadow:0 8px 16px rgba(0,0,0,.22);
+  }
+
+  .admin-main{
+    min-width:0;
+    display:grid;
+    gap:12px;
+  }
+
+  .admin-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+  }
+
+  .admin-title-group{
+    min-width:0;
+    display:grid;
+    gap:5px;
+  }
+
+  .offer-code{
+    margin:0;
+    font-size:21px;
+    font-weight:800;
+    letter-spacing:-.03em;
+    line-height:1.02;
+  }
+
+  .offer-date{
+    color:#8ea0b8;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.02em;
+    line-height:1.5;
+  }
+
+  .streamer-badge{
+    padding:8px 11px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:800;
+    white-space:nowrap;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+
+  .meta, .message-box{
+    display:none !important;
+  }
+
+  .admin-meta{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .price-pill{
+    padding:10px 13px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.01em;
+    background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.08);
+    color:#fff;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+  }
+
+  .status-row{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:14px;
+    align-items:start;
+  }
+
+  .status-chip{
+    width:max-content;
+    padding:10px 12px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+
+  .actions{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+    min-width:0;
+  }
+
+  .action-btn{
+    min-height:52px;
+    border-radius:16px;
+    padding:14px 16px;
+    font-size:13px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+    text-align:center;
+  }
+
+  .btn-chat{
+    color:#fff;
+    background:linear-gradient(135deg, #2d74ff, #67a3ff);
+    border:1px solid rgba(103,163,255,.36);
+    box-shadow:0 14px 26px rgba(45,116,255,.20);
+  }
+
+  .btn-aceita{
+    color:#ecfff5;
+    background:linear-gradient(135deg, rgba(46,214,141,.28), rgba(46,214,141,.12));
+    border:1px solid rgba(82,231,163,.30);
+  }
+
+  .btn-recusada{
+    color:#ffdbe2;
+    background:linear-gradient(180deg, rgba(255,107,131,.20), rgba(255,107,131,.10));
+    border:1px solid rgba(255,107,131,.25);
+  }
+
+  .btn-delete{
+    color:#ffe5eb;
+    background:linear-gradient(180deg, rgba(255,107,131,.16), rgba(255,107,131,.09));
+    border:1px solid rgba(255,107,131,.22);
+  }
+
+  .btn-analise{ display:none !important; }
+  .btn-aprovada{ display:none !important; }
+
+  @media (min-width: 761px){
+    .offer-top{
+      grid-template-columns:minmax(0,1fr);
+    }
+
+    .admin-line{
+      grid-template-columns:minmax(0,1fr) 340px;
+      gap:18px;
+    }
+
+    .actions{
+      align-self:center;
+    }
+  }
+
+  @media (max-width: 760px){
+    .admin-left{
+      grid-template-columns:72px minmax(0,1fr);
+      gap:12px;
+    }
+
+    .admin-thumb{
+      width:72px;
+      height:72px;
+      border-radius:18px;
+    }
+
+    .offer-code{
+      font-size:18px;
+    }
+
+    .admin-head{
+      flex-direction:column;
+      align-items:flex-start;
+    }
+  }
+
+
+
+  /* ===== Header novo estilo plataforma ===== */
+  .topbar-modern{
+    background:linear-gradient(180deg, rgba(5,9,16,.94), rgba(5,9,16,.86));
+    border-bottom:1px solid rgba(77,141,255,.14);
+    box-shadow:0 10px 30px rgba(0,0,0,.18);
+  }
+  .topbar-modern-inner{position:relative}
+  .modern-brand-row{width:100%}
+  .brand-home{text-decoration:none}
+  .topbar-actions{display:flex;align-items:center;gap:10px;position:relative}
+  .top-icon-btn{
+    width:46px;height:46px;border-radius:16px;display:grid;place-items:center;color:#dbe8ff;
+    text-decoration:none;position:relative;transition:.2s ease;background:transparent;border:1px solid transparent;
+    box-shadow:none;cursor:pointer;
+  }
+  .top-icon-btn:hover{
+    transform:translateY(-1px);color:#fff;background:linear-gradient(180deg, rgba(77,141,255,.16), rgba(255,255,255,.04));
+    border-color:rgba(77,141,255,.20);box-shadow:0 12px 28px rgba(77,141,255,.12);
+  }
+  .top-icon-btn svg{width:22px;height:22px;display:block}
+  .top-icon-btn.has-badge{position:relative}
+  .top-badge{
+    position:absolute;top:-4px;right:-2px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;
+    display:inline-flex;align-items:center;justify-content:center;background:#f7c74f;color:#111;font-size:11px;font-weight:900;
+    box-shadow:0 8px 16px rgba(0,0,0,.20);border:2px solid #1b2232;
+  }
+  .profile-menu-shell{position:relative;display:flex;align-items:center}
+  .profile-trigger{
+    width:50px;height:50px;border-radius:999px;padding:0;overflow:hidden;cursor:pointer;background:transparent;
+    border:1px solid transparent;box-shadow:none;position:relative;z-index:2;
+  }
+  .profile-trigger:hover{
+    border-radius:18px;background:linear-gradient(180deg, rgba(77,141,255,.16), rgba(255,255,255,.04));
+    border-color:rgba(77,141,255,.20);box-shadow:0 12px 28px rgba(77,141,255,.12);
+  }
+  .profile-trigger img,.profile-menu-avatar{
+    width:100%;height:100%;object-fit:cover;display:block;border-radius:999px;background:transparent;box-shadow:none;border:none;
+  }
+  .profile-menu,.notif-menu{
+    position:absolute;top:calc(100% + 10px);right:0;opacity:0;visibility:hidden;transform:translateY(8px);
+    transition:opacity .18s ease, transform .18s ease, visibility .18s ease;pointer-events:none;z-index:120;
+  }
+  .profile-menu{
+    width:min(350px, calc(100vw - 24px));border-radius:22px;
+    background:linear-gradient(180deg, rgba(19,24,40,.98), rgba(18,22,36,.96));
+    border:1px solid rgba(255,255,255,.08);box-shadow:0 24px 60px rgba(0,0,0,.34);padding:14px;
+  }
+  .profile-menu.open,.notif-menu.open{display:block;opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+  .profile-menu-head{
+    display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:12px;align-items:center;
+    padding:6px 4px 16px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:12px;
+  }
+  .profile-menu-avatar{width:60px;height:60px}
+  .profile-menu-copy{min-width:0}
+  .profile-menu-name{
+    color:#fff;font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .profile-menu-sub{margin-top:6px;color:#9eb0c8;font-size:13px;font-weight:600;line-height:1.5}
+  .profile-sell-btn{
+    min-height:44px;padding:0 18px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:800;color:#111;background:#f7c74f;text-decoration:none;box-shadow:0 12px 24px rgba(0,0,0,.18);transition:.2s ease;white-space:nowrap;
+  }
+  .profile-sell-btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
+  .profile-menu-links{display:grid;gap:4px}
+  .profile-menu-link{
+    min-height:50px;border-radius:14px;display:flex;align-items:center;gap:12px;padding:0 12px;color:#eef4ff;
+    font-size:14px;font-weight:700;text-decoration:none;border:1px solid transparent;background:transparent;transition:.2s ease;width:100%;text-align:left;cursor:pointer;
+  }
+  .profile-menu-link:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.08)}
+  .profile-link-icon{width:28px;display:inline-flex;justify-content:center;align-items:center;font-size:20px;flex:none;opacity:.95}
+  .danger-link{color:#ffe5eb}
+  .notif-menu{
+    width:min(360px, calc(100vw - 24px));padding:12px;border-radius:20px;
+    background:linear-gradient(180deg, rgba(19,24,40,.98), rgba(18,22,36,.96));
+    border:1px solid rgba(255,255,255,.08);box-shadow:0 24px 60px rgba(0,0,0,.34);
+  }
+  .notif-menu-head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 4px 12px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:10px;
+  }
+  .notif-menu-head strong{color:#fff;font-size:15px;letter-spacing:-.01em}
+  .notif-clear-btn{
+    border:none;background:rgba(255,255,255,.05);color:#dbe7fb;border:1px solid rgba(255,255,255,.08);
+    min-height:34px;padding:0 10px;border-radius:12px;font-weight:800;cursor:pointer
+  }
+  .notif-list{display:grid;gap:8px;max-height:360px;overflow:auto;padding-right:2px}
+  .notif-item{
+    border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);border-radius:14px;padding:12px;cursor:pointer;transition:.18s ease
+  }
+  .notif-item:hover{background:rgba(255,255,255,.05);border-color:rgba(77,141,255,.18)}
+  .notif-item.unread{border-color:rgba(77,141,255,.22);background:rgba(77,141,255,.08)}
+  .notif-title{color:#fff;font-size:13px;font-weight:800;line-height:1.4}
+  .notif-text{margin-top:4px;color:#aebbd0;font-size:12px;line-height:1.6;font-weight:600}
+  .notif-time{margin-top:6px;color:#7f8ba0;font-size:11px;font-weight:700}
+  .notif-empty{padding:18px 10px;color:#9eb0c8;font-size:13px;font-weight:700;text-align:center}
+  @media (hover:hover) and (pointer:fine){
+    .profile-menu-shell:hover .profile-menu{
+      display:block;opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;
+    }
+  }
+  @media (max-width:760px){
+    .top-icon-btn{width:44px;height:44px;border-radius:14px}
+    .profile-trigger{width:46px;height:46px}
+    .profile-menu{width:min(340px, calc(100vw - 18px))}
+    .notif-menu{width:min(340px, calc(100vw - 18px));right:-40px}
+    .profile-menu-head{grid-template-columns:52px minmax(0,1fr)}
+    .profile-sell-btn{grid-column:1/-1;justify-self:start;margin-top:4px}
+  }
+
+@media (max-width:760px){
+  .topbar{
+    backdrop-filter:none !important;
+    z-index:230 !important;
+  }
+
+  .topbar-inner{
+    min-height:68px !important;
+    padding:10px 0 !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:10px !important;
+  }
+
+  .brand-row.modern-brand-row,
+  .brand-row{
+    width:auto !important;
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    display:flex !important;
+    align-items:center !important;
+  }
+
+  .brand.brand-home,
+  .brand{
+    min-width:0 !important;
+    flex:1 1 auto !important;
+  }
+
+  .brand-copy{
+    min-width:0 !important;
+  }
+
+  .brand-logo{
+    width:42px !important;
+    height:42px !important;
+    border-radius:14px !important;
+    font-size:12px !important;
+  }
+
+  .brand-text{
+    font-size:15px !important;
+  }
+
+  .brand-sub{
+    font-size:11px !important;
+    line-height:1.35 !important;
+  }
+
+  .topbar-actions{
+    margin-left:auto !important;
+    justify-content:flex-end !important;
+    gap:8px !important;
+  }
+}
+
+
+
+</style>
+</head>
+<body>
+  
+<header class="topbar topbar-modern">
+  <div class="container topbar-inner topbar-modern-inner">
+    <div class="brand-row modern-brand-row">
+      <a href="index.html" class="brand brand-home">
+        <div class="brand-logo">WMT</div>
+        <div class="brand-copy">
+          <div class="brand-text">Painel WMT Market</div>
+          <div class="brand-sub">Gerencie ofertas com o mesmo padrão visual do site</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="topbar-actions">
+      <a href="minhas-ofertas.html" class="top-icon-btn" aria-label="Chat" title="Chat">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 17.5 3.5 20V6a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+      </a>
+
+      <button class="top-icon-btn has-badge" id="notifTrigger" type="button" aria-label="Notificações" title="Notificações">
+        <span class="top-badge" id="notifBadge" style="display:none;">0</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3.75a4.25 4.25 0 0 0-4.25 4.25v1.13c0 .84-.2 1.66-.59 2.4L6 13.75V15h12v-1.25l-1.16-2.22c-.39-.74-.59-1.56-.59-2.4V8A4.25 4.25 0 0 0 12 3.75Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M10 18a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <div class="notif-menu" id="notifMenu">
+        <div class="notif-menu-head">
+          <strong>Notificações</strong>
+          <button type="button" id="markAllReadBtn" class="notif-clear-btn">Marcar lidas</button>
+        </div>
+        <div class="notif-list" id="notifList">
+          <div class="notif-empty">Sem notificações.</div>
+        </div>
+      </div>
+
+      <div class="profile-menu-shell">
+        <button class="top-icon-btn profile-trigger" id="profileTrigger" type="button" aria-label="Abrir menu da conta" aria-expanded="false" aria-controls="profileMenu">
+          <img id="headerProfilePhoto" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+        </button>
+
+        <div class="profile-menu" id="profileMenu">
+          <div class="profile-menu-head">
+            <img id="menuProfilePhoto" class="profile-menu-avatar" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+            <div class="profile-menu-copy">
+              <div class="profile-menu-name" id="menuProfileName">WMT</div>
+              <div class="profile-menu-sub" id="menuProfileSub">Conta administrativa</div>
+            </div>
+            <a href="enviar.html" class="profile-sell-btn">Vender</a>
+          </div>
+
+          <div class="profile-menu-links">
+            <a href="minhas-ofertas.html" class="profile-menu-link">
+              <span class="profile-link-icon">💬</span>
+              <span>Ofertas</span>
+            </a>
+
+            <a href="configuracoes.html" class="profile-menu-link">
+              <span class="profile-link-icon">⚙</span>
+              <span>Configurações da conta</span>
+            </a>
+
+            <a href="painel.html" class="profile-menu-link" id="profilePanelLink">
+              <span class="profile-link-icon">🛡</span>
+              <span>Painel</span>
+            </a>
+
+            <button id="refreshBtn" type="button" class="profile-menu-link">
+              <span class="profile-link-icon">↻</span>
+              <span>Atualizar ofertas</span>
+            </button>
+
+            <button id="logoutBtn" type="button" class="profile-menu-link danger-link">
+              <span class="profile-link-icon">↪</span>
+              <span>Sair</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+
+  <main class="page">
+    <div class="container">
+      <section class="hero">
+        <div class="hero-content">
+          <div>
+            <div class="badge">Painel administrativo</div>
+            <h1 class="hero-title">Ofertas no controle.</h1>
+            <p class="hero-sub">Mesmo estilo do usuário, mas com ações de admin mais rápidas.</p>
+          </div>
+
+          <section class="stats">
+            <div class="stat-card">
+              <div class="stat-label">Total</div>
+              <div class="stat-value" id="statTotal">0</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Pendentes</div>
+              <div class="stat-value" id="statPendente">0</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Em análise</div>
+              <div class="stat-value" id="statAnalise">0</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Aceitas / Recusadas</div>
+              <div class="stat-value" id="statFinalizadas">0</div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="toolbar-shell">
+        <div class="toolbar-card">
+          <div class="toolbar-grid">
+            <div class="search-wrap">
+              <input
+                id="searchInput"
+                class="search"
+                type="text"
+                placeholder="Buscar por código, nome da conta ou status"
+              />
+            </div>
+
+            <div class="select-wrap">
+              <select id="streamerFilter" class="select">
+                <option value="TODOS">Todos os streamers</option>
+                <option value="WMT">WMT</option>
+                <option value="PIUSFF">PIUSFF</option>
+              </select>
+            </div>
+
+            <div class="select-wrap">
+              <select id="statusFilter" class="select">
+                <option value="TODOS">Todos os status</option>
+                <option value="Pendente">Pendente</option>
+                <option value="Em análise">Em análise</option>
+                <option value="Aprovada">Aprovada</option>
+                <option value="Aceita">Aceita</option>
+                <option value="Recusada">Recusada</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="offersContainer" class="cards-grid"></section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    WMT Market • Painel de ofertas
+  </footer>
+
+  <div class="modal-backdrop" id="deleteModal">
+    <div class="modal">
+      <h3>Apagar oferta</h3>
+      <p>Tem certeza que deseja apagar esta oferta? Essa ação não pode ser desfeita.</p>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" id="cancelDeleteBtn">Cancelar</button>
+        <button class="modal-btn confirm" id="confirmDeleteBtn">Apagar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="viewer-backdrop" id="imageViewer">
+    <div class="viewer-content">
+      <button class="viewer-close" id="viewerCloseBtn">×</button>
+      <img id="viewerImage" src="" alt="Imagem ampliada">
+    </div>
+  </div>
+
+  <div class="notice-backdrop" id="noticeModal">
+    <div class="notice-modal">
+      <div class="notice-badge" id="noticeBadge">Aviso</div>
+      <h3 id="noticeTitle">Mensagem</h3>
+      <p id="noticeMessage">Texto da mensagem.</p>
+      <div class="notice-actions">
+        <button class="notice-btn secondary" id="noticeSecondaryBtn" style="display:none;">Cancelar</button>
+        <button class="notice-btn primary" id="noticePrimaryBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <script type="module">
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
+      authDomain: "wmt-market.firebaseapp.com",
+      projectId: "wmt-market",
+      storageBucket: "wmt-market.firebasestorage.app",
+      messagingSenderId: "547032996672",
+      appId: "1:547032996672:web:c7bd6a33e43927f003f8a5",
+      measurementId: "G-B5X5VD667Y"
+    };
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const ADMIN_EMAILS = [
+      "wmtcreator@gmail.com"
+      // "admin2@gmail.com",
+      // "admin3@gmail.com"
+    ];
+    const REDIRECT_KEY = "wmt_after_login";
+
+    let currentUser = null;
+    let panelAuthResolved = false;
+
+    const noticeModal = document.getElementById("noticeModal");
+    const noticeBadge = document.getElementById("noticeBadge");
+    const noticeTitle = document.getElementById("noticeTitle");
+    const noticeMessage = document.getElementById("noticeMessage");
+    const noticePrimaryBtn = document.getElementById("noticePrimaryBtn");
+    const noticeSecondaryBtn = document.getElementById("noticeSecondaryBtn");
+    const profileTrigger = document.getElementById("profileTrigger");
+    const profileMenu = document.getElementById("profileMenu");
+    const notifTrigger = document.getElementById("notifTrigger");
+    const notifMenu = document.getElementById("notifMenu");
+    const notifBadge = document.getElementById("notifBadge");
+    const notifList = document.getElementById("notifList");
+    const markAllReadBtn = document.getElementById("markAllReadBtn");
+    const headerProfilePhoto = document.getElementById("headerProfilePhoto");
+    const menuProfilePhoto = document.getElementById("menuProfilePhoto");
+    const menuProfileName = document.getElementById("menuProfileName");
+    const menuProfileSub = document.getElementById("menuProfileSub");
+    const profilePanelLink = document.getElementById("profilePanelLink");
+
+    function showNotice({
+      badge = "Aviso",
+      title = "Mensagem",
+      message = "",
+      primaryText = "Fechar",
+      secondaryText = "",
+      onPrimary = null,
+      onSecondary = null
+    }) {
+      noticeBadge.textContent = badge;
+      noticeTitle.textContent = title;
+      noticeMessage.textContent = message;
+      noticePrimaryBtn.textContent = primaryText;
+      noticeSecondaryBtn.textContent = secondaryText || "Cancelar";
+      noticeSecondaryBtn.style.display = secondaryText ? "inline-flex" : "none";
+
+      noticePrimaryBtn.onclick = () => {
+        closeNotice();
+        if (typeof onPrimary === "function") onPrimary();
+      };
+
+      noticeSecondaryBtn.onclick = () => {
+        closeNotice();
+        if (typeof onSecondary === "function") onSecondary();
+      };
+
+      noticeModal.style.display = "flex";
+    }
+
+    function closeNotice() {
+      noticeModal.style.display = "none";
+    }
+
+    noticeModal.addEventListener("click", (e) => {
+      if (e.target === noticeModal) closeNotice();
+    });
+
+    function revealPanel() {
+      document.body.style.display = "block";
+    }
+
+    profileTrigger?.addEventListener("click", (e) => {
+      e.preventDefault();
+      const mobile = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+      if (mobile) toggleMenu();
+    });
+    notifTrigger?.addEventListener("click", (e) => {
+      e.preventDefault();
+      toggleNotif();
+    });
+    document.addEventListener("click", (e) => {
+      if (!profileMenu?.contains(e.target) && !profileTrigger?.contains(e.target)) closeMenu();
+      if (!notifMenu?.contains(e.target) && !notifTrigger?.contains(e.target)) closeNotif();
+    });
+
+    function setRedirectTarget(target) {
+      localStorage.setItem(REDIRECT_KEY, target);
+      sessionStorage.setItem(REDIRECT_KEY, target);
+    }
+
+    function goToLogin(target) {
+      setRedirectTarget(target);
+      window.location.href = "login.html";
+    }
+
+    function normalizeEmail(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function getUserEmail(user) {
+      return normalizeEmail(user?.email || "");
+    }
+
+    function getUserId(user) {
+      return String(user?.uid || "").trim();
+    }
+
+    function getProfileStorageKey(kind, user) {
+      const userId = getUserId(user);
+      return userId ? `wmt_${kind}_${userId}` : "";
+    }
+
+    function getStoredProfilePhoto(user) {
+      const key = getProfileStorageKey("photo", user);
+      return key ? String(localStorage.getItem(key) || "").trim() : "";
+    }
+
+    function getDisplayName(user) {
+      if (isAdminUser(user)) return "WMT";
+      const nickKey = getProfileStorageKey("nickname", user);
+      const nick = nickKey ? String(localStorage.getItem(nickKey) || "").trim() : "";
+      if (nick) return nick;
+      const email = getUserEmail(user);
+      return String(
+        user?.displayName ||
+        email.split("@")[0] ||
+        "Usuário"
+      ).trim();
+    }
+
+    function getAvatarUrlForUser(user) {
+      const name = getDisplayName(user);
+      const photo = getStoredProfilePhoto(user);
+      if (photo) return photo;
+      const initial = encodeURIComponent(String(name || "U").trim().charAt(0).toUpperCase() || "U");
+      const bg = isAdminUser(user) ? "4f8dff" : "1d2f49";
+      const color = "ffffff";
+      return `https://ui-avatars.com/api/?name=${initial}&background=${bg}&color=${color}&bold=true`;
+    }
+
+    function syncHeaderProfile(user) {
+      const name = getDisplayName(user);
+      const photo = getAvatarUrlForUser(user);
+      if (headerProfilePhoto) headerProfilePhoto.src = photo;
+      if (menuProfilePhoto) menuProfilePhoto.src = photo;
+      if (menuProfileName) menuProfileName.textContent = name;
+      if (menuProfileSub) menuProfileSub.textContent = isAdminUser(user)
+        ? "Conta administrativa do WMT Market"
+        : (getUserEmail(user) || "Conta WMT Market");
+      if (profilePanelLink) profilePanelLink.style.display = isAdminUser(user) ? "flex" : "none";
+    }
+
+    function openMenu() {
+      profileMenu?.classList.add("open");
+      profileTrigger?.setAttribute("aria-expanded", "true");
+    }
+    function closeMenu() {
+      profileMenu?.classList.remove("open");
+      profileTrigger?.setAttribute("aria-expanded", "false");
+    }
+    function toggleMenu() {
+      if (!profileMenu) return;
+      profileMenu.classList.contains("open") ? closeMenu() : openMenu();
+    }
+    function closeNotif() {
+      notifMenu?.classList.remove("open");
+    }
+    function toggleNotif() {
+      if (!notifMenu) return;
+      notifMenu.classList.toggle("open");
+      closeMenu();
+    }
+
+    function isAdminUser(user) {
+      const email = getUserEmail(user);
+      const allowedEmails = ADMIN_EMAILS.map(normalizeEmail).filter(Boolean);
+      return allowedEmails.includes(email);
+    }
+
+    let authDecisionDone = false;
+
+    function syncPanelAuth(user) {
+      currentUser = user || auth.currentUser || null;
+      window.__wmtPanelCurrentUser = currentUser;
+      return currentUser;
+    }
+
+    function denyAdminAccess() {
+      authDecisionDone = true;
+      revealPanel();
+      showNotice({
+        badge: "Acesso restrito",
+        title: "Painel exclusivo para administradores",
+        message: "Sua conta está logada, mas não possui permissão para acessar esta área administrativa.",
+        primaryText: "Ir para enviar oferta",
+        secondaryText: "Voltar ao início",
+        onPrimary: () => { window.location.href = "enviar.html"; },
+        onSecondary: () => { window.location.href = "index.html"; }
+      });
+    }
+
+    function applyAuthorizedPanel(user) {
+      syncPanelAuth(user);
+      authDecisionDone = true;
+      panelAuthResolved = true;
+      window.__wmtPanelAuthorized = true;
+      syncHeaderProfile(currentUser);
+      revealPanel();
+      document.dispatchEvent(new Event("wmt:panel-authorized"));
+    }
+
+    function resolveCurrentSession() {
+      const restoredUser = syncPanelAuth(null);
+
+      if (!restoredUser) {
+        return "no-user";
+      }
+
+      if (!isAdminUser(restoredUser)) {
+        return "not-admin";
+      }
+
+      applyAuthorizedPanel(restoredUser);
+      return "authorized";
+    }
+
+    function finalizePanelAccess() {
+      if (authDecisionDone) return;
+
+      const state = resolveCurrentSession();
+
+      if (state === "authorized") return;
+      if (state === "not-admin") {
+        denyAdminAccess();
+        return;
+      }
+
+      authDecisionDone = true;
+      goToLogin("painel.html");
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      const resolvedUser = syncPanelAuth(user);
+
+      if (resolvedUser) {
+        if (isAdminUser(resolvedUser)) {
+          applyAuthorizedPanel(resolvedUser);
+        } else {
+          denyAdminAccess();
+        }
+        return;
+      }
+
+      if (!authDecisionDone) {
+        finalizePanelAccess();
+      } else {
+        currentUser = null;
+        window.__wmtPanelCurrentUser = null;
+        window.__wmtPanelAuthorized = false;
+        authDecisionDone = true;
+        panelAuthResolved = true;
+        window.location.href = "index.html";
+      }
+    });
+
+    document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        currentUser = null;
+        window.__wmtPanelCurrentUser = null;
+        window.__wmtPanelAuthorized = false;
+        authDecisionDone = true;
+        panelAuthResolved = true;
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+
+
+
+  <script type="module">
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      getDoc,
+      setDoc,
+      doc,
+      updateDoc,
+      deleteDoc,
+      orderBy,
+      query,
+      serverTimestamp,
+      onSnapshot,
+      where,
+      writeBatch,
+      limit
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
+      authDomain: "wmt-market.firebaseapp.com",
+      projectId: "wmt-market",
+      storageBucket: "wmt-market.firebasestorage.app",
+      messagingSenderId: "547032996672",
+      appId: "1:547032996672:web:c7bd6a33e43927f003f8a5",
+      measurementId: "G-B5X5VD667Y"
+    };
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const offersContainer = document.getElementById("offersContainer");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const searchInput = document.getElementById("searchInput");
+    const streamerFilter = document.getElementById("streamerFilter");
+    const statusFilter = document.getElementById("statusFilter");
+
+    const statTotal = document.getElementById("statTotal");
+    const statPendente = document.getElementById("statPendente");
+    const statAnalise = document.getElementById("statAnalise");
+    const statFinalizadas = document.getElementById("statFinalizadas");
+
+    const deleteModal = document.getElementById("deleteModal");
+    const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+
+    const imageViewer = document.getElementById("imageViewer");
+    const viewerImage = document.getElementById("viewerImage");
+    const viewerCloseBtn = document.getElementById("viewerCloseBtn");
+
+    let offersCache = [];
+    let offerToDeleteId = null;
+    let panelStarted = false;
+    let notificationsUnsub = null;
+
+    function getPanelUser() {
+      return window.__wmtPanelCurrentUser || null;
+    }
+
+    function getUserEmail(user) {
+      return String(user?.email || "").trim().toLowerCase();
+    }
+
+    function getUserId(user) {
+      return String(user?.uid || "").trim();
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttribute(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function formatDate(value) {
+      if (!value) return "Sem data";
+      let d = value;
+      if (typeof value?.toDate === "function") d = value.toDate();
+      else if (!(value instanceof Date)) d = new Date(value);
+      if (!(d instanceof Date) || isNaN(d.getTime())) return "Sem data";
+      return d.toLocaleString("pt-BR");
+    }
+
+    function showNotice({
+      badge = "Aviso",
+      title = "Mensagem",
+      message = "",
+      primaryText = "Fechar",
+      secondaryText = "",
+      onPrimary = null,
+      onSecondary = null
+    }) {
+      const noticeModal = document.getElementById("noticeModal");
+      const noticeBadge = document.getElementById("noticeBadge");
+      const noticeTitle = document.getElementById("noticeTitle");
+      const noticeMessage = document.getElementById("noticeMessage");
+      const noticePrimaryBtn = document.getElementById("noticePrimaryBtn");
+      const noticeSecondaryBtn = document.getElementById("noticeSecondaryBtn");
+
+      noticeBadge.textContent = badge;
+      noticeTitle.textContent = title;
+      noticeMessage.textContent = message;
+      noticePrimaryBtn.textContent = primaryText;
+      noticeSecondaryBtn.textContent = secondaryText || "Cancelar";
+      noticeSecondaryBtn.style.display = secondaryText ? "inline-flex" : "none";
+
+      noticePrimaryBtn.onclick = () => {
+        noticeModal.style.display = "none";
+        if (typeof onPrimary === "function") onPrimary();
+      };
+
+      noticeSecondaryBtn.onclick = () => {
+        noticeModal.style.display = "none";
+        if (typeof onSecondary === "function") onSecondary();
+      };
+
+      noticeModal.style.display = "flex";
+    }
+
+    function formatNotifDate(value) {
+      if (!value) return "";
+      let date = value;
+      if (typeof value?.toDate === "function") date = value.toDate();
+      else if (!(value instanceof Date)) date = new Date(value);
+      if (!(date instanceof Date) || isNaN(date.getTime())) return "";
+      return date.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+    }
+
+    function renderNotifications(items) {
+      if (!notifList) return;
+      if (!items.length) {
+        notifList.innerHTML = '<div class="notif-empty">Sem notificações.</div>';
+        if (notifBadge) notifBadge.style.display = "none";
+        return;
+      }
+      const unread = items.filter(item => !item.read).length;
+      if (notifBadge) {
+        notifBadge.style.display = unread ? "inline-flex" : "none";
+        notifBadge.textContent = unread > 99 ? "99+" : String(unread);
+      }
+      notifList.innerHTML = items.map(item => {
+        const offerId = item.offerId || "";
+        const href = offerId ? `chat.html?id=${encodeURIComponent(offerId)}` : "#";
+        return `
+          <div class="notif-item ${item.read ? "" : "unread"}" data-notif-id="${item.id}" data-offer-id="${escapeAttribute(offerId)}" data-href="${escapeAttribute(href)}">
+            <div class="notif-title">${escapeHtml(item.title || "Nova notificação")}</div>
+            <div class="notif-text">${escapeHtml(item.message || "")}</div>
+            <div class="notif-time">${escapeHtml(formatNotifDate(item.createdAt || item.updatedAt || item.lastMessageAt || ""))}</div>
+          </div>
+        `;
+      }).join("");
+      bindNotificationClicks();
+    }
+
+    function bindNotificationClicks() {
+      document.querySelectorAll(".notif-item[data-notif-id]").forEach(item => {
+        item.addEventListener("click", async () => {
+          const notifId = item.getAttribute("data-notif-id");
+          const offerId = item.getAttribute("data-offer-id");
+          try {
+            if (notifId) {
+              await updateDoc(doc(db, "notifications", notifId), { read: true });
+            }
+          } catch (error) {
+            console.error(error);
+          }
+          if (offerId) window.location.href = `chat.html?id=${encodeURIComponent(offerId)}`;
+        });
+      });
+    }
+
+    function startNotifications() {
+      const userId = getUserId(getPanelUser());
+      if (!userId || !notifList) return;
+      if (notificationsUnsub) notificationsUnsub();
+      const notifQuery = query(collection(db, "notifications"), where("userId", "==", userId), orderBy("createdAt", "desc"), limit(20));
+      notificationsUnsub = onSnapshot(notifQuery, (snapshot) => {
+        const items = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        renderNotifications(items);
+      }, (error) => {
+        console.error(error);
+      });
+    }
+
+    refreshBtn.addEventListener("click", loadOffers);
+    markAllReadBtn?.addEventListener("click", async () => {
+      const userId = getUserId(getPanelUser());
+      if (!userId) return;
+      try {
+        const snap = await getDocs(query(collection(db, "notifications"), where("userId", "==", userId), where("read", "==", false)));
+        const batch = writeBatch(db);
+        snap.forEach(docSnap => batch.update(docSnap.ref, { read: true }));
+        await batch.commit();
+      } catch (error) {
+        console.error(error);
+      }
+    });
+    searchInput.addEventListener("input", renderOffers);
+    streamerFilter.addEventListener("change", renderOffers);
+    statusFilter.addEventListener("change", renderOffers);
+
+    cancelDeleteBtn.addEventListener("click", closeDeleteModal);
+    deleteModal.addEventListener("click", (e) => {
+      if (e.target === deleteModal) closeDeleteModal();
+    });
+
+    viewerCloseBtn.addEventListener("click", closeImageViewer);
+    imageViewer.addEventListener("click", (e) => {
+      if (e.target === imageViewer) closeImageViewer();
+    });
+
+    confirmDeleteBtn.addEventListener("click", async () => {
+      if (!offerToDeleteId) return;
+
+      try {
+        await deleteDoc(doc(db, "offers", offerToDeleteId));
+        offersCache = offersCache.filter(item => item.id !== offerToDeleteId);
+        offerToDeleteId = null;
+        closeDeleteModal();
+        updateStats();
+        renderOffers();
+      } catch (error) {
+        console.error(error);
+        showNotice({
+          badge: "Erro",
+          title: "Não foi possível apagar a oferta",
+          message: "Tente novamente em alguns instantes.",
+          primaryText: "Fechar"
+        });
+      }
+    });
+
+    function startPanelData() {
+      if (panelStarted) return;
+      panelStarted = true;
+      startNotifications();
+      loadOffers();
+    }
+
+    document.addEventListener("wmt:panel-authorized", () => {
+      startPanelData();
+    });
+
+    if (window.__wmtPanelAuthorized) {
+      startPanelData();
+    }
+
+    async function loadOffers() {
+      offersContainer.innerHTML = `<div class="empty">Carregando ofertas...</div>`;
+
+      try {
+        const q = query(collection(db, "offers"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+
+        offersCache = snapshot.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        }));
+
+        updateStats();
+        renderOffers();
+      } catch (error) {
+        console.error(error);
+        offersContainer.innerHTML = `<div class="empty">Erro ao carregar ofertas.</div>`;
+      }
+    }
+
+    function updateStats() {
+      const total = offersCache.length;
+      const pendentes = offersCache.filter(o => (o.status || "Pendente") === "Pendente").length;
+      const analise = offersCache.filter(o => o.status === "Em análise").length;
+      const finalizadas = offersCache.filter(o => o.status === "Aceita" || o.status === "Recusada" || o.status === "Aprovada").length;
+
+      statTotal.textContent = total;
+      statPendente.textContent = pendentes;
+      statAnalise.textContent = analise;
+      statFinalizadas.textContent = finalizadas;
+    }
+
+    function getFilteredOffers() {
+      const search = searchInput.value.trim().toLowerCase();
+      const streamer = streamerFilter.value;
+      const status = statusFilter.value;
+
+      return offersCache.filter(offer => {
+        const matchStreamer = streamer === "TODOS" || offer.streamer === streamer;
+        const matchStatus = status === "TODOS" || (offer.status || "Pendente") === status;
+
+        const blob = [
+          offer.code || "",
+          offer.ownerName || offer.nickname || "",
+          offer.status || ""
+        ].join(" ").toLowerCase();
+
+        const matchSearch = !search || blob.includes(search);
+
+        return matchStreamer && matchStatus && matchSearch;
+      });
+    }
+
+    function renderOffers() {
+      const filtered = getFilteredOffers();
+
+      if (!filtered.length) {
+        offersContainer.innerHTML = `<div class="empty">Nenhuma oferta encontrada.</div>`;
+        return;
+      }
+
+      offersContainer.innerHTML = filtered.map(offer => {
+        const status = offer.status || "Pendente";
+        const normalizedStatus = String(status).toLowerCase();
+
+        const statusClass =
+          normalizedStatus === "aprovada" || normalizedStatus === "aceita" ? "aceita" :
+          normalizedStatus === "recusada" ? "recusada" :
+          normalizedStatus === "em análise" ? "analise" :
+          "pendente";
+
+        const streamerClass = offer.streamer === "WMT" ? "wmt" : "pius";
+        const dateText = formatDate(offer.createdAt);
+        const images = Array.isArray(offer.images) ? offer.images : [];
+        const coverImage = images[0] || "background.jpg";
+        const remainingImages = Math.max(images.length - 1, 0);
+        const priceText = offer.priceText || String(offer.price || "0");
+
+        return `
+          <article class="offer-card">
+            <div class="offer-top">
+              <div class="admin-line">
+                <div class="admin-left">
+                  <div class="admin-thumb">
+                    <img src="${escapeAttribute(coverImage)}" alt="Brainrot" data-image="${escapeAttribute(coverImage)}">
+                    ${remainingImages ? `<span class="admin-thumb-badge">+${remainingImages}</span>` : ""}
+                  </div>
+
+                  <div class="admin-main">
+                    <div class="admin-head">
+                      <div class="admin-title-group">
+                        <div class="offer-code">${escapeHtml(offer.code || "-")}</div>
+                        <div class="offer-date">Enviado em ${escapeHtml(dateText)}</div>
+                      </div>
+                      <div class="streamer-badge ${streamerClass}">
+                        ${escapeHtml(offer.streamer || "-")}
+                      </div>
+                    </div>
+
+                    <div class="admin-meta">
+                      <span class="price-pill">R$ ${escapeHtml(priceText)}</span>
+                      <div class="status-chip ${statusClass}">
+                        ${escapeHtml(status)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="actions">
+                  <button class="action-btn btn-chat" data-chat="${offer.id}">ABRIR CHAT</button>
+                  <button class="action-btn btn-aceita" data-id="${offer.id}" data-status="Aceita">ACEITAR / PUBLICAR</button>
+                  <button class="action-btn btn-recusada" data-id="${offer.id}" data-status="Recusada">RECUSAR</button>
+                  <button class="action-btn btn-delete" data-delete="${offer.id}">APAGAR</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      bindStatusButtons();
+      bindDeleteButtons();
+      bindImageButtons();
+      bindChatButtons();
+    }
+
+    function bindStatusButtons() {
+      const buttons = document.querySelectorAll(".action-btn[data-status]");
+
+      buttons.forEach(button => {
+        button.addEventListener("click", async () => {
+          const id = button.dataset.id;
+          const status = button.dataset.status;
+
+          try {
+            await updateDoc(doc(db, "offers", id), { status });
+            const index = offersCache.findIndex(o => o.id === id);
+            if (index !== -1) offersCache[index].status = status;
+
+            updateStats();
+            renderOffers();
+          } catch (error) {
+            console.error(error);
+            showNotice({
+              badge: "Erro",
+              title: "Não foi possível atualizar o status",
+              message: "Tente novamente em alguns instantes.",
+              primaryText: "Fechar"
+            });
+          }
+        });
+      });
+    }
+
+    function bindCopyButtons() {
+      const buttons = document.querySelectorAll(".copy-btn");
+
+      buttons.forEach(button => {
+        button.addEventListener("click", async () => {
+          const text = button.dataset.copy || "";
+          if (!text) return;
+
+          try {
+            await navigator.clipboard.writeText(text);
+            const old = button.textContent;
+            button.textContent = "Copiado";
+            setTimeout(() => {
+              button.textContent = old;
+            }, 1200);
+          } catch (error) {
+            console.error(error);
+            showNotice({
+              badge: "Erro",
+              title: "Não foi possível copiar",
+              message: "Seu navegador não permitiu copiar este conteúdo.",
+              primaryText: "Fechar"
+            });
+          }
+        });
+      });
+    }
+
+
+    function bindChatButtons() {
+      const buttons = document.querySelectorAll("[data-chat]");
+
+      buttons.forEach(button => {
+        button.addEventListener("click", async () => {
+          const offerId = button.dataset.chat;
+          const offer = offersCache.find(item => item.id === offerId);
+
+          if (!offer) {
+            showNotice({
+              badge: "Erro",
+              title: "Oferta não encontrada",
+              message: "Não foi possível localizar os dados desta oferta para abrir o chat.",
+              primaryText: "Fechar"
+            });
+            return;
+          }
+
+          const ownerUserId = String(offer.ownerUserId || "").trim();
+          if (!ownerUserId) {
+            showNotice({
+              badge: "Chat indisponível",
+              title: "Oferta sem dono vinculado",
+              message: "Essa oferta não possui ownerUserId salvo. As novas ofertas com o enviar atualizado já vão permitir abrir chat normalmente.",
+              primaryText: "Fechar"
+            });
+            return;
+          }
+
+          const chatRef = doc(db, "chats", offerId);
+
+          try {
+            const existing = await getDoc(chatRef);
+
+            if (!existing.exists()) {
+              const adminEmail = getUserEmail(getPanelUser());
+              await setDoc(chatRef, {
+                offerId,
+                offerCode: offer.code || offerId,
+                ownerUserId: ownerUserId,
+                ownerEmail: String(offer.ownerEmail || "").trim(),
+                ownerName: String(offer.ownerName || offer.nickname || "Usuário").trim(),
+                adminUserId: String(getPanelUser()?.uid || "").trim(),
+                adminEmail: adminEmail,
+                status: "open",
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                lastMessage: "",
+                lastMessageAt: null
+              });
+            }
+
+            window.location.href = `chat.html?id=${encodeURIComponent(offerId)}`;
+          } catch (error) {
+            console.error(error);
+            showNotice({
+              badge: "Erro",
+              title: "Não foi possível abrir o chat",
+              message: "Tente novamente em alguns instantes.",
+              primaryText: "Fechar"
+            });
+          }
+        });
+      });
+    }
+
+    function bindDeleteButtons() {
+      const buttons = document.querySelectorAll("[data-delete]");
+
+      buttons.forEach(button => {
+        button.addEventListener("click", () => {
+          offerToDeleteId = button.dataset.delete;
+          openDeleteModal();
+        });
+      });
+    }
+
+    function bindImageButtons() {
+      const images = document.querySelectorAll("[data-image]");
+
+      images.forEach(img => {
+        img.addEventListener("click", () => {
+          openImageViewer(img.dataset.image);
+        });
+      });
+    }
+
+    function openDeleteModal() {
+      deleteModal.style.display = "flex";
+    }
+
+    function closeDeleteModal() {
+      deleteModal.style.display = "none";
+      offerToDeleteId = null;
+    }
+
+    function openImageViewer(src) {
+      viewerImage.src = src;
+      imageViewer.style.display = "flex";
+    }
+
+    function closeImageViewer() {
+      imageViewer.style.display = "none";
+      viewerImage.src = "";
+    }
+
+  </script>
+</body>
+</html>

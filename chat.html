@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat | WMT Market</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  
+  <style>
+    :root{
+      --bg:#04070d;
+      --bg-2:#09111d;
+      --bg-3:#0d1828;
+      --panel:#0d1521;
+      --panel-2:#111b2b;
+      --panel-3:#15243a;
+      --panel-4:#1b2b45;
+      --text:#f5f8ff;
+      --text-2:#dce6f8;
+      --muted:#a6b2c7;
+      --muted-2:#7f8ba0;
+      --line:rgba(255,255,255,.08);
+      --line-2:rgba(255,255,255,.12);
+      --blue:#7aa8ff;
+      --blue-2:#5d92ff;
+      --blue-3:#3a72f0;
+      --brand-blue:#4d8dff;
+      --brand-blue-2:#67a3ff;
+      --brand-blue-3:#2d74ff;
+      --brand-green:#2ed68d;
+      --brand-green-2:#52e7a3;
+      --brand-green-3:#19b973;
+      --danger:#ff6b83;
+      --yellow:#f7c74f;
+      --shadow-xs:0 8px 18px rgba(0,0,0,.12);
+      --shadow-sm:0 14px 30px rgba(0,0,0,.18);
+      --shadow:0 20px 55px rgba(0,0,0,.28);
+      --shadow-lg:0 28px 80px rgba(0,0,0,.36);
+      --max:1280px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+
+    body{
+      display:none;
+      margin:0;
+      font-family:'Plus Jakarta Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(122,168,255,.12), transparent 24%),
+        radial-gradient(circle at 92% 8%, rgba(88,215,145,.08), transparent 20%),
+        radial-gradient(circle at 50% 100%, rgba(61,115,239,.10), transparent 28%),
+        linear-gradient(rgba(4,7,13,.90), rgba(4,7,13,.96)),
+        url('background.jpg') center center / cover no-repeat fixed;
+      overflow-x:hidden;
+      position:relative;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(to right, rgba(255,255,255,.012) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,.012) 1px, transparent 1px);
+      background-size:34px 34px;
+      mask-image:linear-gradient(to bottom, rgba(0,0,0,.30), transparent 88%);
+      opacity:.24;
+    }
+
+    a{text-decoration:none;color:inherit}
+    button,textarea{font-family:inherit}
+    .container{width:min(var(--max), calc(100% - 24px)); margin:0 auto;}
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:90;
+      backdrop-filter:blur(10px);
+      background:linear-gradient(180deg, rgba(5,9,16,.94), rgba(5,9,16,.86));
+      border-bottom:1px solid rgba(77,141,255,.14);
+      box-shadow:0 10px 30px rgba(0,0,0,.18);
+    }
+    .topbar-inner{
+      min-height:74px;
+      display:flex;
+      flex-direction:column;
+      align-items:stretch;
+      justify-content:center;
+      gap:12px;
+      padding:12px 0;
+      position:relative;
+    }
+    .brand-row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+    .brand-home{text-decoration:none}
+    .brand-logo{
+      width:46px;
+      height:46px;
+      flex:none;
+      border-radius:16px;
+      display:grid;
+      place-items:center;
+      color:#fff;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.03em;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.02)),
+        linear-gradient(135deg, var(--blue), var(--blue-2));
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 12px 24px rgba(94,145,255,.22);
+    }
+    .brand-copy{min-width:0}
+    .brand-text{
+      font-size:18px;
+      font-weight:800;
+      letter-spacing:-.01em;
+      color:#fff;
+      line-height:1.08;
+    }
+    .brand-sub{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      line-height:1.5;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      letter-spacing:.01em;
+    }
+
+    .topbar-actions{display:flex; align-items:center; gap:10px; position:relative;}
+    .top-icon-btn{
+      width:46px; height:46px; border-radius:16px; display:grid; place-items:center;
+      color:#dbe8ff; text-decoration:none; position:relative; transition:.2s ease;
+      background:transparent; border:1px solid transparent; box-shadow:none; cursor:pointer;
+    }
+    .top-icon-btn:hover{
+      transform:translateY(-1px);
+      color:#fff;
+      background:linear-gradient(180deg, rgba(77,141,255,.16), rgba(255,255,255,.04));
+      border-color:rgba(77,141,255,.20);
+      box-shadow:0 12px 28px rgba(77,141,255,.12);
+    }
+    .top-icon-btn svg{width:22px; height:22px; display:block;}
+
+    .profile-trigger{
+      width:50px; height:50px; border-radius:999px; padding:0; overflow:hidden; cursor:pointer;
+      background:transparent; border:1px solid transparent; box-shadow:none; position:relative; z-index:2;
+    }
+    .profile-trigger:hover{
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(77,141,255,.16), rgba(255,255,255,.04));
+      border-color:rgba(77,141,255,.20);
+      box-shadow:0 12px 28px rgba(77,141,255,.12);
+    }
+    .profile-trigger img,.profile-menu-avatar{
+      width:100%; height:100%; object-fit:cover; display:block; border-radius:999px;
+      background:transparent; box-shadow:none; border:none;
+    }
+    .top-badge{
+      position:absolute; top:-4px; right:-2px; min-width:20px; height:20px; padding:0 6px; border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center; background:#f7c74f; color:#111;
+      font-size:11px; font-weight:900; box-shadow:0 8px 16px rgba(0,0,0,.20); border:2px solid #1b2232;
+    }
+
+    .profile-menu-shell{position:relative; display:flex; align-items:center}
+    .profile-menu,.notif-menu{
+      position:absolute; top:calc(100% + 10px); right:0; opacity:0; visibility:hidden; transform:translateY(8px);
+      transition:opacity .18s ease, transform .18s ease, visibility .18s ease;
+      pointer-events:none; z-index:120;
+    }
+    .profile-menu{
+      width:min(350px, calc(100vw - 24px)); border-radius:22px;
+      background:linear-gradient(180deg, rgba(19,24,40,.98), rgba(18,22,36,.96));
+      border:1px solid rgba(255,255,255,.08); box-shadow:0 24px 60px rgba(0,0,0,.34); padding:14px;
+    }
+    .notif-menu{
+      width:min(360px, calc(100vw - 24px)); padding:12px; border-radius:20px;
+      background:linear-gradient(180deg, rgba(19,24,40,.98), rgba(18,22,36,.96));
+      border:1px solid rgba(255,255,255,.08); box-shadow:0 24px 60px rgba(0,0,0,.34);
+    }
+    .profile-menu.open,.notif-menu.open{
+      display:block; opacity:1; visibility:visible; transform:translateY(0); pointer-events:auto;
+    }
+    .profile-menu-head{
+      display:grid; grid-template-columns:60px minmax(0,1fr) auto; gap:12px; align-items:center;
+      padding:6px 4px 16px; border-bottom:1px solid rgba(255,255,255,.07); margin-bottom:12px;
+    }
+    .profile-menu-avatar{width:60px; height:60px}
+    .profile-menu-copy{min-width:0}
+    .profile-menu-name{
+      color:#fff; font-size:24px; font-weight:800; letter-spacing:-.03em; line-height:1.05;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .profile-menu-sub{margin-top:6px; color:#9eb0c8; font-size:13px; font-weight:600; line-height:1.5}
+    .profile-sell-btn{
+      min-height:44px; padding:0 18px; border-radius:14px; display:inline-flex; align-items:center; justify-content:center;
+      font-size:14px; font-weight:800; color:#111; background:#f7c74f; text-decoration:none;
+      box-shadow:0 12px 24px rgba(0,0,0,.18); transition:.2s ease; white-space:nowrap;
+    }
+    .profile-sell-btn:hover{transform:translateY(-1px); filter:brightness(1.04)}
+    .profile-menu-links{display:grid; gap:4px}
+    .profile-menu-link{
+      min-height:50px; border-radius:14px; display:flex; align-items:center; gap:12px; padding:0 12px;
+      color:#eef4ff; font-size:14px; font-weight:700; text-decoration:none; border:1px solid transparent;
+      background:transparent; transition:.2s ease; width:100%; text-align:left; cursor:pointer;
+    }
+    .profile-menu-link:hover{background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.08)}
+    .profile-link-icon{width:28px; display:inline-flex; justify-content:center; align-items:center; font-size:20px; flex:none; opacity:.95}
+    .danger-link{color:#ffe5eb}
+
+    .notif-menu-head{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:4px 4px 12px; border-bottom:1px solid rgba(255,255,255,.07); margin-bottom:10px;
+    }
+    .notif-menu-head strong{color:#fff; font-size:15px; letter-spacing:-.01em}
+    .notif-clear-btn{
+      border:none; background:rgba(255,255,255,.05); color:#dbe7fb; border:1px solid rgba(255,255,255,.08);
+      min-height:34px; padding:0 10px; border-radius:12px; font-weight:800; cursor:pointer
+    }
+    .notif-list{display:grid; gap:8px; max-height:360px; overflow:auto; padding-right:2px}
+    .notif-item{
+      border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.03); border-radius:14px; padding:12px; cursor:pointer; transition:.18s ease
+    }
+    .notif-item:hover{background:rgba(255,255,255,.05); border-color:rgba(77,141,255,.18)}
+    .notif-item.unread{border-color:rgba(77,141,255,.22); background:rgba(77,141,255,.08)}
+    .notif-title{color:#fff; font-size:13px; font-weight:800; line-height:1.4}
+    .notif-text{margin-top:4px; color:#aebbd0; font-size:12px; line-height:1.6; font-weight:600}
+    .notif-time{margin-top:6px; color:#7f8ba0; font-size:11px; font-weight:700}
+    .notif-empty{padding:18px 10px; color:#9eb0c8; font-size:13px; font-weight:700; text-align:center}
+
+    .page{padding:16px 0 34px}
+
+    .hero{
+      margin-bottom:16px;
+      border:1px solid rgba(77,141,255,.16);
+      border-radius:30px;
+      background:
+        radial-gradient(circle at 84% 18%, rgba(77,141,255,.18), transparent 20%),
+        radial-gradient(circle at 12% 100%, rgba(46,214,141,.10), transparent 24%),
+        linear-gradient(180deg, rgba(8,15,29,.985), rgba(4,9,18,.955));
+      box-shadow:var(--shadow);
+      padding:20px;
+    }
+    .hero-top{display:grid; gap:14px}
+    .chat-chip{
+      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:999px;
+      background:rgba(255,255,255,.05); border:1px solid var(--line); color:#eef5ff; font-size:11px;
+      font-weight:800; text-transform:uppercase; letter-spacing:.05em; width:max-content; max-width:100%;
+      box-shadow:var(--shadow-xs);
+    }
+    .chat-chip-dot{
+      width:8px; height:8px; border-radius:999px; background:var(--brand-green);
+      box-shadow:0 0 0 6px rgba(46,214,141,.12); flex:none;
+    }
+    .hero-main{display:grid; gap:14px}
+    .hero-copy h1{
+      margin:0; font-size:clamp(30px, 8vw, 44px); line-height:1.03; font-weight:800; letter-spacing:-.04em; color:#fff;
+    }
+    .hero-copy p{
+      margin:10px 0 0; color:var(--muted); font-size:14px; line-height:1.8; font-weight:600; max-width:720px;
+    }
+    .offer-bar{display:grid; grid-template-columns:1fr; gap:10px}
+    .offer-mini{
+      min-width:0; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      border-radius:22px; padding:14px; box-shadow:var(--shadow-xs);
+    }
+    .offer-mini-k{
+      color:var(--muted-2); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px;
+    }
+    .offer-mini-v{
+      color:#fff; font-size:15px; font-weight:800; line-height:1.45; word-break:break-word;
+    }
+
+    .chat-layout{display:grid; gap:16px}
+    .main-card,.side-card{
+      border-radius:28px; border:1px solid rgba(77,141,255,.12);
+      background:linear-gradient(180deg, rgba(9,16,30,.97), rgba(6,11,21,.93));
+      box-shadow:var(--shadow); overflow:hidden;
+    }
+    .main-card{display:grid; grid-template-rows:auto 1fr auto; min-height:74vh}
+    .chat-head{
+      padding:18px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center;
+      justify-content:space-between; gap:12px; flex-wrap:wrap;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    }
+    .chat-head-left{min-width:0; display:flex; align-items:center; gap:12px}
+    .chat-head-avatar{
+      width:48px; height:48px; border-radius:18px; display:grid; place-items:center;
+      background:linear-gradient(135deg, var(--brand-blue), var(--brand-blue-3)); color:#fff; font-size:14px; font-weight:800;
+      letter-spacing:.04em; flex:none; box-shadow:0 14px 24px rgba(45,116,255,.18);
+    }
+    .chat-head-copy{min-width:0}
+    .chat-head-copy h2{margin:0; color:#fff; font-size:21px; font-weight:800; letter-spacing:-.03em; line-height:1.1}
+    .chat-head-copy p{margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.6; font-weight:600; word-break:break-word}
+    .chat-status{
+      padding:10px 13px; border-radius:999px; font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+      border:1px solid rgba(77,141,255,.16); background:rgba(77,141,255,.10); color:#dce9ff; white-space:nowrap;
+    }
+
+    .messages{
+      padding:18px; overflow:auto; min-height:320px; max-height:calc(74vh - 190px);
+      display:flex; flex-direction:column; gap:12px;
+      background:linear-gradient(180deg, rgba(8,12,20,.55), rgba(12,18,30,.88));
+    }
+    .empty{
+      text-align:center; color:var(--muted); font-size:14px; font-weight:700; padding:32px 18px;
+      border:1px dashed rgba(255,255,255,.10); border-radius:20px; background:rgba(255,255,255,.04);
+    }
+    .msg-row{display:flex; gap:10px; align-items:flex-end; max-width:100%}
+    .msg-row.admin{justify-content:flex-end}
+    .msg-row.owner{justify-content:flex-start}
+    .msg-avatar{
+      width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.10);
+      box-shadow:0 10px 18px rgba(0,0,0,.22); background:#10192a; flex:none;
+    }
+    .msg{
+      max-width:min(78%, 720px); border-radius:22px; padding:12px 14px; border:1px solid rgba(255,255,255,.08);
+      box-shadow:var(--shadow-xs);
+    }
+    .msg.admin{
+      background:linear-gradient(180deg, rgba(77,141,255,.16), rgba(77,141,255,.08));
+      border-color:rgba(77,141,255,.22);
+    }
+    .msg.owner{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border-color:rgba(255,255,255,.08);
+    }
+    .msg-top{
+      display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px;
+    }
+    .msg-name{
+      font-size:12px; font-weight:800; letter-spacing:.01em; color:var(--text-2);
+      display:inline-flex; align-items:center; gap:6px; min-width:0;
+    }
+    .msg-name.wmt-name{color:#dbe8ff}
+    .verify-badge{
+      width:15px; height:15px; flex:none; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+      background:linear-gradient(180deg, #39b8ff, #1592ea); box-shadow:0 0 0 1px rgba(255,255,255,.10), 0 6px 14px rgba(21,146,234,.22);
+      position:relative;
+    }
+    .verify-badge::before{
+      content:""; width:6px; height:3px; border-left:1.6px solid #fff; border-bottom:1.6px solid #fff;
+      transform:translateY(-.4px) rotate(-45deg); display:block;
+    }
+    .msg-time{font-size:11px; color:var(--muted-2); font-weight:700; white-space:nowrap; flex:none}
+    .msg-text{
+      color:#fff; font-size:14px; line-height:1.72; font-weight:600; white-space:pre-wrap; word-break:break-word;
+    }
+
+    .composer{
+      padding:16px 18px 18px; border-top:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); display:grid; gap:12px;
+    }
+    .composer-box{
+      display:grid; gap:10px; padding:12px; border-radius:24px; border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(16,27,47,.985), rgba(10,17,30,.965)); box-shadow:var(--shadow-xs);
+    }
+    .composer textarea{
+      width:100%; min-height:90px; resize:vertical; border:none; background:transparent; color:#fff; padding:0;
+      font-size:15px; outline:none; font-weight:700; letter-spacing:.01em; line-height:1.7;
+    }
+    .composer textarea::placeholder{color:#9aa7bb; font-weight:600}
+    .composer-actions{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+    .hint{color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.01em}
+    .btn{
+      border:none; cursor:pointer; border-radius:16px; padding:13px 18px; font-size:14px; font-weight:800; transition:.2s ease;
+      display:inline-flex; align-items:center; justify-content:center; gap:10px; letter-spacing:.01em;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn-primary{
+      color:#fff; background:linear-gradient(135deg, var(--brand-blue-3), var(--brand-blue-2)); box-shadow:0 18px 30px rgba(45,116,255,.22);
+    }
+    .btn-secondary{
+      color:#eef5ff; background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border:1px solid rgba(255,255,255,.10); box-shadow:var(--shadow-xs);
+    }
+
+    .side-card{padding:16px; display:grid; gap:12px}
+    .profile-card{
+      display:flex; align-items:center; gap:12px; padding:14px; border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.08); box-shadow:var(--shadow-xs);
+    }
+    .profile-photo{
+      width:56px; height:56px; border-radius:18px; object-fit:cover; background:#10192a; border:1px solid rgba(255,255,255,.08); flex:none;
+    }
+    .profile-copy{min-width:0; display:grid; gap:4px}
+    .profile-role{
+      color:var(--muted-2); font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+    }
+    .profile-name{
+      color:#fff; font-size:16px; font-weight:800; letter-spacing:-.02em; line-height:1.2;
+      display:flex; align-items:center; gap:6px; min-width:0; flex-wrap:wrap;
+    }
+    .profile-sub{color:var(--muted); font-size:12px; font-weight:700; line-height:1.5; word-break:break-word}
+    .mini-grid{display:grid; gap:10px}
+    .mini-box{
+      border-radius:20px; padding:14px; background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.08); box-shadow:var(--shadow-xs);
+    }
+    .mini-box .k{
+      color:var(--muted-2); font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px;
+    }
+    .mini-box .v{color:#fff; font-size:14px; font-weight:800; line-height:1.55; word-break:break-word}
+    .status-box{
+      display:none; padding:14px 15px; border-radius:18px; border:1px solid rgba(77,141,255,.18);
+      background:rgba(77,141,255,.10); color:#dce9ff; line-height:1.7; font-size:13px; font-weight:700;
+    }
+    .status-box.error{
+      border-color:rgba(255,107,131,.18); background:rgba(255,107,131,.10); color:#ffd8df;
+    }
+
+    .notice-backdrop{
+      position:fixed; inset:0; background:rgba(0,0,0,.62); backdrop-filter:blur(8px); display:none;
+      align-items:center; justify-content:center; z-index:120; padding:16px;
+    }
+    .notice-modal{
+      width:min(470px, 100%); background:linear-gradient(180deg, rgba(12,18,29,.98), rgba(10,15,25,.94));
+      border:1px solid rgba(255,255,255,.09); border-radius:24px; padding:22px; box-shadow:var(--shadow-lg);
+    }
+    .notice-badge{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; font-size:11px; font-weight:800;
+      text-transform:uppercase; letter-spacing:.04em; margin-bottom:12px; border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05); color:#eef4ff;
+    }
+    .notice-modal h3{
+      margin:0 0 10px; font-size:24px; letter-spacing:-.03em; color:#fff; line-height:1.12;
+    }
+    .notice-modal p{
+      margin:0; color:var(--muted); font-size:14px; line-height:1.8; font-weight:600;
+    }
+    .notice-actions{
+      margin-top:20px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
+    }
+    .notice-btn{
+      border:none; cursor:pointer; border-radius:14px; padding:12px 15px; font-weight:800; font-size:13px; letter-spacing:.01em; transition:.2s ease;
+    }
+    .notice-btn.secondary{
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      color:var(--text); border:1px solid rgba(255,255,255,.10);
+    }
+    .notice-btn.primary{
+      background:linear-gradient(135deg, var(--blue-3), var(--blue)); color:#fff; box-shadow:0 14px 24px rgba(45,116,255,.18);
+    }
+
+    @media (hover:hover) and (pointer:fine){
+      .profile-menu-shell:hover .profile-menu{
+        display:block; opacity:1; visibility:visible; transform:translateY(0); pointer-events:auto;
+      }
+    }
+
+    @media (min-width: 761px){
+      .container{width:min(var(--max), calc(100% - 40px))}
+      .topbar-inner{
+        min-height:78px; flex-direction:row; align-items:center; justify-content:space-between; padding:0;
+      }
+      .page{padding:22px 0 38px}
+      .hero{padding:22px}
+      .hero-main{
+        grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);
+        align-items:start;
+      }
+      .offer-bar{grid-template-columns:repeat(2, minmax(0,1fr))}
+      .chat-layout{grid-template-columns:minmax(0,1fr) 320px; align-items:start}
+      .side-card{position:sticky; top:96px}
+    }
+
+    @media (max-width: 760px){
+      .top-icon-btn{width:44px; height:44px; border-radius:14px}
+      .profile-trigger{width:46px; height:46px}
+      .profile-menu{width:min(340px, calc(100vw - 18px))}
+      .notif-menu{width:min(340px, calc(100vw - 18px)); right:-40px}
+      .profile-menu-head{grid-template-columns:52px minmax(0,1fr)}
+      .profile-sell-btn{grid-column:1/-1; justify-self:start; margin-top:4px}
+      .msg{max-width:86%}
+      .chat-head-left{align-items:flex-start}
+      .chat-head-avatar{width:44px; height:44px; border-radius:16px}
+    }
+      
+    @media (max-width: 760px){
+  body{
+    background:
+      radial-gradient(circle at 8% 0%, rgba(122,168,255,.08), transparent 22%),
+      radial-gradient(circle at 92% 8%, rgba(88,215,145,.05), transparent 18%),
+      linear-gradient(rgba(4,7,13,.96), rgba(4,7,13,.985)),
+      url('background.jpg') center center / cover no-repeat;
+  }
+  body::before{
+    opacity:.12;
+    background-size:26px 26px;
+  }
+  .topbar{
+    backdrop-filter:none !important;
+    z-index:230 !important;
+  }
+  .topbar-inner{
+    min-height:68px !important;
+    padding:10px 0 !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:10px !important;
+  }
+  .brand-row{
+    width:auto !important;
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    display:flex !important;
+    align-items:center !important;
+  }
+  .brand.brand-home{
+    min-width:0 !important;
+    flex:1 1 auto !important;
+  }
+  .brand-copy{
+    min-width:0 !important;
+  }
+  .brand-logo{
+    width:42px !important;
+    height:42px !important;
+    border-radius:14px !important;
+    font-size:12px !important;
+  }
+  .brand-text{
+    font-size:15px !important;
+  }
+  .brand-sub{
+    font-size:11px !important;
+    line-height:1.35 !important;
+  }
+  .topbar-actions{
+    margin-left:auto !important;
+    justify-content:flex-end !important;
+    gap:8px !important;
+  }
+  .top-icon-btn{
+    width:42px !important;
+    height:42px !important;
+    border-radius:12px !important;
+  }
+  .profile-trigger{
+    width:44px !important;
+    height:44px !important;
+  }
+}
+
+@media (max-width: 760px){
+  .hero{
+    display:none !important;
+  }
+  .page{
+    padding:10px 0 18px !important;
+  }
+  .chat-layout{
+    gap:12px !important;
+  }
+  .main-card,.side-card{
+    border-radius:22px !important;
+    box-shadow:0 14px 28px rgba(0,0,0,.22) !important;
+  }
+  .main-card{
+    min-height:auto !important;
+  }
+  .chat-head{
+    padding:14px !important;
+    gap:10px !important;
+  }
+  .chat-head-copy h2{
+    font-size:18px !important;
+  }
+  .chat-head-copy p{
+    font-size:12px !important;
+    line-height:1.5 !important;
+  }
+  .chat-status{
+    padding:8px 10px !important;
+    font-size:10px !important;
+  }
+  .messages{
+    min-height:300px !important;
+    max-height:52dvh !important;
+    padding:14px 12px !important;
+    gap:10px !important;
+  }
+  .msg{
+    max-width:92% !important;
+    border-radius:18px !important;
+    padding:10px 12px !important;
+  }
+  .msg-avatar{
+    width:30px !important;
+    height:30px !important;
+  }
+  .msg-text{
+    font-size:13px !important;
+    line-height:1.58 !important;
+  }
+  .composer{
+    padding:12px !important;
+  }
+  .composer-box{
+    padding:10px !important;
+    border-radius:18px !important;
+  }
+  .composer textarea{
+    min-height:72px !important;
+    font-size:14px !important;
+    line-height:1.55 !important;
+  }
+  .composer-actions{
+    align-items:stretch !important;
+    flex-direction:column !important;
+  }
+  .hint{
+    font-size:11px !important;
+    line-height:1.45 !important;
+  }
+  .btn{
+    width:100% !important;
+    min-height:48px !important;
+    border-radius:14px !important;
+  }
+  .side-card{
+    padding:12px !important;
+  }
+  .profile-card,
+  .mini-box{
+    border-radius:18px !important;
+    padding:12px !important;
+  }
+  .profile-photo{
+    width:48px !important;
+    height:48px !important;
+    border-radius:14px !important;
+  }
+  .profile-name{
+    font-size:15px !important;
+  }
+  .profile-sub,
+  .mini-box .v{
+    font-size:12px !important;
+    line-height:1.45 !important;
+  }
+  .mini-box .k{
+    font-size:9px !important;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand-row">
+        <a href="index.html" class="brand brand-home">
+          <div class="brand-logo">WMT</div>
+          <div class="brand-copy">
+            <div class="brand-text">WMT Market</div>
+            <div class="brand-sub">Chat privado da oferta</div>
+          </div>
+        </a>
+      </div>
+
+      <div class="topbar-actions">
+      <a href="minhas-ofertas.html" class="top-icon-btn" aria-label="Chat" title="Chat">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 17.5 3.5 20V6a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+        </a>
+
+        <button class="top-icon-btn has-badge" id="notifTrigger" type="button" aria-label="Notificações" title="Notificações">
+          <span class="top-badge" id="notifBadge" style="display:none;">0</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3.75a4.25 4.25 0 0 0-4.25 4.25v1.13c0 .84-.2 1.66-.59 2.4L6 13.75V15h12v-1.25l-1.16-2.22c-.39-.74-.59-1.56-.59-2.4V8A4.25 4.25 0 0 0 12 3.75Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M10 18a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+
+        <div class="notif-menu" id="notifMenu">
+          <div class="notif-menu-head">
+            <strong>Notificações</strong>
+            <button type="button" id="markAllReadBtn" class="notif-clear-btn">Marcar lidas</button>
+          </div>
+          <div class="notif-list" id="notifList">
+            <div class="notif-empty">Sem notificações.</div>
+          </div>
+        </div>
+
+        <div class="profile-menu-shell">
+          <button class="top-icon-btn profile-trigger" id="profileTrigger" type="button" aria-label="Abrir menu da conta" aria-expanded="false" aria-controls="profileMenu">
+            <img id="headerProfilePhoto" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+          </button>
+
+          <div class="profile-menu" id="profileMenu">
+            <div class="profile-menu-head">
+              <img id="menuProfilePhoto" class="profile-menu-avatar" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+              <div class="profile-menu-copy">
+                <div class="profile-menu-name" id="menuProfileName">wmt</div>
+                <div class="profile-menu-sub" id="menuProfileSub">Conta WMT Market</div>
+              </div>
+              <a href="enviar.html" class="profile-sell-btn">Vender</a>
+            </div>
+
+            <div class="profile-menu-links">
+              <a href="minhas-ofertas.html" class="profile-menu-link">
+                <span class="profile-link-icon">💬</span>
+                <span>Ofertas</span>
+              </a>
+
+              <a href="configuracoes.html" class="profile-menu-link">
+                <span class="profile-link-icon">⚙</span>
+                <span>Configurações da conta</span>
+              </a>
+
+              <a href="painel.html" class="profile-menu-link" id="profilePanelLink" style="display:none;">
+                <span class="profile-link-icon">🛡</span>
+                <span>Painel</span>
+              </a>
+
+              <button id="logoutBtn" type="button" class="profile-menu-link danger-link" style="display:none;">
+                <span class="profile-link-icon">↪</span>
+                <span>Sair</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <section class="hero">
+        <div class="hero-top">
+          <div class="chat-chip">
+            <span class="chat-chip-dot"></span>
+            Chat privado da oferta
+          </div>
+        </div>
+
+        <div class="hero-main">
+          <div class="hero-copy">
+            <h1 id="chatTitleHero">Carregando conversa...</h1>
+            <p id="chatSubHero">Aguarde enquanto o chat da oferta é carregado.</p>
+          </div>
+
+          <div class="offer-bar">
+            <div class="offer-mini">
+              <div class="offer-mini-k">Código</div>
+              <div class="offer-mini-v" id="infoOfferCode">-</div>
+            </div>
+
+            <div class="offer-mini">
+              <div class="offer-mini-k">Status</div>
+              <div class="offer-mini-v" id="infoStatus">-</div>
+            </div>
+
+            <div class="offer-mini">
+              <div class="offer-mini-k">Dono da oferta</div>
+              <div class="offer-mini-v" id="infoOwner">-</div>
+            </div>
+
+            <div class="offer-mini">
+              <div class="offer-mini-k">Seu papel</div>
+              <div class="offer-mini-v" id="infoRole">-</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="chat-layout">
+        <section class="main-card">
+          <div class="chat-head">
+            <div class="chat-head-left">
+              <div class="chat-head-avatar">CH</div>
+              <div class="chat-head-copy">
+                <h2 id="chatTitle">Carregando chat...</h2>
+                <p id="chatSub">Aguarde enquanto o chat da oferta é carregado.</p>
+              </div>
+            </div>
+
+            <div class="chat-status" id="chatStatusChip">-</div>
+          </div>
+
+          <div class="messages" id="messagesList">
+            <div class="empty">Carregando mensagens...</div>
+          </div>
+
+          <div class="composer">
+            <div class="composer-box">
+              <textarea id="messageInput" placeholder="Digite sua mensagem aqui..."></textarea>
+
+              <div class="composer-actions">
+                <div class="hint">Conversa privada entre admin e dono da oferta.</div>
+                <button class="btn btn-primary" id="sendBtn" type="button">Enviar mensagem</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-card">
+          <div class="profile-card">
+            <img id="profilePhoto" class="profile-photo" src="https://ui-avatars.com/api/?name=U&background=e8eef7&color=2b3d57&bold=true" alt="Perfil">
+            <div class="profile-copy">
+              <div class="profile-role" id="profileRole">Seu perfil</div>
+              <div class="profile-name" id="profileName">Carregando...</div>
+              <div class="profile-sub" id="profileSub">Configurações de nome e foto entram aqui.</div>
+            </div>
+          </div>
+
+          <div class="mini-grid">
+            <div class="mini-box">
+              <div class="k">Última mensagem</div>
+              <div class="v" id="infoLastMessage">Sem mensagens ainda.</div>
+            </div>
+
+            <div class="mini-box">
+              <div class="k">ID da oferta</div>
+              <div class="v" id="infoOfferId">-</div>
+            </div>
+          </div>
+
+          <div id="statusBox" class="status-box"></div>
+        </aside>
+      </section>
+    </div>
+  </main>
+
+  <div class="notice-backdrop" id="noticeModal">
+    <div class="notice-modal">
+      <div class="notice-badge" id="noticeBadge">Aviso</div>
+      <h3 id="noticeTitle">Mensagem</h3>
+      <p id="noticeMessage">Texto da mensagem.</p>
+      <div class="notice-actions">
+        <button class="notice-btn secondary" id="noticeSecondaryBtn" style="display:none;">Cancelar</button>
+        <button class="notice-btn primary" id="noticePrimaryBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
+      authDomain: "wmt-market.firebaseapp.com",
+      projectId: "wmt-market",
+      storageBucket: "wmt-market.firebasestorage.app",
+      messagingSenderId: "547032996672",
+      appId: "1:547032996672:web:c7bd6a33e43927f003f8a5",
+      measurementId: "G-B5X5VD667Y"
+    };
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const REDIRECT_KEY = "wmt_after_login";
+    const ADMIN_EMAILS = ["wmtcreator@gmail.com"];
+
+    let currentUser = null;
+
+    const noticeModal = document.getElementById("noticeModal");
+    const noticeBadge = document.getElementById("noticeBadge");
+    const noticeTitle = document.getElementById("noticeTitle");
+    const noticeMessage = document.getElementById("noticeMessage");
+    const noticePrimaryBtn = document.getElementById("noticePrimaryBtn");
+    const noticeSecondaryBtn = document.getElementById("noticeSecondaryBtn");
+    const profileTrigger = document.getElementById("profileTrigger");
+    const profileMenu = document.getElementById("profileMenu");
+    const notifTrigger = document.getElementById("notifTrigger");
+    const notifMenu = document.getElementById("notifMenu");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const profilePanelLink = document.getElementById("profilePanelLink");
+    const headerProfilePhoto = document.getElementById("headerProfilePhoto");
+    const menuProfilePhoto = document.getElementById("menuProfilePhoto");
+    const menuProfileName = document.getElementById("menuProfileName");
+    const menuProfileSub = document.getElementById("menuProfileSub");
+
+    function showNotice({
+      badge = "Aviso",
+      title = "Mensagem",
+      message = "",
+      primaryText = "Fechar",
+      secondaryText = "",
+      onPrimary = null,
+      onSecondary = null
+    }) {
+      noticeBadge.textContent = badge;
+      noticeTitle.textContent = title;
+      noticeMessage.textContent = message;
+      noticePrimaryBtn.textContent = primaryText;
+      noticeSecondaryBtn.textContent = secondaryText || "Cancelar";
+      noticeSecondaryBtn.style.display = secondaryText ? "inline-flex" : "none";
+
+      noticePrimaryBtn.onclick = () => {
+        closeNotice();
+        if (typeof onPrimary === "function") onPrimary();
+      };
+
+      noticeSecondaryBtn.onclick = () => {
+        closeNotice();
+        if (typeof onSecondary === "function") onSecondary();
+      };
+
+      noticeModal.style.display = "flex";
+    }
+
+    function closeNotice() {
+      noticeModal.style.display = "none";
+    }
+
+    noticeModal?.addEventListener("click", (e) => {
+      if (e.target === noticeModal) closeNotice();
+    });
+
+    function normalizeEmail(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function getUserEmail(user) {
+      return normalizeEmail(user?.email || "");
+    }
+
+    function getOfferOwnerUserId(offer) {
+      return String(offer?.ownerUserId || "").trim();
+    }
+
+    function getOfferOwnerEmail(offer) {
+      return normalizeEmail(offer?.ownerEmail || "");
+    }
+
+    function canCurrentUserOwnOffer(offer) {
+      const currentId = getCurrentUserId();
+      const currentEmail = getUserEmail(getChatUser());
+      return !!(
+        (currentId && currentId === getOfferOwnerUserId(offer)) ||
+        (currentEmail && currentEmail === getOfferOwnerEmail(offer))
+      );
+    }
+
+    function getUserId(user) {
+      return String(user?.uid || "").trim();
+    }
+
+    function isAdminUser(user) {
+      const email = getUserEmail(user);
+      return ADMIN_EMAILS.map(normalizeEmail).filter(Boolean).includes(email);
+    }
+
+    function revealPage() {
+      document.body.style.display = "block";
+      document.dispatchEvent(new Event("wmt:chat-auth-ok"));
+    }
+
+    function setRedirectTarget(target) {
+      localStorage.setItem(REDIRECT_KEY, target);
+      sessionStorage.setItem(REDIRECT_KEY, target);
+    }
+
+    function goToLogin(target) {
+      setRedirectTarget(target);
+      window.location.href = "login.html";
+    }
+
+    function currentPageTarget() {
+      return window.location.pathname.split("/").pop() + window.location.search;
+    }
+
+    function getProfileStorageKeys(user){
+      const userId = getUserId(user);
+      return {
+        nicknameKey: userId ? `wmt_nickname_${userId}` : "",
+        photoKey: userId ? `wmt_photo_${userId}` : ""
+      };
+    }
+
+    function getStoredNicknameForUser(user){
+      const { nicknameKey } = getProfileStorageKeys(user);
+      return nicknameKey ? String(localStorage.getItem(nicknameKey) || "").trim() : "";
+    }
+
+    function getStoredPhotoForUser(user){
+      const { photoKey } = getProfileStorageKeys(user);
+      return photoKey ? String(localStorage.getItem(photoKey) || "").trim() : "";
+    }
+
+    window.getStoredNicknameForUser = getStoredNicknameForUser;
+    window.getStoredPhotoForUser = getStoredPhotoForUser;
+    window.getProfileStorageKeys = getProfileStorageKeys;
+
+    function getAvatarUrlByName(name, photo, verified = false){
+      const cleanPhoto = String(photo || "").trim();
+      if (cleanPhoto) return cleanPhoto;
+      const fallbackName = encodeURIComponent(String(name || "U").trim() || "U");
+      const background = verified ? "4f8dff" : "1b2434";
+      const color = verified ? "ffffff" : "dce6f8";
+      return `https://ui-avatars.com/api/?name=${fallbackName}&background=${background}&color=${color}&bold=true`;
+    }
+
+    function getCurrentDisplayName(user){
+      if (!user) return "Conta";
+      if (isAdminUser(user)) return "WMT";
+      const storedNickname = getStoredNicknameForUser(user);
+      if (storedNickname) return storedNickname;
+
+      const email = getUserEmail(user);
+      return String(
+        user?.displayName ||
+        email.split("@")[0] ||
+        "Usuário"
+      ).trim();
+    }
+
+    function getCurrentDisplayPhoto(user){
+      const name = getCurrentDisplayName(user);
+      if (isAdminUser(user)) {
+        const storedAdminPhoto = getStoredPhotoForUser(user);
+        return getAvatarUrlByName("WMT", storedAdminPhoto, true);
+      }
+      const storedPhoto = getStoredPhotoForUser(user);
+      return getAvatarUrlByName(name, storedPhoto, false);
+    }
+
+    function syncHeaderProfile(){
+      const user = currentUser || auth.currentUser || null;
+      const loggedIn = !!user;
+      const isAdmin = isAdminUser(user);
+
+      if (!loggedIn) {
+        headerProfilePhoto.src = getAvatarUrlByName("WMT", "", true);
+        menuProfilePhoto.src = getAvatarUrlByName("WMT", "", true);
+        menuProfileName.textContent = "Entrar";
+        menuProfileSub.textContent = "Faça login para acessar sua conta";
+        if (logoutBtn) logoutBtn.style.display = "none";
+        if (profilePanelLink) profilePanelLink.style.display = "none";
+        return;
+      }
+
+      const displayName = getCurrentDisplayName(user);
+      const displayPhoto = getCurrentDisplayPhoto(user);
+      const email = getUserEmail(user);
+
+      headerProfilePhoto.src = displayPhoto;
+      menuProfilePhoto.src = displayPhoto;
+      menuProfileName.textContent = displayName || "Conta";
+      menuProfileSub.textContent = isAdmin ? "Conta administrativa WMT Market" : (email || "Conta WMT Market");
+      if (logoutBtn) logoutBtn.style.display = "flex";
+      if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
+    }
+
+    function closeHeaderMenus(){
+      profileMenu?.classList.remove("open");
+      notifMenu?.classList.remove("open");
+      profileTrigger?.setAttribute("aria-expanded", "false");
+    }
+
+    profileTrigger?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const willOpen = !profileMenu.classList.contains("open");
+      notifMenu?.classList.remove("open");
+      profileMenu.classList.toggle("open", willOpen);
+      profileTrigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    });
+
+    notifTrigger?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      profileMenu?.classList.remove("open");
+      profileTrigger?.setAttribute("aria-expanded", "false");
+      notifMenu?.classList.toggle("open");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".profile-menu-shell")) {
+        profileMenu?.classList.remove("open");
+        profileTrigger?.setAttribute("aria-expanded", "false");
+      }
+      if (!e.target.closest("#notifTrigger") && !e.target.closest("#notifMenu")) {
+        notifMenu?.classList.remove("open");
+      }
+    });
+
+    let authDecisionDone = false;
+
+    function applyAuthenticatedState(user) {
+      currentUser = user || auth.currentUser || null;
+      window.__wmtChatCurrentUser = currentUser;
+      window.__wmtChatAuthorized = true;
+      syncHeaderProfile();
+      authDecisionDone = true;
+      revealPage();
+    }
+
+    function finalizeProtectedAccess() {
+      if (authDecisionDone) return;
+      authDecisionDone = true;
+      goToLogin(currentPageTarget());
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        applyAuthenticatedState(user);
+        return;
+      }
+
+      if (!authDecisionDone) {
+        finalizeProtectedAccess();
+      } else {
+        currentUser = null;
+        window.__wmtChatCurrentUser = null;
+        window.__wmtChatAuthorized = false;
+        authDecisionDone = true;
+        closeHeaderMenus();
+        syncHeaderProfile();
+        window.location.href = "index.html";
+      }
+    });
+
+    document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        currentUser = null;
+        window.__wmtChatCurrentUser = null;
+        window.__wmtChatAuthorized = false;
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+
+
+  <script type="module">
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      addDoc,
+      collection,
+      query,
+      orderBy,
+      onSnapshot,
+      serverTimestamp,
+      where,
+      limit,
+      writeBatch
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
+      authDomain: "wmt-market.firebaseapp.com",
+      projectId: "wmt-market",
+      storageBucket: "wmt-market.firebasestorage.app",
+      messagingSenderId: "547032996672",
+      appId: "1:547032996672:web:c7bd6a33e43927f003f8a5",
+      measurementId: "G-B5X5VD667Y"
+    };
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const infoOfferCode = document.getElementById("infoOfferCode");
+    const infoOfferId = document.getElementById("infoOfferId");
+    const infoOwner = document.getElementById("infoOwner");
+    const infoRole = document.getElementById("infoRole");
+    const infoStatus = document.getElementById("infoStatus");
+    const infoLastMessage = document.getElementById("infoLastMessage");
+    const chatTitle = document.getElementById("chatTitle");
+    const chatSub = document.getElementById("chatSub");
+    const chatStatusChip = document.getElementById("chatStatusChip");
+    const messagesList = document.getElementById("messagesList");
+    const messageInput = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const statusBox = document.getElementById("statusBox");
+
+    const chatTitleHero = document.getElementById("chatTitleHero");
+    const chatSubHero = document.getElementById("chatSubHero");
+    const profilePhoto = document.getElementById("profilePhoto");
+    const profileRole = document.getElementById("profileRole");
+    const profileName = document.getElementById("profileName");
+    const profileSub = document.getElementById("profileSub");
+    const notifBadge = document.getElementById("notifBadge");
+    const notifList = document.getElementById("notifList");
+    const markAllReadBtn = document.getElementById("markAllReadBtn");
+
+    const params = new URLSearchParams(window.location.search);
+    const chatId = String(params.get("id") || "").trim();
+
+    let currentChat = null;
+    let currentRole = null;
+    let unsubscribeMessages = null;
+    let unsubscribeNotifications = null;
+    let chatReady = false;
+    let lastNotifications = [];
+
+    function getChatUser() {
+      return window.__wmtChatCurrentUser || null;
+    }
+
+    function normalizeEmail(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function getUserEmail(user) {
+      return normalizeEmail(user?.email || "");
+    }
+
+    function isAdminUser(user) {
+      return getUserEmail(user) === "wmtcreator@gmail.com";
+    }
+
+    function showStatus(message, type = "info") {
+      statusBox.style.display = "block";
+      statusBox.classList.toggle("error", type === "error");
+      statusBox.innerHTML = message;
+    }
+
+    function hideStatus() {
+      statusBox.style.display = "none";
+      statusBox.textContent = "";
+      statusBox.classList.remove("error");
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      let date = value;
+      if (typeof value?.toDate === "function") {
+        date = value.toDate();
+      } else if (!(value instanceof Date)) {
+        date = new Date(value);
+      }
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+      return date.toLocaleString("pt-BR");
+    }
+
+    function startChatData() {
+      if (chatReady) return;
+      chatReady = true;
+      bootChat();
+      bootNotifications();
+    }
+
+    document.addEventListener("wmt:chat-auth-ok", () => {
+      startChatData();
+    });
+
+    if (window.__wmtChatAuthorized) {
+      startChatData();
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    messageInput.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    markAllReadBtn?.addEventListener("click", markAllNotificationsRead);
+
+    function getCurrentUserId() {
+      return String(getChatUser()?.uid || "").trim();
+    }
+
+    function getStoredNickname() {
+      return window.getStoredNicknameForUser ? window.getStoredNicknameForUser(getChatUser()) : "";
+    }
+
+    function getStoredPhoto() {
+      return window.getStoredPhotoForUser ? window.getStoredPhotoForUser(getChatUser()) : "";
+    }
+
+    function getFallbackInitial(name) {
+      return String(name || "U").trim().charAt(0).toUpperCase() || "U";
+    }
+
+    function getAvatarUrl(name, photo) {
+      const cleanPhoto = String(photo || "").trim();
+      if (cleanPhoto) return cleanPhoto;
+      const initial = encodeURIComponent(getFallbackInitial(name));
+      return `https://ui-avatars.com/api/?name=${initial}&background=1b2434&color=dce6f8&bold=true`;
+    }
+
+    function getCurrentUserName() {
+      if (isAdminUser(getChatUser())) return "WMT";
+      const storedNickname = getStoredNickname();
+      if (storedNickname) return storedNickname;
+
+      const email = getUserEmail(getChatUser());
+      return String(
+        getChatUser()?.displayName ||
+        email.split("@")[0] ||
+        "Usuário"
+      ).trim();
+    }
+
+    function getCurrentUserPhoto() {
+      if (isAdminUser(getChatUser())) {
+        return getAvatarUrl("WMT", getStoredPhoto() || "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true");
+      }
+      return getStoredPhoto();
+    }
+
+
+    function updateProfileCard() {
+      const user = getChatUser();
+      const isAdmin = isAdminUser(user);
+      const name = getCurrentUserName();
+      const photo = getCurrentUserPhoto();
+      const email = getUserEmail(user);
+
+      profilePhoto.src = isAdmin
+        ? (photo || "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true")
+        : getAvatarUrl(name, photo);
+      profileRole.textContent = isAdmin ? "Administrador" : "Seu perfil";
+      profileName.innerHTML = isAdmin
+        ? `<span>WMT</span><span class="verify-badge" aria-hidden="true"></span>`
+        : escapeHtml(name);
+      profileSub.textContent = isAdmin
+        ? "Conta administrativa com selo verificado no chat."
+        : (email || "Defina nickname e foto em Configurações.");
+    }
+
+    async function bootNotifications() {
+      const userId = getCurrentUserId();
+      if (!userId) return;
+
+      if (unsubscribeNotifications) {
+        unsubscribeNotifications();
+      }
+
+      try {
+        const notificationsRef = collection(db, "notifications");
+        const q = query(
+          notificationsRef,
+          where("userId", "==", userId),
+          orderBy("createdAt", "desc"),
+          limit(20)
+        );
+
+        unsubscribeNotifications = onSnapshot(q, (snapshot) => {
+          lastNotifications = snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...docSnap.data()
+          }));
+          renderNotifications();
+        }, (error) => {
+          console.error("Erro ao ouvir notificações:", error);
+          notifList.innerHTML = `<div class="notif-empty">Não foi possível carregar.</div>`;
+        });
+      } catch (error) {
+        console.error("Erro ao iniciar notificações:", error);
+        notifList.innerHTML = `<div class="notif-empty">Sem notificações.</div>`;
+      }
+    }
+
+    
+    function renderNotifications() {
+      const unreadCount = lastNotifications.filter((item) => !item.read).length;
+      notifBadge.style.display = unreadCount ? "inline-flex" : "none";
+      notifBadge.textContent = String(unreadCount);
+
+      if (!lastNotifications.length) {
+        notifList.innerHTML = `<div class="notif-empty">Sem notificações.</div>`;
+        return;
+      }
+
+      notifList.innerHTML = lastNotifications.map((item) => {
+        const title = escapeHtml(item.title || "Nova notificação");
+        const text = escapeHtml(item.message || item.text || "");
+        const when = escapeHtml(formatDate(item.createdAt) || "");
+        const chatTarget = String(item.offerId || item.chatId || "").trim();
+
+        return `
+          <div class="notif-item ${item.read ? "" : "unread"}" data-notification-id="${escapeHtml(item.id)}" data-chat-id="${escapeHtml(chatTarget)}">
+            <div class="notif-title">${title}</div>
+            <div class="notif-text">${text || "Toque para abrir."}</div>
+            <div class="notif-time">${when || "Agora há pouco"}</div>
+          </div>
+        `;
+      }).join("");
+
+      notifList.querySelectorAll(".notif-item").forEach((item) => {
+        item.addEventListener("click", async () => {
+          const notificationId = item.getAttribute("data-notification-id");
+          const targetChatId = item.getAttribute("data-chat-id");
+          await markNotificationRead(notificationId);
+
+          if (targetChatId) {
+            window.location.href = `chat.html?id=${encodeURIComponent(targetChatId)}`;
+          }
+        });
+      });
+    }
+
+    async function markNotificationRead(notificationId) {
+      if (!notificationId) return;
+      try {
+        await updateDoc(doc(db, "notifications", notificationId), {
+          read: true,
+          readAt: serverTimestamp()
+        });
+      } catch (error) {
+        console.error("Erro ao marcar notificação como lida:", error);
+      }
+    }
+
+    async function markAllNotificationsRead() {
+      if (!lastNotifications.length) return;
+      const unread = lastNotifications.filter((item) => !item.read);
+      if (!unread.length) return;
+
+      try {
+        const batch = writeBatch(db);
+        unread.forEach((item) => {
+          batch.update(doc(db, "notifications", item.id), {
+            read: true,
+            readAt: serverTimestamp()
+          });
+        });
+        await batch.commit();
+      } catch (error) {
+        console.error("Erro ao marcar todas como lidas:", error);
+      }
+    }
+
+    async function bootChat() {
+      updateProfileCard();
+
+      if (!chatId) {
+        showStatus("<strong>Chat inválido.</strong> O id do chat não foi informado na URL.", "error");
+        messagesList.innerHTML = `<div class="empty">Chat inválido.</div>`;
+        return;
+      }
+
+      const chatRef = doc(db, "chats", chatId);
+
+      try {
+        let chatSnap = await getDoc(chatRef);
+
+        if (!chatSnap.exists()) {
+          const offerRef = doc(db, "offers", chatId);
+          const offerSnap = await getDoc(offerRef);
+
+          if (!offerSnap.exists()) {
+            showStatus("<strong>Oferta não encontrada.</strong> Não foi possível localizar a oferta vinculada a este chat.", "error");
+            messagesList.innerHTML = `<div class="empty">Oferta não encontrada.</div>`;
+            return;
+          }
+
+          const offer = { id: offerSnap.id, ...offerSnap.data() };
+          const ownerUserId = getOfferOwnerUserId(offer);
+          const ownerEmail = getOfferOwnerEmail(offer);
+
+          if (!ownerUserId && !ownerEmail) {
+            showStatus("<strong>Chat indisponível.</strong> Essa oferta ainda não possui dono vinculado.", "error");
+            messagesList.innerHTML = `<div class="empty">Oferta sem ownerUserId e ownerEmail.</div>`;
+            return;
+          }
+
+          if (!isAdminUser(getChatUser()) && !canCurrentUserOwnOffer(offer)) {
+            showStatus("<strong>Acesso negado.</strong> Essa oferta não pertence à sua conta.", "error");
+            messagesList.innerHTML = `<div class="empty">Você não é o dono desta oferta.</div>`;
+            return;
+          }
+
+          await setDoc(chatRef, {
+            offerId: offer.id,
+            offerCode: offer.code || offer.id,
+            ownerUserId,
+            ownerEmail,
+            ownerName: String(offer.ownerName || offer.nickname || "Usuário").trim(),
+            adminUserId: isAdminUser(getChatUser()) ? getCurrentUserId() : "",
+            adminEmail: isAdminUser(getChatUser()) ? getUserEmail(getChatUser()) : "",
+            status: "open",
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            lastMessage: "",
+            lastMessageAt: null
+          }, { merge: true });
+
+          chatSnap = await getDoc(chatRef);
+        }
+
+        currentChat = { id: chatSnap.id, ...chatSnap.data() };
+
+        if (!canAccessChat(currentChat)) {
+          showStatus("<strong>Acesso negado.</strong> Esse chat é privado e você não participa dele.", "error");
+          messagesList.innerHTML = `<div class="empty">Você não tem acesso a este chat.</div>`;
+          sendBtn.disabled = true;
+          messageInput.disabled = true;
+          return;
+        }
+
+        currentRole = resolveCurrentRole(currentChat);
+        fillChatInfo(currentChat);
+        listenMessages(chatRef);
+      } catch (error) {
+        console.error(error);
+        showStatus(`<strong>Erro ao carregar chat.</strong> ${escapeHtml(error?.message || "Tente novamente.")}`, "error");
+        messagesList.innerHTML = `<div class="empty">Erro ao carregar mensagens.</div>`;
+      }
+    }
+
+    function resolveCurrentRole(chat) {
+      const currentEmail = getUserEmail(getChatUser());
+      const currentId = getCurrentUserId();
+
+      if (
+        isAdminUser(getChatUser()) ||
+        currentId === String(chat.adminUserId || "").trim() ||
+        currentEmail === normalizeEmail(chat.adminEmail || "")
+      ) {
+        return "admin";
+      }
+
+      if (
+        currentId === String(chat.ownerUserId || "").trim() ||
+        currentEmail === normalizeEmail(chat.ownerEmail || "")
+      ) {
+        return "owner";
+      }
+
+      return null;
+    }
+
+    function canAccessChat(chat) {
+      return !!resolveCurrentRole(chat);
+    }
+
+    function fillChatInfo(chat) {
+      const offerCode = chat.offerCode || chat.offerId || chat.id;
+      const ownerLabel = chat.ownerName || chat.ownerEmail || "-";
+      const roleLabel = currentRole === "admin" ? "Administrador" : "Dono da oferta";
+      const statusLabel = chat.status || "open";
+      const lastMessage = chat.lastMessage || "Sem mensagens ainda.";
+
+      infoOfferCode.textContent = offerCode;
+      infoOfferId.textContent = chat.offerId || chat.id;
+      infoOwner.textContent = ownerLabel;
+      infoRole.textContent = roleLabel;
+      infoStatus.textContent = statusLabel;
+      infoLastMessage.textContent = lastMessage;
+
+      chatTitle.textContent = `Chat da oferta ${offerCode}`;
+      chatSub.textContent = `Conversa privada com ${ownerLabel}.`;
+      chatTitleHero.textContent = `Oferta ${offerCode} em conversa.`;
+      chatSubHero.textContent = `Fale direto no chat privado da oferta com ${ownerLabel}.`;
+      chatStatusChip.textContent = statusLabel;
+      hideStatus();
+    }
+
+    function renderSenderName(message, role) {
+      const rawName = String(message.senderName || "").trim();
+
+      if (role === "admin") {
+        return `<span class="wmt-name">WMT</span><span class="verify-badge" aria-hidden="true"></span>`;
+      }
+
+      return escapeHtml(rawName || currentChat?.ownerName || "Usuário");
+    }
+
+    function getMessageAvatar(message, role) {
+      if (role === "admin") {
+        const adminPhoto = String(message.senderPhoto || "").trim();
+        return adminPhoto || "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true";
+      }
+
+      const possiblePhoto = String(message.senderPhoto || "").trim();
+      const possibleName = String(message.senderName || currentChat?.ownerName || "Usuário").trim();
+      return getAvatarUrl(possibleName, possiblePhoto);
+    }
+
+    let lastRenderedMessageIds = "";
+
+    function listenMessages(chatRef) {
+      if (unsubscribeMessages) {
+        unsubscribeMessages();
+      }
+
+      const messagesRef = collection(chatRef, "messages");
+      const q = query(messagesRef, orderBy("createdAt", "asc"));
+
+      unsubscribeMessages = onSnapshot(q, (snapshot) => {
+        if (!snapshot.docs.length) {
+          if (!messagesList.querySelector(".empty")) {
+            messagesList.innerHTML = `<div class="empty">Nenhuma mensagem ainda. Comece a conversa por aqui.</div>`;
+          }
+          return;
+        }
+
+        const messages = snapshot.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        }));
+
+        const messageIds = messages.map(message => message.id).join("|");
+        const wasNearBottom = (messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight) < 120;
+
+        if (messageIds === lastRenderedMessageIds) {
+          if (wasNearBottom) {
+            requestAnimationFrame(() => {
+              messagesList.scrollTop = messagesList.scrollHeight;
+            });
+          }
+          return;
+        }
+
+        lastRenderedMessageIds = messageIds;
+
+        messagesList.innerHTML = messages.map(message => {
+          const role = message.senderRole === "admin" ? "admin" : "owner";
+          const dateText = formatDate(message.createdAt);
+          const avatar = getMessageAvatar(message, role);
+          const senderName = renderSenderName(message, role);
+
+          return `
+            <div class="msg-row ${role}">
+              ${role === "owner" ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
+
+              <div class="msg ${role}">
+                <div class="msg-top">
+                  <div class="msg-name ${role === "admin" ? "wmt-name" : ""}">${senderName}</div>
+                  <div class="msg-time">${escapeHtml(dateText || "")}</div>
+                </div>
+                <div class="msg-text">${escapeHtml(message.text || "")}</div>
+              </div>
+
+              ${role === "admin" ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
+            </div>
+          `;
+        }).join("");
+
+        if (wasNearBottom) {
+          requestAnimationFrame(() => {
+            messagesList.scrollTop = messagesList.scrollHeight;
+          });
+        }
+      }, (error) => {
+        console.error(error);
+        showStatus(`<strong>Erro ao ouvir mensagens.</strong> ${escapeHtml(error?.message || "Tente novamente.")}`, "error");
+      });
+    }
+
+    async function sendMessage() {
+      if (!currentChat || !currentRole) return;
+
+      const text = messageInput.value.trim();
+      if (!text) {
+        showStatus("<strong>Mensagem vazia.</strong> Digite algo antes de enviar.", "error");
+        return;
+      }
+
+      if (text.length > 3000) {
+        showStatus("<strong>Mensagem muito grande.</strong> Reduza o texto antes de enviar.", "error");
+        return;
+      }
+
+      const chatRef = doc(db, "chats", currentChat.id);
+      const messagesRef = collection(chatRef, "messages");
+
+      try {
+        sendBtn.disabled = true;
+        sendBtn.textContent = "Enviando...";
+
+        await addDoc(messagesRef, {
+          senderId: getCurrentUserId(),
+          senderRole: currentRole,
+          senderName: getCurrentUserName(),
+          senderPhoto: getCurrentUserPhoto(),
+          text,
+          createdAt: serverTimestamp()
+        });
+
+        await updateDoc(chatRef, {
+          updatedAt: serverTimestamp(),
+          lastMessage: text,
+          lastMessageAt: serverTimestamp()
+        });
+
+        const receiverUserId =
+          currentRole === "admin"
+            ? String(currentChat.ownerUserId || "").trim()
+            : String(currentChat.adminUserId || "").trim();
+
+        const receiverName =
+          currentRole === "admin"
+            ? String(currentChat.ownerName || currentChat.ownerEmail || "Usuário").trim()
+            : "WMT";
+
+        if (receiverUserId && receiverUserId !== getCurrentUserId()) {
+          await addDoc(collection(db, "notifications"), {
+            userId: receiverUserId,
+            title: "Nova mensagem no chat",
+            message: text.length > 90 ? text.slice(0, 90) + "..." : text,
+            offerId: currentChat.id,
+            chatId: currentChat.id,
+            senderId: getCurrentUserId(),
+            senderName: getCurrentUserName(),
+            receiverName,
+            read: false,
+            createdAt: serverTimestamp()
+          });
+        }
+
+        messageInput.value = "";
+        hideStatus();
+      } catch (error) {
+        console.error(error);
+        showStatus(`<strong>Erro ao enviar mensagem.</strong> ${escapeHtml(error?.message || "Tente novamente.")}`, "error");
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Enviar mensagem";
+      }
+    }
+  </script>
+  <div class="mobile-menu-backdrop" id="mobileMenuBackdrop"></div>
+</body>
+</html>

@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minhas Ofertas | WMT Market</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  
+  <style>
+    :root{
+      --bg:#04070d;
+      --panel:#0d1521;
+      --panel-2:#111b2b;
+      --text:#f5f8ff;
+      --muted:#a6b2c7;
+      --muted-2:#7f8ba0;
+      --line:rgba(255,255,255,.08);
+      --line-2:rgba(255,255,255,.12);
+      --blue:#7aa8ff;
+      --blue-2:#5d92ff;
+      --blue-3:#3a72f0;
+      --green:#58d791;
+      --yellow:#f2c94c;
+      --danger:#ff6b83;
+      --shadow-xs:0 8px 18px rgba(0,0,0,.12);
+      --shadow-sm:0 14px 30px rgba(0,0,0,.18);
+      --shadow:0 20px 55px rgba(0,0,0,.28);
+      --shadow-lg:0 28px 80px rgba(0,0,0,.36);
+      --max:1360px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+
+    body{
+      display:none;
+      margin:0;
+      font-family:'Plus Jakarta Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(122,168,255,.12), transparent 24%),
+        radial-gradient(circle at 92% 8%, rgba(88,215,145,.08), transparent 20%),
+        radial-gradient(circle at 50% 100%, rgba(61,115,239,.10), transparent 28%),
+        linear-gradient(rgba(4,7,13,.90), rgba(4,7,13,.96)),
+        url('background.jpg') center center / cover no-repeat fixed;
+      min-height:100vh;
+      overflow-x:hidden;
+      position:relative;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(to right, rgba(255,255,255,.012) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,.012) 1px, transparent 1px);
+      background-size:34px 34px;
+      mask-image:linear-gradient(to bottom, rgba(0,0,0,.30), transparent 88%);
+      opacity:.24;
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font-family:inherit}
+
+    .container{ width:min(var(--max), calc(100% - 24px)); margin:0 auto; }
+
+    .topbar{
+      position:sticky; top:0; z-index:80; backdrop-filter:blur(10px);
+      background:linear-gradient(180deg, rgba(4,7,13,.88), rgba(4,7,13,.78));
+      border-bottom:1px solid var(--line); box-shadow:0 8px 24px rgba(0,0,0,.16);
+    }
+
+    .topbar-inner{
+      min-height:74px; display:flex; flex-direction:column; align-items:stretch;
+      justify-content:center; gap:12px; padding:12px 0;
+    }
+
+    .brand-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .brand{ display:flex; align-items:center; gap:12px; min-width:0; }
+    .brand-logo{
+      width:46px; height:46px; flex:none; border-radius:16px; display:grid; place-items:center;
+      color:#fff; font-size:13px; font-weight:800; letter-spacing:.03em;
+      background:linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.02)), linear-gradient(135deg, var(--blue), var(--blue-2));
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 12px 24px rgba(94,145,255,.22);
+    }
+    .brand-copy{ min-width:0; }
+    .brand-text{ font-size:18px; font-weight:800; letter-spacing:-.01em; color:#fff; line-height:1.08; }
+    .brand-sub{ margin-top:4px; color:var(--muted); font-size:12px; font-weight:700; line-height:1.5; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.01em; }
+
+    .nav{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+    .nav a, .nav button{
+      min-height:44px; padding:11px 10px; border-radius:999px; color:var(--muted); font-size:13px;
+      font-weight:800; letter-spacing:.01em; transition:.2s ease; border:1px solid transparent;
+      background:rgba(255,255,255,.03); cursor:pointer; text-align:center; display:inline-flex;
+      align-items:center; justify-content:center; box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
+    }
+    .nav a:hover, .nav button:hover{
+      color:var(--text); background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.08); transform:translateY(-1px);
+    }
+
+    .nav .config-link{
+      color:#eef5ff;
+      background:linear-gradient(180deg, rgba(77,141,255,.14), rgba(255,255,255,.03));
+      border:1px solid rgba(77,141,255,.18);
+      box-shadow:0 10px 24px rgba(77,141,255,.10), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .nav .config-link:hover{
+      color:#fff;
+      background:linear-gradient(180deg, rgba(77,141,255,.24), rgba(255,255,255,.05));
+      border-color:rgba(77,141,255,.30);
+      box-shadow:0 12px 28px rgba(77,141,255,.16);
+    }
+
+    .page{ padding:14px 0 28px; }
+
+    .hero{
+      position:relative; overflow:hidden; border-radius:28px; border:1px solid rgba(255,255,255,.10);
+      background:linear-gradient(180deg, rgba(10,16,27,.95), rgba(8,13,22,.88));
+      box-shadow:var(--shadow); padding:22px 16px 18px; isolation:isolate; margin-bottom:14px;
+    }
+    .hero::before{
+      content:""; position:absolute; top:-90px; right:-80px; width:220px; height:220px; border-radius:50%;
+      background:radial-gradient(circle, rgba(122,168,255,.18), transparent 66%); pointer-events:none;
+    }
+    .hero::after{
+      content:""; position:absolute; left:-90px; bottom:-100px; width:220px; height:220px; border-radius:50%;
+      background:radial-gradient(circle, rgba(88,215,145,.10), transparent 68%); pointer-events:none;
+    }
+    .hero-content{ position:relative; z-index:1; display:grid; gap:18px; }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px; padding:10px 13px; border-radius:999px;
+      border:1px solid var(--line); background:rgba(255,255,255,.05); color:#e6efff; font-size:10px;
+      font-weight:800; text-transform:uppercase; letter-spacing:.04em; margin-bottom:12px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .hero-title{ margin:0; font-size:clamp(34px, 11vw, 54px); line-height:1.02; font-weight:800; letter-spacing:-.04em; color:#fff; }
+    .hero-sub{ margin:14px 0 0; color:var(--muted); font-size:14px; line-height:1.8; font-weight:600; max-width:700px; }
+
+    .toolbar-card{
+      position:relative; overflow:hidden; border-radius:22px; border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(10,16,27,.94), rgba(8,13,22,.88)); box-shadow:var(--shadow); padding:16px; margin-bottom:14px;
+    }
+    .toolbar-grid{ display:grid; gap:10px; }
+    .search-wrap, .select-wrap{ position:relative; }
+    .search, .select{
+      width:100%; border:1px solid rgba(255,255,255,.12); background:linear-gradient(180deg, rgba(18,27,43,.98), rgba(12,18,30,.96));
+      color:#eef4ff; border-radius:18px; padding:15px 15px; font-size:14px; outline:none; font-weight:700; letter-spacing:.01em;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 12px 24px rgba(0,0,0,.14); transition:.22s ease;
+      appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    }
+    .search::placeholder{ color:#a8b7ca; font-weight:600; }
+    .select{ padding-right:42px; }
+    .select-wrap::after{
+      content:"⌄"; position:absolute; right:16px; top:50%; transform:translateY(-50%); color:#eef4ff; font-size:16px; font-weight:800; pointer-events:none;
+    }
+
+    .cards-grid{ display:grid; grid-template-columns:1fr; gap:14px; align-items:start; }
+    .offer-card{
+      position:relative; overflow:hidden; background:linear-gradient(180deg, rgba(10,16,27,.97), rgba(7,12,21,.93));
+      border:1px solid rgba(255,255,255,.08); border-radius:22px; padding:16px; box-shadow:var(--shadow); display:grid; gap:13px;
+      transition:.25s ease; isolation:isolate;
+    }
+    .offer-card:hover{ transform:translateY(-3px); border-color:rgba(122,168,255,.16); box-shadow:0 26px 70px rgba(0,0,0,.34); }
+    .offer-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .offer-code{ font-size:21px; font-weight:800; letter-spacing:-.02em; margin-bottom:4px; color:#fff; word-break:break-word; line-height:1.15; }
+    .offer-date{ color:#98a7bb; font-size:11px; font-weight:700; letter-spacing:.02em; line-height:1.5; }
+    .streamer-badge{
+      padding:9px 12px; border-radius:999px; font-size:11px; font-weight:800; border:1px solid var(--line); white-space:nowrap; text-transform:uppercase; letter-spacing:.04em;
+    }
+    .streamer-badge.wmt{ color:#eef5ff; background:linear-gradient(180deg, rgba(122,168,255,.18), rgba(122,168,255,.10)); border-color:rgba(122,168,255,.28); }
+    .streamer-badge.pius{ color:#eafff2; background:linear-gradient(180deg, rgba(89,212,143,.18), rgba(89,212,143,.10)); border-color:rgba(89,212,143,.28); }
+
+    .offer-images{ display:flex; gap:10px; overflow-x:auto; padding:2px 2px 4px; }
+    .offer-images img{
+      width:88px; height:88px; object-fit:cover; border-radius:16px; border:1px solid rgba(255,255,255,.10); flex:none; background:#0f151d; box-shadow:0 8px 18px rgba(0,0,0,.18);
+    }
+
+    .meta{ display:grid; grid-template-columns:1fr; gap:10px; }
+    .meta-item, .message-box{
+      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.025)); border:1px solid rgba(255,255,255,.07);
+      border-radius:16px; padding:13px; box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .meta-item .k, .message-box .k{ color:#9fb0c7; font-size:11px; font-weight:800; margin-bottom:7px; text-transform:uppercase; letter-spacing:.04em; }
+    .meta-item .v{ color:#fff; font-size:14px; font-weight:800; word-break:break-word; line-height:1.55; }
+    .message-box .v{ color:#edf3ff; font-size:14px; line-height:1.8; white-space:pre-wrap; word-break:break-word; font-weight:600; }
+
+    .status-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+    .status-chip{
+      padding:10px 12px; border-radius:999px; font-size:11px; font-weight:800; border:1px solid var(--line); text-transform:uppercase; letter-spacing:.05em;
+    }
+    .status-chip.pendente{ color:#edf3ff; background:linear-gradient(180deg, rgba(122,168,255,.16), rgba(122,168,255,.08)); border-color:rgba(122,168,255,.24); }
+    .status-chip.analise{ color:#fff2cb; background:linear-gradient(180deg, rgba(242,201,76,.18), rgba(242,201,76,.08)); border-color:rgba(242,201,76,.24); }
+    .status-chip.aceita{ color:#ddffea; background:linear-gradient(180deg, rgba(89,212,143,.18), rgba(89,212,143,.08)); border-color:rgba(89,212,143,.24); }
+    .status-chip.recusada{ color:#ffe1e8; background:linear-gradient(180deg, rgba(255,107,131,.18), rgba(255,107,131,.08)); border-color:rgba(255,107,131,.24); }
+
+    .actions{ display:flex; gap:8px; flex-wrap:wrap; }
+    .action-btn{
+      border:none; cursor:pointer; border-radius:13px; padding:11px 12px; font-weight:800; font-size:12px; letter-spacing:.01em; transition:.2s ease; box-shadow:var(--shadow-xs);
+    }
+    .action-btn:hover{ transform:translateY(-1px); filter:brightness(1.05); }
+    .btn-chat{ color:#edf4ff; background:linear-gradient(180deg, rgba(122,168,255,.22), rgba(122,168,255,.10)); border:1px solid rgba(122,168,255,.28); }
+    .btn-view{ color:#e8fff1; background:linear-gradient(180deg, rgba(89,212,143,.24), rgba(89,212,143,.12)); border:1px solid rgba(89,212,143,.30); }
+
+    .empty{
+      text-align:center; padding:42px 20px; color:var(--muted); background:linear-gradient(180deg, rgba(10,16,27,.92), rgba(8,13,22,.88));
+      border:1px solid rgba(255,255,255,.08); border-radius:22px; box-shadow:var(--shadow); grid-column:1 / -1; font-size:15px; font-weight:700;
+    }
+
+    .notice-backdrop{
+      position:fixed; inset:0; background:rgba(0,0,0,.62); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; z-index:120; padding:16px;
+    }
+    .notice-modal{
+      width:min(470px, 100%); background:linear-gradient(180deg, rgba(12,18,29,.98), rgba(10,15,25,.94)); border:1px solid rgba(255,255,255,.09);
+      border-radius:24px; padding:22px; box-shadow:var(--shadow-lg);
+    }
+    .notice-badge{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.04em;
+      margin-bottom:12px; border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.05); color:#eef4ff;
+    }
+    .notice-modal h3{ margin:0 0 10px; font-size:24px; letter-spacing:-.02em; color:#fff; line-height:1.15; }
+    .notice-modal p{ margin:0; color:var(--muted); font-size:14px; line-height:1.8; font-weight:600; }
+    .notice-actions{ margin-top:20px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+    .notice-btn{
+      border:none; cursor:pointer; border-radius:14px; padding:12px 15px; font-weight:800; font-size:13px; letter-spacing:.01em; transition:.2s ease;
+    }
+    .notice-btn.secondary{ background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04)); color:var(--text); border:1px solid rgba(255,255,255,.10); }
+    .notice-btn.primary{ background:linear-gradient(135deg, var(--blue-3), var(--blue)); color:#fff; box-shadow:0 18px 28px rgba(61,115,239,.20); }
+
+    @media (min-width: 761px){
+      .container{ width:min(var(--max), calc(100% - 40px)); }
+      .topbar-inner{ min-height:78px; flex-direction:row; align-items:center; justify-content:space-between; padding:0; }
+      .nav{ width:auto; display:flex; align-items:center; gap:8px; }
+      .nav a, .nav button{ min-height:auto; padding:10px 14px; background:transparent; }
+      .page{ padding:22px 0 34px; }
+      .hero{ border-radius:34px; padding:30px 28px 24px; }
+      .toolbar-grid{ grid-template-columns:1.2fr .8fr; }
+      .cards-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:16px; }
+      .meta{ grid-template-columns:1fr 1fr; }
+    }
+
+    @media (min-width: 1180px){
+      .cards-grid{ grid-template-columns:repeat(3, minmax(0,1fr)); }
+    }
+  
+
+    /* ===== Lista premium minimal ===== */
+    :root{
+      --brand-blue:#4d8dff;
+      --brand-blue-2:#67a3ff;
+      --brand-blue-3:#2d74ff;
+      --brand-green:#2ed68d;
+      --brand-green-2:#52e7a3;
+      --brand-green-3:#19b973;
+    }
+
+    .topbar{
+      background:
+        linear-gradient(180deg, rgba(6,10,18,.96), rgba(5,9,16,.90));
+      border-bottom:1px solid rgba(77,141,255,.14);
+    }
+
+    .nav a, .nav button{
+      color:#d7e6ff;
+      background:linear-gradient(180deg, rgba(77,141,255,.10), rgba(255,255,255,.02));
+      border:1px solid rgba(77,141,255,.12);
+    }
+    .nav a:hover, .nav button:hover{
+      color:#fff;
+      background:linear-gradient(180deg, rgba(77,141,255,.20), rgba(255,255,255,.04));
+      border-color:rgba(77,141,255,.26);
+      box-shadow:0 10px 24px rgba(77,141,255,.16);
+    }
+
+    .page{
+      padding:18px 0 36px;
+    }
+
+    .hero{
+      background:
+        radial-gradient(circle at 84% 16%, rgba(77,141,255,.18), transparent 20%),
+        radial-gradient(circle at 12% 100%, rgba(46,214,141,.10), transparent 24%),
+        linear-gradient(180deg, rgba(8,15,29,.985), rgba(4,9,18,.955));
+      border-color:rgba(77,141,255,.16);
+      padding:26px 20px 22px;
+      margin-bottom:16px;
+    }
+
+    .toolbar-card{
+      background:linear-gradient(180deg, rgba(9,16,30,.97), rgba(6,11,21,.93));
+      border-color:rgba(77,141,255,.12);
+      padding:14px;
+      margin-bottom:16px;
+    }
+
+    .search, .select{
+      height:54px;
+      border-color:rgba(77,141,255,.16);
+      background:linear-gradient(180deg, rgba(16,27,47,.985), rgba(10,17,30,.965));
+      border-radius:18px;
+    }
+    .search:focus, .select:focus{
+      border-color:rgba(77,141,255,.58);
+      box-shadow:0 0 0 4px rgba(77,141,255,.10), 0 16px 28px rgba(0,0,0,.18);
+    }
+    .select option{
+      background:#0d1523;
+      color:#eef4ff;
+    }
+
+    .cards-grid{
+      display:grid;
+      grid-template-columns:1fr !important;
+      gap:14px !important;
+      align-items:start;
+    }
+
+    .offer-card{
+      position:relative;
+      overflow:hidden;
+      border-radius:26px;
+      padding:14px;
+      box-shadow:0 16px 44px rgba(0,0,0,.24);
+      transition:.22s ease;
+      background:
+        linear-gradient(180deg, rgba(8,14,25,.985), rgba(5,9,18,.96));
+      border:1px solid rgba(77,141,255,.12);
+    }
+    .offer-card.is-wmt{
+      background:
+        radial-gradient(circle at 92% 18%, rgba(77,141,255,.18), transparent 22%),
+        linear-gradient(180deg, rgba(8,14,25,.99), rgba(5,9,18,.97));
+      border-color:rgba(77,141,255,.18);
+      box-shadow:0 16px 46px rgba(0,0,0,.26), inset 0 0 0 1px rgba(77,141,255,.05);
+    }
+    .offer-card.is-pius{
+      background:
+        radial-gradient(circle at 92% 18%, rgba(46,214,141,.16), transparent 22%),
+        linear-gradient(180deg, rgba(8,14,25,.99), rgba(5,9,18,.97));
+      border-color:rgba(46,214,141,.18);
+      box-shadow:0 16px 46px rgba(0,0,0,.26), inset 0 0 0 1px rgba(46,214,141,.05);
+    }
+    .offer-card:hover{
+      transform:translateY(-2px);
+    }
+
+    .offer-line{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      position:relative;
+      z-index:1;
+    }
+
+    .offer-main{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      align-items:center;
+    }
+
+    .offer-left{
+      display:grid;
+      grid-template-columns:84px minmax(0,1fr);
+      gap:14px;
+      align-items:center;
+      min-width:0;
+    }
+
+    .offer-thumb{
+      width:84px;
+      height:84px;
+      border-radius:22px;
+      overflow:hidden;
+      position:relative;
+      background:#0f151d;
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 12px 22px rgba(0,0,0,.22);
+      flex:none;
+    }
+
+    .offer-thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .offer-thumb-badge{
+      position:absolute;
+      right:8px;
+      bottom:8px;
+      min-width:26px;
+      height:26px;
+      padding:0 8px;
+      border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,.72);
+      border:1px solid rgba(255,255,255,.10);
+      color:#fff;
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.03em;
+      box-shadow:0 8px 16px rgba(0,0,0,.22);
+    }
+
+    .offer-content{
+      min-width:0;
+      display:grid;
+      gap:12px;
+    }
+
+    .offer-header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .offer-title-group{
+      min-width:0;
+      display:grid;
+      gap:5px;
+    }
+
+    .offer-code{
+      font-size:21px;
+      font-weight:800;
+      letter-spacing:-.03em;
+      margin:0;
+      color:#fff;
+      line-height:1.02;
+    }
+
+    .offer-date{
+      color:#8ea0b8;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:.02em;
+      line-height:1.5;
+    }
+
+    .streamer-badge{
+      padding:8px 11px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:800;
+      white-space:nowrap;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .streamer-badge.wmt{
+      color:#eef5ff;
+      background:linear-gradient(180deg, rgba(77,141,255,.22), rgba(77,141,255,.08));
+      border:1px solid rgba(77,141,255,.28);
+    }
+    .streamer-badge.pius{
+      color:#eafff2;
+      background:linear-gradient(180deg, rgba(46,214,141,.22), rgba(46,214,141,.08));
+      border:1px solid rgba(46,214,141,.28);
+    }
+
+    .offer-meta{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .price-pill{
+      padding:10px 13px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.01em;
+      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.08);
+      color:#fff;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .streamer-line{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+      color:#d9e6fb;
+      font-size:13px;
+      font-weight:700;
+      letter-spacing:.01em;
+    }
+
+    .streamer-line strong{
+      color:#fff;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+    }
+
+    .streamer-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      flex:none;
+      box-shadow:0 0 0 6px rgba(255,255,255,.03);
+    }
+    .streamer-dot.wmt{
+      background:linear-gradient(180deg, var(--brand-blue-2), var(--brand-blue));
+      box-shadow:0 0 0 6px rgba(77,141,255,.10), 0 0 18px rgba(77,141,255,.24);
+    }
+    .streamer-dot.pius{
+      background:linear-gradient(180deg, var(--brand-green-2), var(--brand-green));
+      box-shadow:0 0 0 6px rgba(46,214,141,.10), 0 0 18px rgba(46,214,141,.22);
+    }
+
+    .offer-actions{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      min-width:0;
+    }
+
+    .action-btn{
+      border:none;
+      cursor:pointer;
+      border-radius:16px;
+      padding:14px 16px;
+      font-weight:800;
+      font-size:13px;
+      letter-spacing:.01em;
+      transition:.2s ease;
+      box-shadow:0 8px 18px rgba(0,0,0,.12);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      text-align:center;
+      min-height:52px;
+    }
+    .action-btn:hover{ transform:translateY(-1px); filter:brightness(1.05); }
+    .btn-chat{
+      color:#fff;
+      background:linear-gradient(135deg, var(--brand-blue-3), var(--brand-blue-2));
+      border:1px solid rgba(103,163,255,.36);
+      box-shadow:0 14px 26px rgba(45,116,255,.20);
+    }
+    .offer-card.is-pius .btn-chat{
+      background:linear-gradient(135deg, var(--brand-green-3), var(--brand-green-2));
+      border-color:rgba(82,231,163,.28);
+      box-shadow:0 14px 26px rgba(31,185,118,.18);
+    }
+
+    .empty{
+      text-align:center;
+      padding:42px 20px;
+      color:var(--muted);
+      background:linear-gradient(180deg, rgba(9,16,30,.96), rgba(6,11,21,.92));
+      border:1px solid rgba(77,141,255,.12);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      grid-column:1 / -1;
+      font-size:15px;
+      font-weight:700;
+    }
+
+    @media (min-width: 761px){
+      .hero{
+        padding:32px 28px 26px;
+        border-radius:32px;
+      }
+
+      .toolbar-grid{
+        grid-template-columns:1.2fr .8fr;
+      }
+
+      .offer-card{
+        padding:16px 18px;
+      }
+
+      .offer-main{
+        grid-template-columns:minmax(0,1fr) 240px;
+        gap:16px;
+      }
+
+      .offer-left{
+        grid-template-columns:92px minmax(0,1fr);
+        gap:16px;
+      }
+
+      .offer-thumb{
+        width:92px;
+        height:92px;
+      }
+    }
+
+    @media (max-width: 760px){
+      .offer-left{
+        grid-template-columns:72px minmax(0,1fr);
+        gap:12px;
+      }
+
+      .offer-thumb{
+        width:72px;
+        height:72px;
+        border-radius:18px;
+      }
+
+      .offer-code{
+        font-size:18px;
+      }
+
+      .offer-header{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
+
+
+    /* ===== Header plataforma padronizado ===== */
+    .topbar-modern{
+      background:linear-gradient(180deg, rgba(5,9,16,.94), rgba(5,9,16,.86));
+      border-bottom:1px solid rgba(77,141,255,.14);
+      box-shadow:0 10px 30px rgba(0,0,0,.18);
+    }
+    .topbar-modern-inner{ position:relative; }
+    .modern-brand-row{ width:100%; }
+    .brand-home{ text-decoration:none; }
+    .topbar-actions{ display:flex; align-items:center; gap:10px; position:relative; }
+    .top-icon-btn{
+      width:46px; height:46px; border-radius:16px; display:grid; place-items:center; color:#dbe8ff;
+      text-decoration:none; position:relative; transition:.2s ease; background:transparent;
+      border:1px solid transparent; box-shadow:none; cursor:pointer;
+    }
+    .top-icon-btn:hover{
+      transform:translateY(-1px); color:#fff;
+      background:linear-gradient(180deg, rgba(77,141,255,.16), rgba(255,255,255,.04));
+      border-color:rgba(77,141,255,.20); box-shadow:0 12px 28px rgba(77,141,255,.12);
+    }
+    .top-icon-btn svg{ width:22px; height:22px; display:block; }
+    .top-icon-btn.has-badge{ position:relative; }
+    .top-badge{
+      position:absolute; top:-4px; right:-2px; min-width:20px; height:20px; padding:0 6px; border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center; background:#f7c74f; color:#111;
+      font-size:11px; font-weight:900; box-shadow:0 8px 16px rgba(0,0,0,.20); border:2px solid #1b2232;
+    }
+
+    .profile-menu-shell{ position:relative; display:flex; align-items:center; }
+    .profile-trigger{
+      width:50px; height:50px; border-radius:999px; padding:0; overflow:hidden; cursor:pointer;
+      background:transparent; border:1px solid transparent; box-shadow:none; position:relative; z-index:2;
+    }
+    .profile-trigger:hover{
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(77,141,255,.16), rgba(255,255,255,.04));
+      border-color:rgba(77,141,255,.20); box-shadow:0 12px 28px rgba(77,141,255,.12);
+    }
+    .profile-trigger img,
+    .profile-menu-avatar{
+      width:100%; height:100%; object-fit:cover; display:block; border-radius:999px;
+      background:transparent; box-shadow:none; border:none;
+    }
+
+    .profile-menu,.notif-menu{
+      position:absolute; top:calc(100% + 10px); right:0; opacity:0; visibility:hidden; transform:translateY(8px);
+      transition:opacity .18s ease, transform .18s ease, visibility .18s ease; pointer-events:none; z-index:120;
+    }
+    .profile-menu{
+      width:min(350px, calc(100vw - 24px)); border-radius:22px;
+      background:linear-gradient(180deg, rgba(19,24,40,.98), rgba(18,22,36,.96));
+      border:1px solid rgba(255,255,255,.08); box-shadow:0 24px 60px rgba(0,0,0,.34); padding:14px;
+    }
+    .profile-menu.open,.notif-menu.open{
+      display:block; opacity:1; visibility:visible; transform:translateY(0); pointer-events:auto;
+    }
+    .profile-menu-head{
+      display:grid; grid-template-columns:60px minmax(0,1fr) auto; gap:12px; align-items:center;
+      padding:6px 4px 16px; border-bottom:1px solid rgba(255,255,255,.07); margin-bottom:12px;
+    }
+    .profile-menu-avatar{ width:60px; height:60px; }
+    .profile-menu-copy{ min-width:0; }
+    .profile-menu-name{
+      color:#fff; font-size:24px; font-weight:800; letter-spacing:-.03em; line-height:1.05;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .profile-menu-sub{ margin-top:6px; color:#9eb0c8; font-size:13px; font-weight:600; line-height:1.5; }
+    .profile-sell-btn{
+      min-height:44px; padding:0 18px; border-radius:14px; display:inline-flex; align-items:center; justify-content:center;
+      font-size:14px; font-weight:800; color:#111; background:#f7c74f; text-decoration:none;
+      box-shadow:0 12px 24px rgba(0,0,0,.18); transition:.2s ease; white-space:nowrap;
+    }
+    .profile-sell-btn:hover{ transform:translateY(-1px); filter:brightness(1.04); }
+    .profile-menu-links{ display:grid; gap:4px; }
+    .profile-menu-link{
+      min-height:50px; border-radius:14px; display:flex; align-items:center; gap:12px; padding:0 12px; color:#eef4ff;
+      font-size:14px; font-weight:700; text-decoration:none; border:1px solid transparent; background:transparent;
+      transition:.2s ease; width:100%; text-align:left; cursor:pointer;
+    }
+    .profile-menu-link:hover{ background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.08); }
+    .profile-link-icon{
+      width:28px; display:inline-flex; justify-content:center; align-items:center; font-size:20px; flex:none; opacity:.95;
+    }
+    .danger-link{ color:#ffe5eb; }
+
+    .notif-menu{
+      width:min(360px, calc(100vw - 24px)); padding:12px; border-radius:20px;
+      background:linear-gradient(180deg, rgba(19,24,40,.98), rgba(18,22,36,.96));
+      border:1px solid rgba(255,255,255,.08); box-shadow:0 24px 60px rgba(0,0,0,.34);
+    }
+    .notif-menu-head{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 4px 12px;
+      border-bottom:1px solid rgba(255,255,255,.07); margin-bottom:10px;
+    }
+    .notif-menu-head strong{ color:#fff; font-size:15px; letter-spacing:-.01em; }
+    .notif-clear-btn{
+      border:none; background:rgba(255,255,255,.05); color:#dbe7fb; border:1px solid rgba(255,255,255,.08);
+      min-height:34px; padding:0 10px; border-radius:12px; font-weight:800; cursor:pointer;
+    }
+    .notif-list{ display:grid; gap:8px; max-height:360px; overflow:auto; padding-right:2px; }
+    .notif-item{
+      border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.03); border-radius:14px; padding:12px;
+      cursor:pointer; transition:.18s ease;
+    }
+    .notif-item:hover{ background:rgba(255,255,255,.05); border-color:rgba(77,141,255,.18); }
+    .notif-item.unread{ border-color:rgba(77,141,255,.22); background:rgba(77,141,255,.08); }
+    .notif-title{ color:#fff; font-size:13px; font-weight:800; line-height:1.4; }
+    .notif-text{ margin-top:4px; color:#aebbd0; font-size:12px; line-height:1.6; font-weight:600; }
+    .notif-time{ margin-top:6px; color:#7f8ba0; font-size:11px; font-weight:700; }
+    .notif-empty{ padding:18px 10px; color:#9eb0c8; font-size:13px; font-weight:700; text-align:center; }
+
+    @media (hover:hover) and (pointer:fine){
+      .profile-menu-shell:hover .profile-menu{
+        display:block; opacity:1; visibility:visible; transform:translateY(0); pointer-events:auto;
+      }
+    }
+    @media (max-width:760px){
+      .top-icon-btn{ width:44px; height:44px; border-radius:14px; }
+      .profile-trigger{ width:46px; height:46px; }
+      .profile-menu{ width:min(340px, calc(100vw - 18px)); }
+      .notif-menu{ width:min(340px, calc(100vw - 18px)); right:-40px; }
+      .profile-menu-head{ grid-template-columns:52px minmax(0,1fr); }
+      .profile-sell-btn{ grid-column:1 / -1; justify-self:start; margin-top:4px; }
+    }
+
+@media (max-width:760px){
+  .topbar{
+    backdrop-filter:none !important;
+    z-index:230 !important;
+  }
+
+  .topbar-inner{
+    min-height:68px !important;
+    padding:10px 0 !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:10px !important;
+  }
+
+  .brand-row.modern-brand-row,
+  .brand-row{
+    width:auto !important;
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    display:flex !important;
+    align-items:center !important;
+  }
+
+  .brand.brand-home,
+  .brand{
+    min-width:0 !important;
+    flex:1 1 auto !important;
+  }
+
+  .brand-copy{
+    min-width:0 !important;
+  }
+
+  .brand-logo{
+    width:42px !important;
+    height:42px !important;
+    border-radius:14px !important;
+    font-size:12px !important;
+  }
+
+  .brand-text{
+    font-size:15px !important;
+  }
+
+  .brand-sub{
+    font-size:11px !important;
+    line-height:1.35 !important;
+  }
+
+  .topbar-actions{
+    margin-left:auto !important;
+    justify-content:flex-end !important;
+    gap:8px !important;
+  }
+}
+
+@media (max-width:760px){
+  .offer-card,
+  .toolbar-card,
+  .hero,
+  .empty{
+    box-shadow:0 10px 24px rgba(0,0,0,.18) !important;
+  }
+
+  .offer-thumb{
+    box-shadow:0 8px 16px rgba(0,0,0,.16) !important;
+  }
+
+  .action-btn,
+  .price-pill,
+  .streamer-badge{
+    box-shadow:none !important;
+  }
+}
+
+
+  </style>
+</head>
+<body>
+  
+  <header class="topbar topbar-modern">
+    <div class="container topbar-inner topbar-modern-inner">
+      <div class="brand-row modern-brand-row">
+        <a href="index.html" class="brand brand-home">
+          <div class="brand-logo">WMT</div>
+          <div class="brand-copy">
+            <div class="brand-text">WMT Market</div>
+            <div class="brand-sub">Venda seus brainrots para streamers</div>
+          </div>
+        </a>
+      </div>
+
+      <div class="topbar-actions">
+      <a href="minhas-ofertas.html" class="top-icon-btn" aria-label="Chat" title="Chat">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 17.5 3.5 20V6a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+        </a>
+
+        <button class="top-icon-btn has-badge" id="notifTrigger" type="button" aria-label="Notificações" title="Notificações">
+          <span class="top-badge" id="notifBadge" style="display:none;">0</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3.75a4.25 4.25 0 0 0-4.25 4.25v1.13c0 .84-.2 1.66-.59 2.4L6 13.75V15h12v-1.25l-1.16-2.22c-.39-.74-.59-1.56-.59-2.4V8A4.25 4.25 0 0 0 12 3.75Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M10 18a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+
+        <div class="notif-menu" id="notifMenu">
+          <div class="notif-menu-head">
+            <strong>Notificações</strong>
+            <button type="button" id="markAllReadBtn" class="notif-clear-btn">Marcar lidas</button>
+          </div>
+          <div class="notif-list" id="notifList">
+            <div class="notif-empty">Sem notificações.</div>
+          </div>
+        </div>
+
+        <div class="profile-menu-shell">
+          <button class="top-icon-btn profile-trigger" id="profileTrigger" type="button" aria-label="Abrir menu da conta" aria-expanded="false" aria-controls="profileMenu">
+            <img id="headerProfilePhoto" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+          </button>
+
+          <div class="profile-menu" id="profileMenu">
+            <div class="profile-menu-head">
+              <img id="menuProfilePhoto" class="profile-menu-avatar" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+              <div class="profile-menu-copy">
+                <div class="profile-menu-name" id="menuProfileName">wmt</div>
+                <div class="profile-menu-sub" id="menuProfileSub">Conta WMT Market</div>
+              </div>
+              <a href="enviar.html" class="profile-sell-btn">Vender</a>
+            </div>
+
+            <div class="profile-menu-links">
+              <a href="minhas-ofertas.html" class="profile-menu-link">
+                <span class="profile-link-icon">💬</span>
+                <span>Ofertas</span>
+              </a>
+
+              <a href="configuracoes.html" class="profile-menu-link">
+                <span class="profile-link-icon">⚙</span>
+                <span>Configurações da conta</span>
+              </a>
+
+              <a href="painel.html" class="profile-menu-link" id="profilePanelLink" style="display:none;">
+                <span class="profile-link-icon">🛡</span>
+                <span>Painel</span>
+              </a>
+
+              <button id="logoutBtn" type="button" class="profile-menu-link danger-link" style="display:none;">
+                <span class="profile-link-icon">↪</span>
+                <span>Sair</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+  <main class="page">
+    <div class="container">
+      <section class="hero">
+        <div class="hero-content">
+          <div>
+            <div class="badge">Área do usuário</div>
+            <h1 class="hero-title">Suas ofertas.</h1>
+            <p class="hero-sub">Veja tudo que você enviou, acompanhe o status e abra o chat da oferta quando quiser.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="toolbar-card">
+        <div class="toolbar-grid">
+          <div class="search-wrap">
+            <input id="searchInput" class="search" type="text" placeholder="Buscar por código, streamer, mensagem ou status" />
+          </div>
+
+          <div class="select-wrap">
+            <select id="statusFilter" class="select">
+              <option value="TODOS">Todos os status</option>
+              <option value="Pendente">Pendente</option>
+              <option value="Em análise">Em análise</option>
+              <option value="Aprovada">Aprovada</option>
+              <option value="Aceita">Aceita</option>
+              <option value="Recusada">Recusada</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section id="offersContainer" class="cards-grid"></section>
+    </div>
+  </main>
+
+  <div class="notice-backdrop" id="noticeModal">
+    <div class="notice-modal">
+      <div class="notice-badge" id="noticeBadge">Aviso</div>
+      <h3 id="noticeTitle">Mensagem</h3>
+      <p id="noticeMessage">Texto da mensagem.</p>
+      <div class="notice-actions">
+        <button class="notice-btn secondary" id="noticeSecondaryBtn" style="display:none;">Cancelar</button>
+        <button class="notice-btn primary" id="noticePrimaryBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const REDIRECT_KEY = "wmt_after_login";
+    const ADMIN_EMAILS = ["wmtcreator@gmail.com"];
+
+    let currentUser = null;
+    let offersCache = [];
+    let visibleOffersLimit = 24;
+    let searchDebounce = null;
+
+    const noticeModal = document.getElementById("noticeModal");
+    const noticeBadge = document.getElementById("noticeBadge");
+    const noticeTitle = document.getElementById("noticeTitle");
+    const noticeMessage = document.getElementById("noticeMessage");
+    const noticePrimaryBtn = document.getElementById("noticePrimaryBtn");
+    const noticeSecondaryBtn = document.getElementById("noticeSecondaryBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const profileTrigger = document.getElementById("profileTrigger");
+    const profileMenu = document.getElementById("profileMenu");
+    const profilePanelLink = document.getElementById("profilePanelLink");
+    const headerProfilePhoto = document.getElementById("headerProfilePhoto");
+    const menuProfilePhoto = document.getElementById("menuProfilePhoto");
+    const menuProfileName = document.getElementById("menuProfileName");
+    const menuProfileSub = document.getElementById("menuProfileSub");
+    const notifTrigger = document.getElementById("notifTrigger");
+    const notifMenu = document.getElementById("notifMenu");
+    const notifBadge = document.getElementById("notifBadge");
+    const notifList = document.getElementById("notifList");
+    const markAllReadBtn = document.getElementById("markAllReadBtn");
+    const offersContainer = document.getElementById("offersContainer");
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
+      authDomain: "wmt-market.firebaseapp.com",
+      projectId: "wmt-market",
+      storageBucket: "wmt-market.firebasestorage.app",
+      messagingSenderId: "547032996672",
+      appId: "1:547032996672:web:c7bd6a33e43927f003f8a5",
+      measurementId: "G-B5X5VD667Y"
+    };
+
+    const app = firebase.apps?.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    function showNotice({ badge = "Aviso", title = "Mensagem", message = "", primaryText = "Fechar", secondaryText = "", onPrimary = null, onSecondary = null }) {
+      noticeBadge.textContent = badge;
+      noticeTitle.textContent = title;
+      noticeMessage.textContent = message;
+      noticePrimaryBtn.textContent = primaryText;
+      noticeSecondaryBtn.textContent = secondaryText || "Cancelar";
+      noticeSecondaryBtn.style.display = secondaryText ? "inline-flex" : "none";
+      noticePrimaryBtn.onclick = () => { closeNotice(); if (typeof onPrimary === "function") onPrimary(); };
+      noticeSecondaryBtn.onclick = () => { closeNotice(); if (typeof onSecondary === "function") onSecondary(); };
+      noticeModal.style.display = "flex";
+    }
+
+    function closeNotice() { noticeModal.style.display = "none"; }
+    noticeModal.addEventListener("click", (e) => { if (e.target === noticeModal) closeNotice(); });
+    profileTrigger?.addEventListener("click", (e) => {
+      const mobile = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+      if (!mobile) return;
+      e.stopPropagation();
+      toggleMenu();
+    });
+    profileTrigger?.addEventListener("mouseenter", () => {
+      const mobile = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+      if (!mobile) openMenu();
+    });
+    profileMenu?.addEventListener("mouseleave", () => {
+      const mobile = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+      if (!mobile) closeMenu();
+    });
+    notifTrigger?.addEventListener("click", toggleNotif);
+    markAllReadBtn?.addEventListener("click", async () => {
+      const userId = getUserId(currentUser);
+      if (!userId) return;
+      try {
+        const snap = await db.collection("notifications").where("userId", "==", userId).get();
+        await Promise.all(snap.docs.map((doc) => doc.ref.set({ read: true }, { merge: true })));
+      } catch (error) {
+        console.error(error);
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (!profileMenu?.contains(e.target) && !profileTrigger?.contains(e.target)) closeMenu();
+      if (!notifMenu?.contains(e.target) && !notifTrigger?.contains(e.target)) closeNotif();
+    });
+
+
+    function normalizeEmail(value) { return String(value || "").trim().toLowerCase(); }
+    function getUserEmail(user) {
+      return normalizeEmail(user?.email || "");
+    }
+    function getUserId(user) {
+      return String(user?.uid || "").trim();
+    }
+    function getOfferOwnerUserId(offer) {
+      return String(offer?.ownerUserId || "").trim();
+    }
+    function getOfferOwnerEmail(offer) {
+      return normalizeEmail(offer?.ownerEmail || "");
+    }
+    function canCurrentUserOwnOffer(offer, user = currentUser) {
+      const currentId = getUserId(user);
+      const currentEmail = getUserEmail(user);
+      return !!(
+        (currentId && currentId === getOfferOwnerUserId(offer)) ||
+        (currentEmail && currentEmail === getOfferOwnerEmail(offer))
+      );
+    }
+    function isAdminUser(user) {
+      const email = getUserEmail(user);
+      return ADMIN_EMAILS.map(normalizeEmail).filter(Boolean).includes(email);
+    }
+
+    function getProfileStorageKey(prefix, user) {
+      const uid = getUserId(user);
+      return uid ? `${prefix}_${uid}` : "";
+    }
+    function getStoredNickname(user) {
+      const key = getProfileStorageKey("wmt_nickname", user);
+      return key ? String(localStorage.getItem(key) || "").trim() : "";
+    }
+    function getStoredPhoto(user) {
+      const key = getProfileStorageKey("wmt_photo", user);
+      return key ? String(localStorage.getItem(key) || "").trim() : "";
+    }
+    function getDisplayName(user) {
+      if (!user) return "wmt";
+      if (isAdminUser(user)) return "wmt";
+      const email = getUserEmail(user);
+      return getStoredNickname(user) ||
+        user?.displayName ||
+        email.split("@")[0] ||
+        "usuário";
+    }
+    function getPhoto(user) {
+      const customPhoto = getStoredPhoto(user);
+      if (customPhoto) return customPhoto;
+      const label = isAdminUser(user) ? "WMT" : ((getDisplayName(user) || "U").charAt(0).toUpperCase());
+      const bg = isAdminUser(user) ? "4f8dff" : "1b2c45";
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(label)}&background=${bg}&color=ffffff&bold=true`;
+    }
+    function formatNotifTime(value) {
+      if (!value) return "Agora";
+      let d = value;
+      try {
+        if (value?.toDate) d = value.toDate();
+        else d = new Date(value);
+      } catch (e) {
+        d = new Date();
+      }
+      if (!(d instanceof Date) || Number.isNaN(d.getTime())) return "Agora";
+      return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+    }
+    function closeMenu() {
+      profileMenu?.classList.remove("open");
+      profileTrigger?.setAttribute("aria-expanded", "false");
+    }
+    function openMenu() {
+      profileMenu?.classList.add("open");
+      profileTrigger?.setAttribute("aria-expanded", "true");
+    }
+    function toggleMenu() {
+      profileMenu?.classList.contains("open") ? closeMenu() : openMenu();
+    }
+    function closeNotif() {
+      notifMenu?.classList.remove("open");
+    }
+    function toggleNotif(e) {
+      e?.stopPropagation?.();
+      notifMenu?.classList.toggle("open");
+      closeMenu();
+    }
+    function updateHeaderProfile(user) {
+      const photo = getPhoto(user);
+      const name = getDisplayName(user);
+      if (headerProfilePhoto) headerProfilePhoto.src = photo;
+      if (menuProfilePhoto) menuProfilePhoto.src = photo;
+      if (menuProfileName) menuProfileName.textContent = name;
+      if (menuProfileSub) {
+        menuProfileSub.textContent = isAdminUser(user)
+          ? "Conta administrativa WMT"
+          : (getUserEmail(user) || "Conta WMT Market");
+      }
+      if (logoutBtn) logoutBtn.style.display = user ? "flex" : "none";
+      if (profilePanelLink) profilePanelLink.style.display = isAdminUser(user) ? "flex" : "none";
+    }
+    let notificationsUnsub = null;
+    function renderNotifications(items) {
+      if (!notifList) return;
+      if (!items.length) {
+        notifList.innerHTML = '<div class="notif-empty">Sem notificações.</div>';
+        if (notifBadge) notifBadge.style.display = "none";
+        return;
+      }
+      const unreadCount = items.filter(item => !item.read).length;
+      if (notifBadge) {
+        notifBadge.textContent = String(unreadCount);
+        notifBadge.style.display = unreadCount ? "inline-flex" : "none";
+      }
+      notifList.innerHTML = items.map(item => {
+        const title = escapeHtml(item.title || "Nova atividade");
+        const text = escapeHtml(item.message || item.text || "Você recebeu uma atualização.");
+        const offerId = escapeAttribute(item.offerId || item.chatId || "");
+        return `
+          <div class="notif-item ${item.read ? "" : "unread"}" data-notif-id="${escapeAttribute(item.id)}" data-offer-id="${offerId}">
+            <div class="notif-title">${title}</div>
+            <div class="notif-text">${text}</div>
+            <div class="notif-time">${escapeHtml(formatNotifTime(item.createdAt || item.timestamp || item.updatedAt))}</div>
+          </div>
+        `;
+      }).join("");
+      notifList.querySelectorAll(".notif-item").forEach((el) => {
+        el.addEventListener("click", async () => {
+          const notifId = el.getAttribute("data-notif-id");
+          const offerId = el.getAttribute("data-offer-id");
+          try {
+            if (notifId) {
+              await db.collection("notifications").doc(notifId).set({ read: true }, { merge: true });
+            }
+          } catch (error) {
+            console.error(error);
+          }
+          closeNotif();
+          if (offerId) window.location.href = `chat.html?id=${encodeURIComponent(offerId)}`;
+        });
+      });
+    }
+    function watchNotifications(user) {
+      if (notificationsUnsub) {
+        notificationsUnsub();
+        notificationsUnsub = null;
+      }
+      renderNotifications([]);
+      const userId = getUserId(user);
+      if (!userId || !db || typeof db.collection !== "function") return;
+      try {
+        notificationsUnsub = db.collection("notifications")
+          .where("userId", "==", userId)
+          .onSnapshot((snapshot) => {
+            const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+              .sort((a, b) => new Date(b.createdAt || b.timestamp || b.updatedAt || 0) - new Date(a.createdAt || a.timestamp || a.updatedAt || 0))
+              .slice(0, 20);
+            renderNotifications(items);
+          }, (error) => {
+            console.error(error);
+            renderNotifications([]);
+          });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    function revealPage() { document.body.style.display = "block"; }
+    function setRedirectTarget(target) {
+      localStorage.setItem(REDIRECT_KEY, target);
+      sessionStorage.setItem(REDIRECT_KEY, target);
+    }
+    function goToLogin(target) {
+      setRedirectTarget(target);
+      window.location.href = "login.html";
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttribute(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function formatDate(value) {
+      if (!value) return "Agora há pouco";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "Agora há pouco";
+      return date.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+    }
+
+    function normalizeStatus(status) {
+      const s = String(status || "Pendente");
+      const lower = s.toLowerCase();
+      if (lower === "aprovada" || lower === "aceita") return "aceita";
+      if (lower === "recusada") return "recusada";
+      if (lower === "em análise") return "analise";
+      return "pendente";
+    }
+
+    function getFilteredOffers() {
+      const search = searchInput.value.trim().toLowerCase();
+      const status = statusFilter.value;
+
+      return offersCache.filter((offer) => {
+        const matchStatus = status === "TODOS" || String(offer.status || "Pendente") === status;
+        const blob = [offer.code || "", offer.streamer || "", offer.message || "", offer.nickname || "", offer.pix || "", offer.status || ""].join(" ").toLowerCase();
+        const matchSearch = !search || blob.includes(search);
+        return matchStatus && matchSearch;
+      });
+    }
+
+    
+
+    function renderOffers() {
+      const filtered = getFilteredOffers();
+      const visibleOffers = filtered.slice(0, visibleOffersLimit);
+
+      if (!filtered.length) {
+        offersContainer.innerHTML = `<div class="empty">Você ainda não tem ofertas cadastradas.</div>`;
+        return;
+      }
+
+      offersContainer.innerHTML = visibleOffers.map((offer) => {
+        const streamerLabel = offer.streamer || "WMT";
+        const streamerClass = streamerLabel === "WMT" ? "wmt" : "pius";
+        const cardClass = streamerLabel === "WMT" ? "is-wmt" : "is-pius";
+        const images = Array.isArray(offer.images) ? offer.images : [];
+        const coverImage = images[0] || "background.jpg";
+        const remainingImages = Math.max(images.length - 1, 0);
+        const priceText = offer.priceText || String(offer.price || "0");
+
+        return `
+          <article class="offer-card ${cardClass}">
+            <div class="offer-line">
+              <div class="offer-main">
+                <div class="offer-left">
+                  <div class="offer-thumb">
+                    <img src="${escapeAttribute(coverImage)}" alt="Brainrot" loading="lazy" decoding="async">
+                    ${remainingImages ? `<span class="offer-thumb-badge">+${remainingImages}</span>` : ""}
+                  </div>
+
+                  <div class="offer-content">
+                    <div class="offer-header">
+                      <div class="offer-title-group">
+                        <div class="offer-code">${escapeHtml(offer.code || "Sem código")}</div>
+                        <div class="offer-date">Enviado em ${escapeHtml(formatDate(offer.createdAt))}</div>
+                      </div>
+                      <div class="streamer-badge ${streamerClass}">${escapeHtml(streamerLabel)}</div>
+                    </div>
+
+                    <div class="offer-meta">
+                      <span class="price-pill">R$ ${escapeHtml(priceText)}</span>
+                      <span class="streamer-line">
+                        <span class="streamer-dot ${streamerClass}" aria-hidden="true"></span>
+                        <span>Streamer</span>
+                        <strong>${escapeHtml(streamerLabel)}</strong>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="offer-actions">
+                  <button class="action-btn btn-chat" data-chat-offer-id="${escapeAttribute(offer.id)}">ABRIR CHAT</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+    }
+
+
+async function loadOffers() {
+  const userId = getUserId(currentUser);
+  const userEmail = getUserEmail(currentUser);
+  if (!userId && !userEmail) {
+    offersContainer.innerHTML = `<div class="empty">Faça login para ver suas ofertas.</div>`;
+    return;
+  }
+
+  offersContainer.innerHTML = `<div class="empty">Carregando suas ofertas...</div>`;
+
+  try {
+    const requests = [];
+
+    if (userId) {
+      requests.push(db.collection("offers").where("ownerUserId", "==", userId).get());
+    }
+
+    if (userEmail) {
+      requests.push(db.collection("offers").where("ownerEmail", "==", userEmail).get());
+    }
+
+    const snapshots = await Promise.all(requests);
+    const deduped = new Map();
+
+    snapshots.forEach((snapshot) => {
+      snapshot.docs.forEach((doc) => {
+        deduped.set(doc.id, { id: doc.id, ...doc.data() });
+      });
+    });
+
+    offersCache = Array.from(deduped.values()).filter((offer) => canCurrentUserOwnOffer(offer, currentUser));
+    offersCache.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    renderOffers();
+  } catch (error) {
+    console.error(error);
+    offersContainer.innerHTML = `<div class="empty">Erro ao carregar suas ofertas.</div>`;
+  }
+}
+
+    offersContainer.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-chat-offer-id]");
+      if (!button) return;
+
+      const offerId = button.getAttribute("data-chat-offer-id");
+      const offer = offersCache.find((item) => item.id === offerId);
+
+      if (!offer) {
+        showNotice({ badge: "Erro", title: "Oferta não encontrada", message: "Não foi possível localizar essa oferta no momento." });
+        return;
+      }
+
+      const ownerUserId = getOfferOwnerUserId(offer);
+      const ownerEmail = getOfferOwnerEmail(offer);
+
+      if (!ownerUserId && !ownerEmail) {
+        showNotice({ badge: "Oferta antiga", title: "Essa oferta não tem dono vinculado", message: "Essa oferta antiga não possui ownerUserId nem ownerEmail salvos para abrir o chat privado." });
+        return;
+      }
+
+      if (!canCurrentUserOwnOffer(offer, currentUser)) {
+        showNotice({ badge: "Acesso negado", title: "Essa oferta não pertence à sua conta", message: "Entre na conta dona desta oferta para abrir o chat privado." });
+        return;
+      }
+
+      try {
+        const chatRef = db.collection("chats").doc(offerId);
+        const chatSnap = await chatRef.get();
+
+        if (!chatSnap.exists) {
+          await chatRef.set({
+            offerId,
+            offerCode: offer.code || "",
+            ownerUserId,
+            ownerEmail,
+            ownerName: offer.ownerName || offer.nickname || "Usuário",
+            adminUserId: "",
+            adminEmail: "",
+            status: "open",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            lastMessage: "",
+            lastMessageAt: null
+          }, { merge: true });
+        }
+
+        window.location.href = `chat.html?id=${encodeURIComponent(offerId)}`;
+      } catch (error) {
+        console.error(error);
+        showNotice({ badge: "Erro", title: "Não foi possível abrir o chat", message: "Tente novamente em alguns instantes." });
+      }
+    });
+
+    searchInput.addEventListener("input", () => {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        renderOffers();
+      }, 180);
+    });
+    statusFilter.addEventListener("change", renderOffers);
+
+    profilePanelLink?.addEventListener("click", (e) => {
+      const user = currentUser || auth.currentUser || null;
+      if (!user || !isAdminUser(user)) {
+        e.preventDefault();
+        showNotice({
+          badge: "Acesso restrito",
+          title: "Painel exclusivo para administradores",
+          message: "Sua conta não possui permissão para acessar esta área administrativa.",
+          primaryText: "Fechar"
+        });
+      }
+    });
+
+    let authDecisionDone = false;
+
+    function syncAuth(user) {
+      currentUser = user || auth.currentUser || null;
+      return currentUser;
+    }
+
+    function applyAuthenticatedState(user) {
+      syncAuth(user);
+      updateHeaderProfile(currentUser);
+      watchNotifications(currentUser);
+      authDecisionDone = true;
+      revealPage();
+      loadOffers();
+    }
+
+    function finalizeProtectedAccess() {
+      if (authDecisionDone) return;
+      authDecisionDone = true;
+      goToLogin("minhas-ofertas.html");
+    }
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        applyAuthenticatedState(user);
+        return;
+      }
+
+      if (!authDecisionDone) {
+        finalizeProtectedAccess();
+      } else {
+        currentUser = null;
+        if (notificationsUnsub) { notificationsUnsub(); notificationsUnsub = null; }
+        window.location.href = "index.html";
+      }
+    });
+
+    logoutBtn?.addEventListener("click", async () => {
+      try {
+        await auth.signOut();
+      } catch (error) {
+        console.error(error);
+      } finally {
+        currentUser = null;
+        if (notificationsUnsub) { notificationsUnsub(); notificationsUnsub = null; }
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+</body>
+</html>
