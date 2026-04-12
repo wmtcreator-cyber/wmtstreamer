@@ -73,7 +73,7 @@
     radial-gradient(circle at 92% 10%, rgba(242,201,76,.08), transparent 18%),
     radial-gradient(circle at 50% 100%, rgba(46,214,141,.06), transparent 24%),
     linear-gradient(rgba(10,13,18,.92), rgba(10,13,18,.97)),
-    url('background.jpg') center center / cover no-repeat;
+    url('background.jpg') center center / cover no-repeat fixed;
   min-height:100vh;
   overflow-x:hidden;
   position:relative;
@@ -1693,40 +1693,6 @@ body{
 }
 
 
-
-
-/* WMT FINAL PERF */
-@media (max-width:760px){
-  body{
-    background:
-      linear-gradient(rgba(10,13,18,.97), rgba(10,13,18,.99)),
-      url('background.jpg') center center / cover no-repeat !important;
-  }
-
-  body::before{
-    opacity:.08 !important;
-    background-size:24px 24px !important;
-  }
-
-  .topbar{
-    backdrop-filter:none !important;
-    -webkit-backdrop-filter:none !important;
-    box-shadow:0 6px 16px rgba(0,0,0,.12) !important;
-  }
-
-  .profile-menu,
-  .notif-menu,
-  .hero,
-  .settings-card,
-  .preview-card,
-  .form-card,
-  .main-card,
-  .side-card,
-  .toolbar-card{
-    box-shadow:0 10px 20px rgba(0,0,0,.14) !important;
-  }
-}
-
 </style>
 </head>
 <body>
@@ -2326,9 +2292,7 @@ body{
     let offersCache = [];
     let offerToDeleteId = null;
     let panelStarted = false;
-    let notificationsUnsubs = [];
-    let currentNotificationTargets = [];
-    let notificationBuckets = new Map();
+    let notificationsUnsub = null;
     let currentRoleModalMode = "grant";
 
     function getPanelUser() {
@@ -2582,12 +2546,12 @@ body{
     }
 
     async function clearAllNotifications() {
-      const targets = getNotificationTargets();
-      if (!targets.length) return;
+      const userId = getUserId(getPanelUser());
+      if (!userId) return;
       try {
-        const docs = await collectNotificationDocs(targets);
+        const snap = await getDocs(query(collection(db, "notifications"), where("userId", "==", userId)));
         const batch = writeBatch(db);
-        docs.forEach((docSnap) => batch.delete(docSnap.ref));
+        snap.forEach(docSnap => batch.delete(docSnap.ref));
         await batch.commit();
       } catch (error) {
         console.error(error);
@@ -2652,65 +2616,27 @@ body{
       });
     }
 
-    function getNotificationTargets() {
-      return [...new Set([getUserId(getPanelUser()), getUserEmail(getPanelUser())].map(v => String(v || "").trim()).filter(Boolean))];
-    }
-
-    function resetNotificationListeners() {
-      notificationsUnsubs.forEach((unsub) => { try { unsub(); } catch (error) {} });
-      notificationsUnsubs = [];
-      currentNotificationTargets = [];
-      notificationBuckets = new Map();
-    }
-
-    async function collectNotificationDocs(targets, onlyUnread = false) {
-      const docsMap = new Map();
-      await Promise.all((targets || []).map(async (target) => {
-        let qRef = query(collection(db, "notifications"), where("userId", "==", target));
-        if (onlyUnread) qRef = query(collection(db, "notifications"), where("userId", "==", target), where("read", "==", false));
-        const snap = await getDocs(qRef);
-        snap.forEach((docSnap) => docsMap.set(docSnap.id, docSnap));
-      }));
-      return [...docsMap.values()];
-    }
-
-    function rebuildNotificationItems() {
-      const itemMap = new Map();
-      notificationBuckets.forEach((items) => items.forEach((item) => itemMap.set(item.id, item)));
-      const items = [...itemMap.values()].sort((a, b) => {
-        const ad = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || a.timestamp || a.updatedAt || 0).getTime();
-        const bd = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || b.timestamp || b.updatedAt || 0).getTime();
-        return bd - ad;
-      }).slice(0, 20);
-      renderNotifications(items);
-    }
-
     function startNotifications() {
-      const targets = getNotificationTargets();
-      if (!targets.length || !notifList) return;
-      resetNotificationListeners();
-      currentNotificationTargets = targets;
-      notificationsUnsubs = targets.map((target) => {
-        const notifQuery = query(collection(db, "notifications"), where("userId", "==", target), orderBy("createdAt", "desc"), limit(20));
-        return onSnapshot(notifQuery, (snapshot) => {
-          notificationBuckets.set(target, snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })));
-          rebuildNotificationItems();
-        }, (error) => {
-          console.error(error);
-          notificationBuckets.set(target, []);
-          rebuildNotificationItems();
-        });
+      const userId = getUserId(getPanelUser());
+      if (!userId || !notifList) return;
+      if (notificationsUnsub) notificationsUnsub();
+      const notifQuery = query(collection(db, "notifications"), where("userId", "==", userId), orderBy("createdAt", "desc"), limit(20));
+      notificationsUnsub = onSnapshot(notifQuery, (snapshot) => {
+        const items = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        renderNotifications(items);
+      }, (error) => {
+        console.error(error);
       });
     }
 
     refreshBtn.addEventListener("click", loadOffers);
     markAllReadBtn?.addEventListener("click", async () => {
-      const targets = getNotificationTargets();
-      if (!targets.length) return;
+      const userId = getUserId(getPanelUser());
+      if (!userId) return;
       try {
-        const docs = await collectNotificationDocs(targets, true);
+        const snap = await getDocs(query(collection(db, "notifications"), where("userId", "==", userId), where("read", "==", false)));
         const batch = writeBatch(db);
-        docs.forEach(docSnap => batch.update(docSnap.ref, { read: true }));
+        snap.forEach(docSnap => batch.update(docSnap.ref, { read: true }));
         await batch.commit();
       } catch (error) {
         console.error(error);
