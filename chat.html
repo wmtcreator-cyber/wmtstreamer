@@ -2699,7 +2699,8 @@ body{
       const ids = [
         String(currentChat?.ownerUserId || "").trim(),
         String(currentChat?.adminUserId || "").trim(),
-        getCurrentUserId()
+        getCurrentUserId(),
+        ...liveMessages.map((message) => String(message?.senderId || "").trim())
       ].filter(Boolean);
 
       [...new Set(ids)].forEach((uid) => {
@@ -2864,6 +2865,20 @@ body{
           }
         }
 
+        if (isAdminUser(getChatUser()) && (
+          !String(currentChat.adminUserId || "").trim() ||
+          !normalizeEmail(currentChat.adminEmail || "")
+        )) {
+          const adminPatch = {
+            adminUserId: getCurrentUserId(),
+            adminEmail: getUserEmail(getChatUser())
+          };
+
+          await setDoc(chatRef, adminPatch, { merge: true });
+          chatSnap = await getDoc(chatRef);
+          currentChat = { id: chatSnap.id, ...chatSnap.data() };
+        }
+
         if (!canAccessChat(currentChat)) {
           showStatus("<strong>Acesso negado.</strong> Esse chat é privado e você não participa dele.", "error");
           messagesList.innerHTML = `<div class="empty">Você não tem acesso a este chat.</div>`;
@@ -2956,6 +2971,8 @@ body{
           id: docSnap.id,
           ...docSnap.data()
         }));
+
+        startProfileListeners();
 
         const messageIds = liveMessages.map(message => message.id).join("|");
         const wasNearBottom = (messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight) < 120;
