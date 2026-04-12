@@ -689,111 +689,165 @@
     }
 
     .upload-area{
-      border:1.5px dashed rgba(255,255,255,.14);
-      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.018));
-      border-radius:22px;
-      padding:16px;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+      position:relative;
+      border:1.5px dashed rgba(122,168,255,.26);
+      background:
+        radial-gradient(circle at top right, rgba(77,141,255,.16), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.018));
+      border-radius:24px;
+      padding:18px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 18px 32px rgba(0,0,0,.12);
     }
 
     .upload-top{
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
-      gap:12px;
+      gap:14px;
       flex-wrap:wrap;
-      margin-bottom:10px;
+      margin-bottom:12px;
     }
 
     .upload-title{
-      font-size:15px;
-      color:#dce6f3;
+      font-size:18px;
+      color:#f2f7ff;
       font-weight:800;
-      letter-spacing:-.01em;
-      line-height:1.3;
+      letter-spacing:-.02em;
+      line-height:1.15;
+      margin-bottom:6px;
     }
 
     .upload-actions{
       display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
+      grid-template-columns:1.25fr .95fr;
+      gap:10px;
       width:100%;
     }
 
     .small-btn{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.04);
-      color:var(--text);
-      border-radius:14px;
-      padding:11px 12px;
-      font-size:13px;
+      border:1px solid rgba(122,168,255,.18);
+      background:linear-gradient(180deg, rgba(77,141,255,.18), rgba(77,141,255,.10));
+      color:#f6f9ff;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:14px;
       font-weight:800;
       letter-spacing:.01em;
       cursor:pointer;
       transition:.2s ease;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+      box-shadow:0 14px 28px rgba(45,116,255,.12), inset 0 1px 0 rgba(255,255,255,.06);
     }
 
     .small-btn:hover{
       transform:translateY(-1px);
-      border-color:rgba(255,255,255,.14);
-      background:rgba(255,255,255,.06);
+      border-color:rgba(122,168,255,.32);
+      background:linear-gradient(180deg, rgba(77,141,255,.24), rgba(77,141,255,.14));
     }
 
     .small-btn.danger{
-      background:var(--danger-soft);
+      background:linear-gradient(180deg, rgba(255,107,131,.16), rgba(255,107,131,.10));
       color:#ffdbe2;
-      border-color:rgba(255,107,131,.20);
+      border-color:rgba(255,107,131,.22);
+      box-shadow:none;
     }
 
     .small-btn.danger:hover{
-      border-color:rgba(255,107,131,.28);
-      background:rgba(255,107,131,.16);
+      border-color:rgba(255,107,131,.30);
+      background:linear-gradient(180deg, rgba(255,107,131,.22), rgba(255,107,131,.14));
+    }
+
+    .upload-empty{
+      margin-top:16px;
+      border:1px dashed rgba(255,255,255,.10);
+      border-radius:22px;
+      min-height:190px;
+      display:grid;
+      place-items:center;
+      text-align:center;
+      padding:24px 18px;
+      background:linear-gradient(180deg, rgba(10,18,30,.78), rgba(11,16,24,.48));
+    }
+
+    .upload-empty-icon{
+      width:64px;
+      height:64px;
+      border-radius:20px;
+      display:grid;
+      place-items:center;
+      margin:0 auto 14px;
+      color:#fff;
+      font-size:28px;
+      font-weight:900;
+      background:linear-gradient(135deg, rgba(77,141,255,.90), rgba(45,116,255,.72));
+      box-shadow:0 16px 30px rgba(45,116,255,.22);
+    }
+
+    .upload-empty-title{
+      color:#fff;
+      font-size:17px;
+      font-weight:800;
+      letter-spacing:-.02em;
+      margin-bottom:6px;
+    }
+
+    .upload-empty-sub{
+      color:#9fb0c6;
+      font-size:13px;
+      line-height:1.7;
+      font-weight:600;
+      max-width:460px;
+      margin:0 auto;
     }
 
     .preview-grid{
       display:grid;
       grid-template-columns:repeat(2, minmax(0,1fr));
-      gap:10px;
-      margin-top:14px;
+      gap:12px;
+      margin-top:16px;
     }
 
     .preview-item{
       position:relative;
       aspect-ratio:1/1;
       overflow:hidden;
-      border-radius:18px;
-      border:1px solid var(--line);
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.10);
       background:#0f151d;
-      box-shadow:0 10px 20px rgba(0,0,0,.14);
+      box-shadow:0 14px 26px rgba(0,0,0,.18);
     }
 
     .preview-item img{
       width:100%;
       height:100%;
       object-fit:cover;
+      transition:transform .25s ease;
+    }
+
+    .preview-item:hover img{
+      transform:scale(1.04);
     }
 
     .preview-badge{
       position:absolute;
-      top:8px;
-      left:8px;
-      padding:5px 8px;
+      top:10px;
+      left:10px;
+      padding:6px 9px;
       border-radius:999px;
       font-size:11px;
       font-weight:800;
-      background:rgba(0,0,0,.72);
-      border:1px solid rgba(255,255,255,.1);
+      background:rgba(4,8,15,.74);
+      border:1px solid rgba(255,255,255,.12);
       color:#fff;
-      letter-spacing:.01em;
+      letter-spacing:.02em;
+      backdrop-filter:blur(6px);
     }
 
     .remove-photo{
       position:absolute;
-      top:8px;
-      right:8px;
-      width:30px;
-      height:30px;
+      top:10px;
+      right:10px;
+      width:32px;
+      height:32px;
       border:0;
       cursor:pointer;
       border-radius:999px;
@@ -802,8 +856,8 @@
       font-size:16px;
       font-weight:900;
       color:#fff;
-      background:rgba(255,107,131,.92);
-      box-shadow:0 8px 16px rgba(0,0,0,.22);
+      background:rgba(255,107,131,.94);
+      box-shadow:0 10px 18px rgba(0,0,0,.24);
     }
 
     .streamer-picker{
@@ -1903,12 +1957,20 @@ body{
                     </div>
 
                     <div class="upload-actions">
-                      <button type="button" class="small-btn" id="addPhotosBtn">Adicionar fotos</button>
+                      <button type="button" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</button>
                       <button type="button" class="small-btn danger" id="clearPhotosBtn">Limpar tudo</button>
                     </div>
                   </div>
 
                   <div id="previewGrid" class="preview-grid"></div>
+
+                  <div id="uploadEmptyState" class="upload-empty">
+                    <div>
+                      <div class="upload-empty-icon">+</div>
+                      <div class="upload-empty-title">As fotos da oferta começam aqui</div>
+                      <div class="upload-empty-sub">Adicione prints nítidos dos seus brainrots para sua oferta ficar mais forte, mais confiável e muito mais fácil de avaliar.</div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -2072,6 +2134,7 @@ body{
     const addPhotosBtn = document.getElementById("addPhotosBtn");
     const clearPhotosBtn = document.getElementById("clearPhotosBtn");
     const previewGrid = document.getElementById("previewGrid");
+    const uploadEmptyState = document.getElementById("uploadEmptyState");
     const offerForm = document.getElementById("offerForm");
     const statusBox = document.getElementById("statusBox");
     const liveCounter = document.getElementById("liveCounter");
@@ -2661,6 +2724,10 @@ document.addEventListener("wmt:send-auth-ok", async () => {
     function renderPreviews() {
       previewGrid.innerHTML = "";
 
+      if (uploadEmptyState) {
+        uploadEmptyState.style.display = selectedFiles.length ? "none" : "grid";
+      }
+
       selectedFiles.forEach((file, index) => {
         const reader = new FileReader();
 
@@ -2683,6 +2750,8 @@ document.addEventListener("wmt:send-auth-ok", async () => {
         reader.readAsDataURL(file);
       });
     }
+
+    renderPreviews();
 
     async function uploadToCloudinary(file) {
       const formData = new FormData();
