@@ -2227,11 +2227,11 @@ body{
       function step() {
         liveTickerOffset += liveTickerSpeed;
 
-        if (liveTickerOffset >= liveTickerTrackWidth) {
+        if (liveTickerOffset > (liveTickerTrackWidth + liveTickerStartX)) {
           liveTickerOffset = 0;
         }
 
-        liveTrack.style.transform = `translate3d(${-liveTickerOffset}px, 0, 0)`;
+        liveTrack.style.transform = `translate3d(${liveTickerStartX - liveTickerOffset}px, 0, 0)`;
         liveTickerRaf = requestAnimationFrame(step);
       }
 
@@ -2266,10 +2266,10 @@ body{
       await waitForTickerImages();
 
       liveTickerTrackWidth = liveTrack.scrollWidth / 2;
-      liveTickerStartX = 0;
+      liveTickerStartX = liveMarquee.clientWidth;
       liveTickerOffset = 0;
 
-      liveTrack.style.transform = "translate3d(0, 0, 0)";
+      liveTrack.style.transform = `translate3d(${liveTickerStartX}px, 0, 0)`;
 
       if (!liveTickerTrackWidth || !isFinite(liveTickerTrackWidth)) return;
 
@@ -2819,7 +2819,7 @@ body{
       const isAdmin = isAdminUser(currentUser);
 
       if (!currentUser) {
-        const loggedOutAvatar = "https://ui-avatars.com/api/?name=E&background=101a2b&color=ffffff&bold=true";
+        const loggedOutAvatar = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="%23101a2b"/><circle cx="32" cy="24" r="12" fill="%23ffffff"/><path d="M16 52c2-10 11-16 16-16s14 6 16 16" fill="%23ffffff"/></svg>`;
         if (profilePanelLink) profilePanelLink.style.display = "none";
         if (logoutBtn) logoutBtn.style.display = "none";
         if (headerProfilePhoto) headerProfilePhoto.src = loggedOutAvatar;
