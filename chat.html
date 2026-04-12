@@ -484,6 +484,70 @@
       display:inline-flex; align-items:center; gap:6px; min-width:0;
     }
     .msg-name.wmt-name{color:#dbe8ff}
+    .msg-name.admin-display{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .admin-name-wrap{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      min-width:0;
+      flex-wrap:wrap;
+    }
+    .admin-name-text{
+      color:#eef5ff;
+      font-size:13.5px;
+      font-weight:900;
+      letter-spacing:-.01em;
+      text-shadow:0 4px 10px rgba(45,116,255,.18);
+    }
+    .admin-role-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:20px;
+      padding:0 8px;
+      border-radius:999px;
+      background:linear-gradient(180deg, rgba(77,141,255,.20), rgba(45,116,255,.12));
+      border:1px solid rgba(103,163,255,.22);
+      color:#eef5ff;
+      font-size:9px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      box-shadow:0 6px 14px rgba(45,116,255,.12);
+    }
+    .verify-badge.admin-verify{
+      width:16px;
+      height:16px;
+      box-shadow:0 0 0 1px rgba(255,255,255,.10), 0 8px 16px rgba(21,146,234,.24);
+    }
+    .profile-name.admin-profile-name{
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:-.03em;
+      color:#eef5ff;
+      gap:8px;
+    }
+    .profile-admin-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:22px;
+      padding:0 9px;
+      border-radius:999px;
+      background:linear-gradient(180deg, rgba(77,141,255,.20), rgba(45,116,255,.12));
+      border:1px solid rgba(103,163,255,.22);
+      color:#eef5ff;
+      font-size:9px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      box-shadow:0 8px 16px rgba(45,116,255,.14);
+    }
     .verify-badge{
       width:15px; height:15px; flex:none; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
       background:linear-gradient(180deg, #39b8ff, #1592ea); box-shadow:0 0 0 1px rgba(255,255,255,.10), 0 6px 14px rgba(21,146,234,.22);
@@ -1457,15 +1521,15 @@ body{
 
         <div class="profile-menu-shell">
           <button class="top-icon-btn profile-trigger" id="profileTrigger" type="button" aria-label="Abrir menu da conta" aria-expanded="false" aria-controls="profileMenu">
-            <img id="headerProfilePhoto" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+            <img id="headerProfilePhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%231b2434'/><circle cx='32' cy='24' r='11' fill='%23dce6f8'/><path d='M14 52c3-9 11-15 18-15s15 6 18 15' fill='%23dce6f8'/></svg>" alt="Perfil">
           </button>
 
           <div class="profile-menu" id="profileMenu">
             <div class="profile-menu-head">
-              <img id="menuProfilePhoto" class="profile-menu-avatar" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+              <img id="menuProfilePhoto" class="profile-menu-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%231b2434'/><circle cx='32' cy='24' r='11' fill='%23dce6f8'/><path d='M14 52c3-9 11-15 18-15s15 6 18 15' fill='%23dce6f8'/></svg>" alt="Perfil">
               <div class="profile-menu-copy">
-                <div class="profile-menu-name" id="menuProfileName">wmt</div>
-                <div class="profile-menu-sub" id="menuProfileSub">Conta WMT Market</div>
+                <div class="profile-menu-name" id="menuProfileName">Entrar</div>
+                <div class="profile-menu-sub" id="menuProfileSub">Faça login para acessar sua conta</div>
               </div>
               <a href="enviar.html" class="profile-sell-btn">Vender</a>
             </div>
@@ -1743,14 +1807,43 @@ body{
       return `https://ui-avatars.com/api/?name=${fallbackName}&background=${background}&color=${color}&bold=true`;
     }
 
-    function getCurrentDisplayName(user){
-      if (!user) return "Conta";
-      if (isAdminUser(user)) return "WMT";
-      const storedNickname = getStoredNicknameForUser(user);
-      if (storedNickname) return storedNickname;
+    function isBrandPlaceholderName(value){
+      const clean = String(value || "").trim().toLowerCase();
+      return clean === "wmt" || clean === "wm" || clean === "conta";
+    }
 
+    function isBrandPlaceholderPhoto(value){
+      const clean = String(value || "").trim().toLowerCase();
+      return clean.includes("ui-avatars.com/api/?name=wmt") || clean.includes("ui-avatars.com/api/?name=wm");
+    }
+
+    function getLoggedOutAvatar(){
+      return `data:image/svg+xml;utf8,
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="32" fill="%231b2434"/>
+  <circle cx="32" cy="24" r="11" fill="%23dce6f8"/>
+  <path d="M14 52c3-9 11-15 18-15s15 6 18 15" fill="%23dce6f8"/>
+</svg>`;
+    }
+
+    function getLiveHeaderProfile(user){
+      const liveProfiles = window.__wmtChatLiveProfiles;
+      const uid = getUserId(user);
+      if (!uid || !liveProfiles || typeof liveProfiles.get !== "function") return null;
+      return liveProfiles.get(uid) || null;
+    }
+
+    function getCurrentDisplayName(user){
+      if (!user) return "Entrar";
+
+      const liveProfile = getLiveHeaderProfile(user);
+      const liveNickname = String(liveProfile?.nickname || "").trim();
+      const storedNickname = getStoredNicknameForUser(user);
       const email = getUserEmail(user);
+
       return String(
+        (!isBrandPlaceholderName(liveNickname) && liveNickname) ||
+        (!isBrandPlaceholderName(storedNickname) && storedNickname) ||
         user?.displayName ||
         email.split("@")[0] ||
         "Usuário"
@@ -1759,12 +1852,13 @@ body{
 
     function getCurrentDisplayPhoto(user){
       const name = getCurrentDisplayName(user);
-      if (isAdminUser(user)) {
-        const storedAdminPhoto = getStoredPhotoForUser(user);
-        return getAvatarUrlByName("WMT", storedAdminPhoto, true);
-      }
-      const storedPhoto = getStoredPhotoForUser(user);
-      return getAvatarUrlByName(name, storedPhoto, false);
+      const liveProfile = getLiveHeaderProfile(user);
+      const livePhoto = String(liveProfile?.photo || "").trim();
+      const storedPhoto = String(getStoredPhotoForUser(user) || "").trim();
+      const chosenPhoto = !isBrandPlaceholderPhoto(livePhoto) && livePhoto
+        ? livePhoto
+        : ((!isBrandPlaceholderPhoto(storedPhoto) && storedPhoto) ? storedPhoto : "");
+      return getAvatarUrlByName(name, chosenPhoto, isAdminUser(user));
     }
 
     function syncHeaderProfile(){
@@ -1773,8 +1867,9 @@ body{
       const isAdmin = isAdminUser(user);
 
       if (!loggedIn) {
-        headerProfilePhoto.src = getAvatarUrlByName("WMT", "", true);
-        menuProfilePhoto.src = getAvatarUrlByName("WMT", "", true);
+        const guestAvatar = getLoggedOutAvatar();
+        headerProfilePhoto.src = guestAvatar;
+        menuProfilePhoto.src = guestAvatar;
         menuProfileName.textContent = "Entrar";
         menuProfileSub.textContent = "Faça login para acessar sua conta";
         if (logoutBtn) logoutBtn.style.display = "none";
@@ -1789,10 +1884,14 @@ body{
       headerProfilePhoto.src = displayPhoto;
       menuProfilePhoto.src = displayPhoto;
       menuProfileName.textContent = displayName || "Conta";
-      menuProfileSub.textContent = isAdmin ? "Conta administrativa WMT Market" : (email || "Conta WMT Market");
+      menuProfileSub.textContent = isAdmin
+        ? "Conta administrativa verificada"
+        : (email || "Conta conectada");
       if (logoutBtn) logoutBtn.style.display = "flex";
       if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
     }
+
+    window.syncChatHeaderProfile = syncHeaderProfile;
 
     function closeHeaderMenus(){
       profileMenu?.classList.remove("open");
@@ -1856,6 +1955,9 @@ body{
         window.__wmtChatAuthorized = false;
         authDecisionDone = true;
         closeHeaderMenus();
+        if (window.__wmtChatLiveProfiles && typeof window.__wmtChatLiveProfiles.clear === "function") {
+          window.__wmtChatLiveProfiles.clear();
+        }
         syncHeaderProfile();
         window.location.href = "index.html";
       }
@@ -1943,6 +2045,10 @@ body{
     let unsubscribeNotifications = null;
     let chatReady = false;
     let lastNotifications = [];
+    let profileUnsubs = [];
+    let liveMessages = [];
+    const liveProfiles = new Map();
+    window.__wmtChatLiveProfiles = liveProfiles;
 
     function getChatUser() {
       return window.__wmtChatCurrentUser || null;
@@ -1956,6 +2062,51 @@ body{
       return normalizeEmail(user?.email || "");
     }
 
+    function isBrandPlaceholderName(value) {
+      const clean = String(value || "").trim().toLowerCase();
+      return clean === "wmt" || clean === "wm" || clean === "conta";
+    }
+
+    function isBrandPlaceholderPhoto(value) {
+      const clean = String(value || "").trim().toLowerCase();
+      return clean.includes("ui-avatars.com/api/?name=wmt") || clean.includes("ui-avatars.com/api/?name=wm");
+    }
+
+    function getLiveProfileByUserId(uid) {
+      const clean = String(uid || "").trim();
+      return clean ? (liveProfiles.get(clean) || null) : null;
+    }
+
+    function getOwnerLabel() {
+      const liveProfile = getLiveProfileByUserId(String(currentChat?.ownerUserId || "").trim());
+      const liveName = String(liveProfile?.nickname || "").trim();
+      if (liveName && !isBrandPlaceholderName(liveName)) return liveName;
+      return String(currentChat?.ownerName || currentChat?.ownerEmail || "-").trim() || "-";
+    }
+
+    function getOwnerAvatar() {
+      const liveProfile = getLiveProfileByUserId(String(currentChat?.ownerUserId || "").trim());
+      const livePhoto = String(liveProfile?.photo || "").trim();
+      const offerPhoto = String(currentOffer?.ownerPhoto || "").trim();
+      const ownerName = getOwnerLabel();
+      const photo = (!isBrandPlaceholderPhoto(livePhoto) && livePhoto) ? livePhoto :
+        ((!isBrandPlaceholderPhoto(offerPhoto) && offerPhoto) ? offerPhoto : "");
+      return getAvatarUrl(ownerName, photo);
+    }
+
+    function getCurrentUserLiveProfile() {
+      return getLiveProfileByUserId(getCurrentUserId());
+    }
+
+    function sanitizeDisplayName(value) {
+      const clean = String(value || "").trim();
+      return isBrandPlaceholderName(clean) ? "" : clean;
+    }
+
+    function sanitizePhotoUrl(value) {
+      const clean = String(value || "").trim();
+      return isBrandPlaceholderPhoto(clean) ? "" : clean;
+    }
 
     function showStatus(message, type = "info") {
       statusBox.style.display = "block";
@@ -2079,10 +2230,7 @@ body{
     function renderOfferIntroBlock() {
       if (!currentOffer) return "";
 
-      const ownerAvatar = getAvatarUrl(
-        String(currentOffer.ownerName || currentChat?.ownerName || "Usuário").trim(),
-        String(currentOffer.ownerPhoto || "").trim()
-      );
+      const ownerAvatar = getOwnerAvatar();
 
       const imageList = getOfferImageList(currentOffer).slice(0, 10);
       const streamer = escapeHtml(getOfferStreamerValue(currentOffer));
@@ -2242,9 +2390,8 @@ body{
       const storedTitle = String(item?.title || "").trim();
       if (storedTitle && storedTitle.toLowerCase() !== "nova mensagem no chat") return storedTitle;
 
-      const senderName = String(item?.senderName || "").trim();
+      const senderName = sanitizeDisplayName(item?.senderName || "");
       if (senderName) {
-        if (senderName.toLowerCase() === "wmt") return "WMT respondeu sua oferta";
         return `${senderName} respondeu sua oferta`;
       }
 
@@ -2252,41 +2399,49 @@ body{
     }
 
     function getCurrentUserName() {
-  const storedNickname = getStoredNickname();
-  if (storedNickname) return storedNickname;
+      const liveProfile = getCurrentUserLiveProfile();
+      const liveNickname = sanitizeDisplayName(liveProfile?.nickname || "");
+      if (liveNickname) return liveNickname;
 
-  const email = getUserEmail(getChatUser());
-  return String(
-    getChatUser()?.displayName ||
-    email.split("@")[0] ||
-    "Usuário"
-  ).trim();
-}
+      const storedNickname = sanitizeDisplayName(getStoredNickname());
+      if (storedNickname) return storedNickname;
 
-    function getCurrentUserPhoto() {
-      if (isAdminUser(getChatUser())) {
-        return getAvatarUrl("WMT", getStoredPhoto() || "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true");
-      }
-      return getStoredPhoto();
+      const email = getUserEmail(getChatUser());
+      return String(
+        getChatUser()?.displayName ||
+        email.split("@")[0] ||
+        "Usuário"
+      ).trim();
     }
 
+    function getCurrentUserPhoto() {
+      const liveProfile = getCurrentUserLiveProfile();
+      const livePhoto = sanitizePhotoUrl(liveProfile?.photo || "");
+      if (livePhoto) return livePhoto;
+
+      const storedPhoto = sanitizePhotoUrl(getStoredPhoto());
+      return storedPhoto;
+    }
 
     function updateProfileCard() {
-  const user = getChatUser();
-  const isAdmin = isAdminUser(user);
-  const name = getCurrentUserName();
-  const photo = getCurrentUserPhoto();
-  const email = getUserEmail(user);
+      const user = getChatUser();
+      const isAdmin = isAdminUser(user);
+      const name = getCurrentUserName();
+      const photo = getCurrentUserPhoto();
+      const email = getUserEmail(user);
 
-  profilePhoto.src = getAvatarUrl(name, photo);
-  profileRole.textContent = isAdmin ? "Administrador" : "Seu perfil";
-  profileName.innerHTML = isAdmin
-    ? `<span>${escapeHtml(name)}</span><span class="verify-badge" aria-hidden="true"></span>`
-    : escapeHtml(name);
-  profileSub.textContent = isAdmin
-    ? "Conta administrativa verificada."
-    : (email || "Defina nickname e foto em Configurações.");
-}
+      profilePhoto.src = getAvatarUrl(name, photo);
+      profileRole.textContent = isAdmin ? "Administrador" : "Seu perfil";
+      profileName.classList.toggle("admin-profile-name", !!isAdmin);
+      profileName.innerHTML = isAdmin
+        ? `<span class="admin-name-wrap"><span class="admin-name-text">${escapeHtml(name)}</span><span class="verify-badge admin-verify" aria-hidden="true"></span><span class="profile-admin-badge">ADMIN</span></span>`
+        : escapeHtml(name);
+      profileSub.textContent = isAdmin
+        ? "Conta administrativa verificada."
+        : (email || "Defina nickname e foto em Configurações.");
+
+      window.syncChatHeaderProfile?.();
+    }
 
     async function bootNotifications() {
       const userId = getCurrentUserId();
@@ -2447,6 +2602,99 @@ body{
       }
     }
 
+    function stopProfileListeners() {
+      profileUnsubs.forEach((unsub) => {
+        try { unsub(); } catch (error) {}
+      });
+      profileUnsubs = [];
+    }
+
+    function startProfileListeners() {
+      stopProfileListeners();
+
+      const ids = [
+        String(currentChat?.ownerUserId || "").trim(),
+        String(currentChat?.adminUserId || "").trim(),
+        getCurrentUserId()
+      ].filter(Boolean);
+
+      [...new Set(ids)].forEach((uid) => {
+        const unsub = onSnapshot(doc(db, "user_profiles", uid), (snap) => {
+          liveProfiles.set(uid, snap.exists() ? snap.data() : null);
+          updateProfileCard();
+          fillChatInfo(currentChat || {});
+          rerenderMessages();
+        }, (error) => {
+          console.error("Erro ao ouvir perfil:", error);
+        });
+
+        profileUnsubs.push(unsub);
+      });
+    }
+
+    function getResolvedSenderProfile(message) {
+      return getLiveProfileByUserId(String(message?.senderId || "").trim());
+    }
+
+    function resolveSenderNameData(message, role) {
+      const liveProfile = getResolvedSenderProfile(message);
+      const liveName = sanitizeDisplayName(liveProfile?.nickname || "");
+      const rawName = sanitizeDisplayName(message?.senderName || "");
+      const finalName = liveName || rawName || (role === "admin" ? "Administrador" : (currentChat?.ownerName || "Usuário"));
+
+      return { finalName, liveProfile };
+    }
+
+    function resolveSenderPhoto(message, role) {
+      const liveProfile = getResolvedSenderProfile(message);
+      const livePhoto = sanitizePhotoUrl(liveProfile?.photo || "");
+      const rawPhoto = sanitizePhotoUrl(message?.senderPhoto || "");
+      const { finalName } = resolveSenderNameData(message, role);
+
+      return getAvatarUrl(finalName, livePhoto || rawPhoto);
+    }
+
+    function rerenderMessages() {
+      if (!messagesList) return;
+
+      if (!liveMessages.length) {
+        const introBlock = renderOfferIntroBlock();
+        messagesList.innerHTML = `${introBlock}<div class="empty">Nenhuma mensagem ainda. Comece a conversa por aqui.</div>`;
+        bindOfferThumbs();
+        return;
+      }
+
+      const renderedMessages = liveMessages.map(message => {
+        const senderRole = message.senderRole === "admin" ? "admin" : "owner";
+        const isMine = String(message.senderId || "").trim() === getCurrentUserId();
+        const sideClass = isMine ? "admin" : "owner";
+
+        const dateText = formatDate(message.createdAt);
+        const avatar = resolveSenderPhoto(message, senderRole);
+        const senderName = renderSenderName(message, senderRole);
+
+        return `
+          <div class="msg-row ${sideClass}">
+            ${!isMine ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
+
+            <div class="msg ${sideClass}">
+              <div class="msg-top">
+                <div class="msg-name ${senderRole === "admin" ? "wmt-name admin-display" : ""}">${senderName}</div>
+                <div class="msg-time">${escapeHtml(dateText || "")}</div>
+              </div>
+              <div class="msg-text">${escapeHtml(message.text || "")}</div>
+            </div>
+
+            ${isMine ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
+          </div>
+        `;
+      }).join("");
+
+      const introBlock = renderOfferIntroBlock();
+      messagesList.innerHTML = `${introBlock}${renderedMessages}`;
+      bindOfferThumbs();
+    }
+
     async function bootChat() {
       updateProfileCard();
 
@@ -2535,7 +2783,9 @@ body{
 
         currentRole = resolveCurrentRole(currentChat);
         await loadOfferData(String(currentChat.offerId || currentChat.id || "").trim());
+        startProfileListeners();
         fillChatInfo(currentChat);
+        updateProfileCard();
         listenMessages(chatRef);
       } catch (error) {
         console.error(error);
@@ -2571,8 +2821,8 @@ body{
     }
 
     function fillChatInfo(chat) {
-      const offerCode = chat.offerCode || chat.offerId || chat.id;
-      const ownerLabel = chat.ownerName || chat.ownerEmail || "-";
+      const offerCode = chat.offerCode || chat.offerId || chat.id || "-";
+      const ownerLabel = getOwnerLabel();
       const statusLabel = chat.status || "open";
 
       infoPrice.textContent = getOfferPriceValue(currentOffer);
@@ -2585,24 +2835,17 @@ body{
     }
 
     function renderSenderName(message, role) {
-  const rawName = String(message.senderName || "").trim();
+      const { finalName } = resolveSenderNameData(message, role);
 
-  if (role === "admin") {
-    return `<span class="wmt-name">${escapeHtml(rawName || "Administrador")}</span><span class="verify-badge" aria-hidden="true"></span>`;
-  }
-
-  return escapeHtml(rawName || currentChat?.ownerName || "Usuário");
-}
-
-    function getMessageAvatar(message, role) {
       if (role === "admin") {
-        const adminPhoto = String(message.senderPhoto || "").trim();
-        return adminPhoto || "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true";
+        return `<span class="admin-name-wrap"><span class="admin-name-text">${escapeHtml(finalName)}</span><span class="verify-badge admin-verify" aria-hidden="true"></span><span class="admin-role-badge">ADMIN</span></span>`;
       }
 
-      const possiblePhoto = String(message.senderPhoto || "").trim();
-      const possibleName = String(message.senderName || currentChat?.ownerName || "Usuário").trim();
-      return getAvatarUrl(possibleName, possiblePhoto);
+      return escapeHtml(finalName || currentChat?.ownerName || "Usuário");
+    }
+
+    function getMessageAvatar(message, role) {
+      return resolveSenderPhoto(message, role);
     }
 
     let lastRenderedMessageIds = "";
@@ -2616,61 +2859,16 @@ body{
       const q = query(messagesRef, orderBy("createdAt", "asc"));
 
       unsubscribeMessages = onSnapshot(q, (snapshot) => {
-        if (!snapshot.docs.length) {
-          const introBlock = renderOfferIntroBlock();
-          messagesList.innerHTML = `${introBlock}<div class="empty">Nenhuma mensagem ainda. Comece a conversa por aqui.</div>`;
-          bindOfferThumbs();
-          return;
-        }
-
-        const messages = snapshot.docs.map(docSnap => ({
+        liveMessages = snapshot.docs.map(docSnap => ({
           id: docSnap.id,
           ...docSnap.data()
         }));
 
-        const messageIds = messages.map(message => message.id).join("|");
+        const messageIds = liveMessages.map(message => message.id).join("|");
         const wasNearBottom = (messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight) < 120;
 
-        if (messageIds === lastRenderedMessageIds) {
-          if (wasNearBottom) {
-            requestAnimationFrame(() => {
-              messagesList.scrollTop = messagesList.scrollHeight;
-            });
-          }
-          return;
-        }
-
         lastRenderedMessageIds = messageIds;
-
-        const renderedMessages = messages.map(message => {
-  const senderRole = message.senderRole === "admin" ? "admin" : "owner";
-  const isMine = String(message.senderId || "").trim() === getCurrentUserId();
-  const sideClass = isMine ? "admin" : "owner";
-
-  const dateText = formatDate(message.createdAt);
-  const avatar = getMessageAvatar(message, senderRole);
-  const senderName = renderSenderName(message, senderRole);
-
-  return `
-    <div class="msg-row ${sideClass}">
-      ${!isMine ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
-
-      <div class="msg ${sideClass}">
-        <div class="msg-top">
-          <div class="msg-name ${senderRole === "admin" ? "wmt-name" : ""}">${senderName}</div>
-          <div class="msg-time">${escapeHtml(dateText || "")}</div>
-        </div>
-        <div class="msg-text">${escapeHtml(message.text || "")}</div>
-      </div>
-
-      ${isMine ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
-    </div>
-  `;
-}).join("");
-
-        const introBlock = renderOfferIntroBlock();
-        messagesList.innerHTML = `${introBlock}${renderedMessages}`;
-        bindOfferThumbs();
+        rerenderMessages();
 
         if (wasNearBottom) {
           requestAnimationFrame(() => {
@@ -2682,7 +2880,7 @@ body{
         showStatus(`<strong>Erro ao ouvir mensagens.</strong> ${escapeHtml(error?.message || "Tente novamente.")}`, "error");
       });
     }
- 
+
 let isSendingMessage = false;
 
 async function sendMessage() {
@@ -2745,7 +2943,7 @@ async function sendMessage() {
     const receiverName =
       currentRole === "admin"
         ? String(currentChat.ownerName || currentChat.ownerEmail || "Usuário").trim()
-        : "WMT";
+        : "Administrador";
 
     if (receiverUserId && receiverUserId !== senderId) {
       const offerCodeLabel = String(
@@ -2755,10 +2953,7 @@ async function sendMessage() {
       const senderDisplayName = getCurrentUserName();
       const previewText = text.length > 90 ? text.slice(0, 90) + "..." : text;
 
-      const notificationTitle =
-        currentRole === "admin"
-          ? "WMT respondeu sua oferta"
-          : `${senderDisplayName} respondeu sua oferta`;
+      const notificationTitle = `${senderDisplayName} respondeu sua oferta`;
 
       addDoc(collection(db, "notifications"), {
         userId: receiverUserId,
