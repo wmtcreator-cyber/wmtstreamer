@@ -66,7 +66,7 @@
     radial-gradient(circle at 92% 10%, rgba(242,201,76,.08), transparent 18%),
     radial-gradient(circle at 50% 100%, rgba(46,214,141,.06), transparent 24%),
     linear-gradient(rgba(10,13,18,.92), rgba(10,13,18,.97)),
-    url('background.jpg') center center / cover no-repeat fixed;
+    url('background.jpg') center center / cover no-repeat;
   overflow-x:hidden;
   position:relative;
 }
@@ -1522,6 +1522,40 @@ body{
     }
 
 
+
+
+/* WMT FINAL PERF */
+@media (max-width:760px){
+  body{
+    background:
+      linear-gradient(rgba(10,13,18,.97), rgba(10,13,18,.99)),
+      url('background.jpg') center center / cover no-repeat !important;
+  }
+
+  body::before{
+    opacity:.08 !important;
+    background-size:24px 24px !important;
+  }
+
+  .topbar{
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+    box-shadow:0 6px 16px rgba(0,0,0,.12) !important;
+  }
+
+  .profile-menu,
+  .notif-menu,
+  .hero,
+  .settings-card,
+  .preview-card,
+  .form-card,
+  .main-card,
+  .side-card,
+  .toolbar-card{
+    box-shadow:0 10px 20px rgba(0,0,0,.14) !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1701,7 +1735,7 @@ body{
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-    import { isAdminUser } from "./admin-config.js";
+    import { isAdminUser, getPrimaryAdminEmail } from "./admin-config.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -2044,7 +2078,7 @@ body{
   limit,
   writeBatch
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-    import { isAdminUser } from "./admin-config.js";
+    import { isAdminUser, getPrimaryAdminEmail } from "./admin-config.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -2092,6 +2126,8 @@ body{
     let unsubscribeNotifications = null;
     let chatReady = false;
     let lastNotifications = [];
+    let notificationUnsubs = [];
+    let notificationBuckets = new Map();
     let profileUnsubs = [];
     let liveMessages = [];
     const liveProfiles = new Map();
@@ -2527,36 +2563,66 @@ body{
       window.syncChatHeaderProfile?.();
     }
 
-    async function bootNotifications() {
-      const userId = getCurrentUserId();
-      if (!userId) return;
+    function getNotificationTargets() {
+      return [...new Set([getCurrentUserId(), getUserEmail(getChatUser())].map(v => String(v || "").trim()).filter(Boolean))];
+    }
 
-      if (unsubscribeNotifications) {
-        unsubscribeNotifications();
+    function resetNotificationListeners() {
+      notificationUnsubs.forEach((unsub) => {
+        try { unsub(); } catch (error) {}
+      });
+      notificationUnsubs = [];
+      notificationBuckets = new Map();
+    }
+
+    function rebuildNotificationsFromBuckets() {
+      const itemMap = new Map();
+      notificationBuckets.forEach((items) => {
+        items.forEach((item) => itemMap.set(item.id, item));
+      });
+      lastNotifications = [...itemMap.values()].sort((a, b) => {
+        const ad = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || a.timestamp || a.updatedAt || 0).getTime();
+        const bd = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || b.timestamp || b.updatedAt || 0).getTime();
+        return bd - ad;
+      }).slice(0, 20);
+      renderNotifications();
+    }
+
+    async function bootNotifications() {
+      const targets = getNotificationTargets();
+      resetNotificationListeners();
+      if (!targets.length) {
+        lastNotifications = [];
+        renderNotifications();
+        return;
       }
 
       try {
-        const notificationsRef = collection(db, "notifications");
-        const q = query(
-          notificationsRef,
-          where("userId", "==", userId),
-          orderBy("createdAt", "desc"),
-          limit(20)
-        );
+        notificationUnsubs = targets.map((target) => {
+          const notificationsRef = collection(db, "notifications");
+          const q = query(
+            notificationsRef,
+            where("userId", "==", target),
+            orderBy("createdAt", "desc"),
+            limit(20)
+          );
 
-        unsubscribeNotifications = onSnapshot(q, (snapshot) => {
-          lastNotifications = snapshot.docs.map((docSnap) => ({
-            id: docSnap.id,
-            ...docSnap.data()
-          }));
-          renderNotifications();
-        }, (error) => {
-          console.error("Erro ao ouvir notificações:", error);
-          notifList.innerHTML = `<div class="notif-empty">Não foi possível carregar.</div>`;
+          return onSnapshot(q, (snapshot) => {
+            notificationBuckets.set(target, snapshot.docs.map((docSnap) => ({
+              id: docSnap.id,
+              ...docSnap.data()
+            })));
+            rebuildNotificationsFromBuckets();
+          }, (error) => {
+            console.error("Erro ao ouvir notificações:", error);
+            notificationBuckets.set(target, []);
+            rebuildNotificationsFromBuckets();
+          });
         });
       } catch (error) {
         console.error("Erro ao iniciar notificações:", error);
-        notifList.innerHTML = `<div class="notif-empty">Sem notificações.</div>`;
+        lastNotifications = [];
+        renderNotifications();
       }
     }
 
@@ -2834,7 +2900,7 @@ body{
             ownerEmail,
             ownerName: String(offer.ownerName || offer.nickname || "Usuário").trim(),
             adminUserId: isAdminUser(getChatUser()) ? getCurrentUserId() : "",
-            adminEmail: isAdminUser(getChatUser()) ? getUserEmail(getChatUser()) : "",
+            adminEmail: isAdminUser(getChatUser()) ? getUserEmail(getChatUser()) : getPrimaryAdminEmail(),
             status: "open",
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
@@ -2869,10 +2935,9 @@ body{
           !String(currentChat.adminUserId || "").trim() ||
           !normalizeEmail(currentChat.adminEmail || "")
         )) {
-          const adminPatch = {
-            adminUserId: getCurrentUserId(),
-            adminEmail: getUserEmail(getChatUser())
-          };
+          const adminPatch = isAdminUser(getChatUser())
+            ? { adminUserId: getCurrentUserId(), adminEmail: getUserEmail(getChatUser()) }
+            : { adminEmail: normalizeEmail(currentChat.adminEmail || "") || getPrimaryAdminEmail() };
 
           await setDoc(chatRef, adminPatch, { merge: true });
           chatSnap = await getDoc(chatRef);
