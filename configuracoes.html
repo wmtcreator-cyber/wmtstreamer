@@ -1424,7 +1424,8 @@ body{
     import {
       getAuth,
       onAuthStateChanged,
-      signOut
+      signOut,
+      signInAnonymously
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
     import {
       getFirestore,
@@ -1584,7 +1585,7 @@ body{
         getStoredNickname() ||
         user?.displayName ||
         email.split("@")[0] ||
-        "Usuário"
+        (user?.isAnonymous ? "Usuário temporário" : "Usuário")
       ).trim();
     }
 
@@ -1621,7 +1622,11 @@ body{
       menuProfilePhoto.src = displayPhoto;
       menuProfileName.textContent = displayName;
       menuProfileSub.textContent = user
-        ? (isAdmin ? "Conta administrativa WMT" : (getUserEmail(user) || "Conta conectada"))
+        ? (isAdmin
+            ? "Conta administrativa WMT"
+            : (user?.isAnonymous
+                ? "Sessão temporária ativa"
+                : (getUserEmail(user) || "Conta conectada")))
         : "Entre para gerenciar sua conta";
 
       profilePanelLink.style.display = isAdmin ? "flex" : "none";
@@ -2226,10 +2231,23 @@ if (!profileSnap.exists()) {
       });
     }
 
-    function finalizeProtectedAccess() {
+    async function finalizeProtectedAccess() {
       if (authDecisionDone) return;
-      authDecisionDone = true;
-      goToLogin("configuracoes.html");
+
+      try {
+        const cred = await signInAnonymously(auth);
+        applyAuthenticatedState(cred.user);
+      } catch (error) {
+        console.error(error);
+        authDecisionDone = true;
+        revealPage();
+        showNotice({
+          badge: "Login",
+          title: "Não foi possível iniciar a sessão temporária",
+          message: "Ative Anonymous Authentication no Firebase Authentication para usar as configurações sem login com Google."
+        });
+        syncHeader(null);
+      }
     }
 
     onAuthStateChanged(auth, (user) => {
@@ -2251,6 +2269,7 @@ if (!profileSnap.exists()) {
           try { profileUnsub(); } catch (e) {}
           profileUnsub = null;
         }
+        syncHeader(null);
         window.location.href = "index.html";
       }
     });
