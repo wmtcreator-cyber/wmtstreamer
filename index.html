@@ -2350,6 +2350,7 @@ body{
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+    import { isAdminUser } from "./admin-config.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -2372,8 +2373,6 @@ body{
     const logoutBtn = document.getElementById("logoutBtn");
 
     const LOGIN_REDIRECT_KEY = "wmt_after_login";
-    const ADMIN_EMAILS = ["wmtcreator@gmail.com",
-    "italokauan4444@gmail.com"];
 
     let currentUser = null;
 
@@ -2421,18 +2420,8 @@ body{
       if (e.target === noticeModal) closeNotice();
     });
 
-    function normalizeEmail(value) {
-      return String(value || "").trim().toLowerCase();
-    }
-
     function getUserEmail(user) {
-      return normalizeEmail(user?.email || "");
-    }
-
-    function isAdminUser(user) {
-      const email = getUserEmail(user);
-      const allowedEmails = ADMIN_EMAILS.map(normalizeEmail).filter(Boolean);
-      return allowedEmails.includes(email);
+      return String(user?.email || "").trim().toLowerCase();
     }
 
     function setRedirectTarget(target) {
@@ -2563,6 +2552,7 @@ body{
 (function(){
   import("https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js").then(async ({ initializeApp, getApps, getApp }) => {
     const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js");
+    const { isAdminUser } = await import("./admin-config.js");
     const {
       getFirestore,
       doc,
@@ -2585,11 +2575,6 @@ body{
       appId: "1:547032996672:web:c7bd6a33e43927f003f8a5",
       measurementId: "G-B5X5VD667Y"
     };
-
-    const ADMIN_EMAILS = [
-  "wmtcreator@gmail.com",
-  "italokauan4444@gmail.com"
-];
 
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -2617,18 +2602,11 @@ body{
     let currentNotifUser = null;
     let currentProfile = null;
 
-    function normalizeEmail(value){
-      return String(value || "").trim().toLowerCase();
-    }
     function getUserEmail(user){
-      return normalizeEmail(user?.email || "");
+      return String(user?.email || "").trim().toLowerCase();
     }
     function getUserId(user){
       return String(user?.uid || "").trim();
-    }
-    function isAdminUser(user){
-      const email = getUserEmail(user);
-      return ADMIN_EMAILS.map(normalizeEmail).filter(Boolean).includes(email);
     }
     function getProfileStorageKey(prefix, user){
       const uid = getUserId(user);
@@ -2647,7 +2625,6 @@ body{
     }
     function getDisplayName(user){
       if (!user) return "wmt";
-      if (isAdminUser(user)) return "WMT";
       const email = getUserEmail(user);
       return String(
         currentProfile?.nickname ||
@@ -2660,9 +2637,6 @@ body{
     function getPhoto(user){
       const saved = String(currentProfile?.photo || getStoredPhoto(user) || "").trim();
       if (saved) return saved;
-      if (isAdminUser(user)) {
-        return "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true";
-      }
       return getAvatarFallback(getDisplayName(user));
     }
 
