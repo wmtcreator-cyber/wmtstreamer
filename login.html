@@ -126,9 +126,11 @@ body{
     <div class="badge">Acesso</div>
     <h1>Entrando...</h1>
     <p id="desc">Clique no botão abaixo para entrar com sua conta Google e continuar.</p>
+    <p id="envHint" style="display:none; margin-top:12px; color:#ffd9a8; line-height:1.7; font-size:13px; font-weight:700;"></p>
     <div class="status" id="statusBox"></div>
     <div class="actions">
       <button class="btn primary" id="openLoginBtn" type="button">ENTRAR COM GOOGLE</button>
+      <button class="btn secondary" id="guestBtn" type="button">CONTINUAR SEM LOGIN</button>
       <button class="btn secondary" id="backBtn" type="button">VOLTAR AO INÍCIO</button>
     </div>
   </div>
@@ -142,6 +144,7 @@ body{
       onAuthStateChanged,
       signInWithPopup,
       signOut,
+      signInAnonymously,
       setPersistence,
       browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
@@ -168,13 +171,36 @@ body{
 
     const statusBox = document.getElementById("statusBox");
     const backBtn = document.getElementById("backBtn");
+    const guestBtn = document.getElementById("guestBtn");
     const openLoginBtn = document.getElementById("openLoginBtn");
     const desc = document.getElementById("desc");
+    const envHint = document.getElementById("envHint");
 
     function showStatus(message, type = "") {
       statusBox.style.display = "block";
       statusBox.className = "status" + (type ? " " + type : "");
       statusBox.innerHTML = message;
+    }
+
+    
+    function isEmbeddedBrowser() {
+      const ua = navigator.userAgent || "";
+      return /Instagram|FBAN|FBAV|Line|MicroMessenger|TikTok|musical_ly|wv|WebView/i.test(ua) ||
+        (/iPhone|iPad|iPod/i.test(ua) && !/Safari/i.test(ua));
+    }
+
+    function looksLikeGoogleUserAgentError(error) {
+      const text = String(error?.code || error?.message || "").toLowerCase();
+      return text.includes("disallowed_useragent") || text.includes("useragent") || text.includes("webview") || text.includes("403");
+    }
+
+    function updateLoginEnvironmentUI() {
+      if (!isEmbeddedBrowser()) return;
+      if (envHint) {
+        envHint.style.display = "block";
+        envHint.innerHTML = "O login Google pode falhar dentro do navegador interno do app. Se der erro, abra este site no Chrome ou Safari.";
+      }
+      desc.textContent = "Use Google no navegador normal ou continue sem login para enviar sua oferta e abrir chat.";
     }
 
     function normalizeEmail(value) {
@@ -236,6 +262,8 @@ body{
           showStatus("<strong>Popup bloqueado.</strong><br>Permita popups para este site e tente novamente.", "error");
         } else if (err?.code === "auth/unauthorized-domain") {
           showStatus("<strong>Domínio não autorizado.</strong><br>Adicione seu domínio atual em Firebase Authentication → Settings → Authorized domains.", "error");
+        } else if (looksLikeGoogleUserAgentError(err)) {
+          showStatus("<strong>Google bloqueou este login neste navegador.</strong><br>Abra o site no Chrome ou Safari, ou toque em <strong>Continuar sem login</strong> para seguir com sessão temporária.", "error");
         } else {
           showStatus("<strong>Erro no login.</strong><br>" + (err?.message || "Tente novamente."), "error");
         }
@@ -246,8 +274,34 @@ body{
       }
     }
 
+    async function continueAsGuest() {
+      if (isSigningIn) return;
+
+      isSigningIn = true;
+      guestBtn.disabled = true;
+      guestBtn.textContent = "ENTRANDO...";
+
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+        if (!auth.currentUser) {
+          await signInAnonymously(auth);
+        }
+        const target = getRedirectTarget();
+        clearRedirectTarget();
+        showStatus("<strong>Sessão temporária criada.</strong><br>Redirecionando...", "success");
+        setTimeout(() => goToTarget(target), 250);
+      } catch (err) {
+        console.error(err);
+        showStatus("<strong>Erro ao continuar sem login.</strong><br>" + (err?.message || "Tente novamente."), "error");
+      } finally {
+        isSigningIn = false;
+        guestBtn.disabled = false;
+        guestBtn.textContent = "CONTINUAR SEM LOGIN";
+      }
+    }
+
     onAuthStateChanged(auth, async (user) => {
-      if (user) {
+      if (user && !user.isAnonymous) {
         processRedirect(user);
       }
     });
@@ -256,6 +310,12 @@ body{
       redirectHandled = false;
       statusBox.style.display = "none";
       openLogin();
+    });
+
+    guestBtn.addEventListener("click", () => {
+      redirectHandled = false;
+      statusBox.style.display = "none";
+      continueAsGuest();
     });
 
     backBtn.addEventListener("click", async () => {
@@ -271,10 +331,12 @@ body{
       }
     });
 
-    // Se já estiver logado, entra direto
-    if (auth.currentUser) {
+    // Se já estiver logado com conta real, entra direto
+    if (auth.currentUser && !auth.currentUser.isAnonymous) {
       processRedirect(auth.currentUser);
     }
+
+    updateLoginEnvironmentUI();
   </script>
 </body>
 </html>
