@@ -1475,6 +1475,39 @@ body{
   }
 }
 
+
+    .role-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:20px;
+      padding:0 8px;
+      border-radius:999px;
+      font-size:9px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .role-badge.streamer{
+      color:#f3dcff;
+      background:linear-gradient(180deg, rgba(168,85,247,.20), rgba(168,85,247,.10));
+      border:1px solid rgba(168,85,247,.34);
+      box-shadow:0 8px 18px rgba(168,85,247,.14);
+    }
+
+    .msg-role-badge{
+      margin-left:2px;
+    }
+
+    .profile-role-badge{
+      min-height:22px;
+      padding:0 9px;
+      font-size:9px;
+    }
+
+
 </style>
 </head>
 <body>
@@ -2108,6 +2141,35 @@ body{
       return isBrandPlaceholderPhoto(clean) ? "" : clean;
     }
 
+
+    function normalizeRoleLabel(value) {
+      return String(value || "").trim().toUpperCase();
+    }
+
+    function sanitizeRoleList(value) {
+      if (!Array.isArray(value)) return [];
+      return [...new Set(
+        value
+          .map((item) => normalizeRoleLabel(item))
+          .filter(Boolean)
+      )];
+    }
+
+    function getProfileActiveRole(profile) {
+      if (!profile) return "";
+      const allowedRoles = sanitizeRoleList(profile.allowedRoles);
+      const activeRole = normalizeRoleLabel(profile.activeRole || "");
+      return allowedRoles.includes(activeRole) ? activeRole : "";
+    }
+
+    function renderSpecialRoleBadge(role, extraClass = "") {
+      const clean = normalizeRoleLabel(role);
+      if (!clean) return "";
+      const roleClass = clean === "STREAMER" ? "streamer" : "";
+      const joinedClass = ["role-badge", roleClass, extraClass].filter(Boolean).join(" ");
+      return `<span class="${joinedClass}">${clean}</span>`;
+    }
+
     function showStatus(message, type = "info") {
       statusBox.style.display = "block";
       statusBox.classList.toggle("error", type === "error");
@@ -2429,13 +2491,16 @@ body{
       const name = getCurrentUserName();
       const photo = getCurrentUserPhoto();
       const email = getUserEmail(user);
+      const liveProfile = getCurrentUserLiveProfile();
+      const activeRole = getProfileActiveRole(liveProfile);
+      const roleHtml = activeRole ? renderSpecialRoleBadge(activeRole, "profile-role-badge") : "";
 
       profilePhoto.src = getAvatarUrl(name, photo);
       profileRole.textContent = isAdmin ? "Administrador" : "Seu perfil";
       profileName.classList.toggle("admin-profile-name", !!isAdmin);
       profileName.innerHTML = isAdmin
-        ? `<span class="admin-name-wrap"><span class="admin-name-text">${escapeHtml(name)}</span><span class="verify-badge admin-verify" aria-hidden="true"></span><span class="profile-admin-badge">ADMIN</span></span>`
-        : escapeHtml(name);
+        ? `<span class="admin-name-wrap"><span class="admin-name-text">${escapeHtml(name)}</span><span class="verify-badge admin-verify" aria-hidden="true"></span><span class="profile-admin-badge">ADMIN</span>${roleHtml}</span>`
+        : `<span>${escapeHtml(name)}</span>${roleHtml}`;
       profileSub.textContent = isAdmin
         ? "Conta administrativa verificada."
         : (email || "Defina nickname e foto em Configurações.");
@@ -2835,13 +2900,15 @@ body{
     }
 
     function renderSenderName(message, role) {
-      const { finalName } = resolveSenderNameData(message, role);
+      const { finalName, liveProfile } = resolveSenderNameData(message, role);
+      const activeRole = getProfileActiveRole(liveProfile);
+      const roleHtml = activeRole ? renderSpecialRoleBadge(activeRole, "msg-role-badge") : "";
 
       if (role === "admin") {
-        return `<span class="admin-name-wrap"><span class="admin-name-text">${escapeHtml(finalName)}</span><span class="verify-badge admin-verify" aria-hidden="true"></span><span class="admin-role-badge">ADMIN</span></span>`;
+        return `<span class="admin-name-wrap"><span class="admin-name-text">${escapeHtml(finalName)}</span><span class="verify-badge admin-verify" aria-hidden="true"></span><span class="admin-role-badge">ADMIN</span>${roleHtml}</span>`;
       }
 
-      return escapeHtml(finalName || currentChat?.ownerName || "Usuário");
+      return `<span>${escapeHtml(finalName || currentChat?.ownerName || "Usuário")}</span>${roleHtml}`;
     }
 
     function getMessageAvatar(message, role) {
