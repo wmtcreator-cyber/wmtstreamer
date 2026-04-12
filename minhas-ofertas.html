@@ -1317,13 +1317,15 @@ body{
       }
     }
     function revealPage() { document.body.style.display = "block"; }
-    function setRedirectTarget(target) {
-      localStorage.setItem(REDIRECT_KEY, target);
-      sessionStorage.setItem(REDIRECT_KEY, target);
-    }
-    function goToLogin(target) {
-      setRedirectTarget(target);
-      window.location.href = "login.html";
+    async function ensureAnonymousSession() {
+      if (auth.currentUser) return auth.currentUser;
+      try {
+        const cred = await auth.signInAnonymously();
+        return cred.user;
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
     }
 
     function escapeHtml(str) {
@@ -1547,6 +1549,7 @@ async function loadOffers() {
     });
 
     let authDecisionDone = false;
+    let creatingAnonymousSession = false;
 
     function syncAuth(user) {
       currentUser = user || auth.currentUser || null;
@@ -1562,10 +1565,19 @@ async function loadOffers() {
       loadOffers();
     }
 
-    function finalizeProtectedAccess() {
-      if (authDecisionDone) return;
-      authDecisionDone = true;
-      goToLogin("minhas-ofertas.html");
+    async function finalizeProtectedAccess() {
+      if (authDecisionDone || creatingAnonymousSession) return;
+      creatingAnonymousSession = true;
+      try {
+        const anonymousUser = await ensureAnonymousSession();
+        applyAuthenticatedState(anonymousUser);
+      } catch (error) {
+        authDecisionDone = true;
+        revealPage();
+        offersContainer.innerHTML = `<div class="empty">Não foi possível iniciar sua sessão temporária.</div>`;
+      } finally {
+        creatingAnonymousSession = false;
+      }
     }
 
     auth.onAuthStateChanged((user) => {
@@ -1576,10 +1588,11 @@ async function loadOffers() {
 
       if (!authDecisionDone) {
         finalizeProtectedAccess();
-      } else {
+      } else if (!creatingAnonymousSession) {
         currentUser = null;
         if (notificationsUnsub) { notificationsUnsub(); notificationsUnsub = null; }
-        window.location.href = "index.html";
+        revealPage();
+        offersContainer.innerHTML = `<div class="empty">Não foi possível carregar suas ofertas.</div>`;
       }
     });
 
