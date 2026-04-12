@@ -52,7 +52,7 @@
     radial-gradient(circle at 92% 10%, rgba(242,201,76,.08), transparent 18%),
     radial-gradient(circle at 50% 100%, rgba(46,214,141,.06), transparent 24%),
     linear-gradient(rgba(10,13,18,.92), rgba(10,13,18,.97)),
-    url('background.jpg') center center / cover no-repeat;
+    url('background.jpg') center center / cover no-repeat fixed;
   overflow-x:hidden;
   position:relative;
 }
@@ -851,41 +851,7 @@ body{
   overflow-x:hidden;
 }
 
-  
-
-/* WMT FINAL PERF */
-@media (max-width:760px){
-  body{
-    background:
-      linear-gradient(rgba(10,13,18,.97), rgba(10,13,18,.99)),
-      url('background.jpg') center center / cover no-repeat !important;
-  }
-
-  body::before{
-    opacity:.08 !important;
-    background-size:24px 24px !important;
-  }
-
-  .topbar{
-    backdrop-filter:none !important;
-    -webkit-backdrop-filter:none !important;
-    box-shadow:0 6px 16px rgba(0,0,0,.12) !important;
-  }
-
-  .profile-menu,
-  .notif-menu,
-  .hero,
-  .settings-card,
-  .preview-card,
-  .form-card,
-  .main-card,
-  .side-card,
-  .toolbar-card{
-    box-shadow:0 10px 20px rgba(0,0,0,.14) !important;
-  }
-}
-
-</style>
+  </style>
 </head>
 <body>
   
@@ -1020,9 +986,8 @@ body{
   </div>
 
   <script type="module">
-    import { isAdminUser, getPrimaryAdminEmail } from "./admin-config.js";
+    import { isAdminUser } from "./admin-config.js";
     window.isAdminUser = isAdminUser;
-    window.getPrimaryAdminEmail = getPrimaryAdminEmail;
   </script>
 
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
@@ -1105,21 +1070,21 @@ body{
     });
     notifTrigger?.addEventListener("click", toggleNotif);
     markAllReadBtn?.addEventListener("click", async () => {
-      const targets = getNotificationTargets(currentUser);
-      if (!targets.length) return;
+      const userId = getUserId(currentUser);
+      if (!userId) return;
       try {
-        const docs = await collectNotificationDocs(targets);
-        await Promise.all(docs.filter((docSnap) => !docSnap.data()?.read).map((docSnap) => docSnap.ref.set({ read: true, readAt: new Date().toISOString() }, { merge: true })));
+        const snap = await db.collection("notifications").where("userId", "==", userId).get();
+        await Promise.all(snap.docs.filter((doc) => !doc.data()?.read).map((doc) => doc.ref.set({ read: true, readAt: new Date().toISOString() }, { merge: true })));
       } catch (error) {
         console.error(error);
       }
     });
     clearAllNotifBtn?.addEventListener("click", async () => {
-      const targets = getNotificationTargets(currentUser);
-      if (!targets.length) return;
+      const userId = getUserId(currentUser);
+      if (!userId) return;
       try {
-        const docs = await collectNotificationDocs(targets);
-        await Promise.all(docs.map((docSnap) => docSnap.ref.delete()));
+        const snap = await db.collection("notifications").where("userId", "==", userId).get();
+        await Promise.all(snap.docs.map((doc) => doc.ref.delete()));
       } catch (error) {
         console.error(error);
       }
@@ -1224,30 +1189,7 @@ body{
       if (logoutBtn) logoutBtn.style.display = user ? "flex" : "none";
       if (profilePanelLink) profilePanelLink.style.display = window.isAdminUser(user) ? "flex" : "none";
     }
-    let notificationsUnsubs = [];
-    let currentNotificationTargets = [];
-    let notificationBuckets = new Map();
-    function getNotificationTargets(user = currentUser) {
-      return [...new Set([getUserId(user), getUserEmail(user)].map(v => String(v || "").trim()).filter(Boolean))];
-    }
-    function resetNotificationListeners() {
-      notificationsUnsubs.forEach((unsub) => { try { unsub(); } catch (error) {} });
-      notificationsUnsubs = [];
-      currentNotificationTargets = [];
-      notificationBuckets = new Map();
-    }
-    function getSortedNotificationItems(items) {
-      return [...items].sort((a, b) => new Date(b.createdAt || b.timestamp || b.updatedAt || 0) - new Date(a.createdAt || a.timestamp || a.updatedAt || 0));
-    }
-    async function collectNotificationDocs(targets) {
-      const docsMap = new Map();
-      await Promise.all((targets || []).map(async (target) => {
-        const snap = await db.collection("notifications").where("userId", "==", target).limit(50).get();
-        snap.docs.forEach((docSnap) => docsMap.set(docSnap.id, docSnap));
-      }));
-      return [...docsMap.values()];
-    }
-
+    let notificationsUnsub = null;
     function getFallbackInitial(name) {
       return String(name || "U").trim().charAt(0).toUpperCase() || "U";
     }
@@ -1351,26 +1293,25 @@ body{
     }
 
         function watchNotifications(user) {
-      resetNotificationListeners();
+      if (notificationsUnsub) {
+        notificationsUnsub();
+        notificationsUnsub = null;
+      }
       renderNotifications([]);
-      const targets = getNotificationTargets(user);
-      currentNotificationTargets = targets;
-      if (!targets.length || !db || typeof db.collection !== "function") return;
+      const userId = getUserId(user);
+      if (!userId || !db || typeof db.collection !== "function") return;
       try {
-        notificationsUnsubs = targets.map((target) => db.collection("notifications")
-          .where("userId", "==", target)
+        notificationsUnsub = db.collection("notifications")
+          .where("userId", "==", userId)
           .onSnapshot((snapshot) => {
-            notificationBuckets.set(target, snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
-            const merged = new Map();
-            notificationBuckets.forEach((items) => items.forEach((item) => merged.set(item.id, item)));
-            renderNotifications(getSortedNotificationItems(merged.values()).slice(0, 20));
+            const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+              .sort((a, b) => new Date(b.createdAt || b.timestamp || b.updatedAt || 0) - new Date(a.createdAt || a.timestamp || a.updatedAt || 0))
+              .slice(0, 20);
+            renderNotifications(items);
           }, (error) => {
             console.error(error);
-            notificationBuckets.set(target, []);
-            const merged = new Map();
-            notificationBuckets.forEach((items) => items.forEach((item) => merged.set(item.id, item)));
-            renderNotifications(getSortedNotificationItems(merged.values()).slice(0, 20));
-          }));
+            renderNotifications([]);
+          });
       } catch (error) {
         console.error(error);
       }
@@ -1568,10 +1509,10 @@ async function loadOffers() {
             ownerEmail,
             ownerName: offer.ownerName || offer.nickname || "Usuário",
             adminUserId: "",
-            adminEmail: (typeof window.getPrimaryAdminEmail === "function" ? window.getPrimaryAdminEmail() : ""),
+            adminEmail: "",
             status: "open",
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
             lastMessage: "",
             lastMessageAt: null
           }, { merge: true });
@@ -1637,7 +1578,7 @@ async function loadOffers() {
         finalizeProtectedAccess();
       } else {
         currentUser = null;
-        resetNotificationListeners();
+        if (notificationsUnsub) { notificationsUnsub(); notificationsUnsub = null; }
         window.location.href = "index.html";
       }
     });
@@ -1649,7 +1590,7 @@ async function loadOffers() {
         console.error(error);
       } finally {
         currentUser = null;
-        resetNotificationListeners();
+        if (notificationsUnsub) { notificationsUnsub(); notificationsUnsub = null; }
         window.location.href = "index.html";
       }
     });
