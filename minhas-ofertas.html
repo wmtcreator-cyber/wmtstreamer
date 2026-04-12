@@ -985,14 +985,17 @@ body{
     </div>
   </div>
 
+  <script type="module">
+    import { isAdminUser } from "./admin-config.js";
+    window.isAdminUser = isAdminUser;
+  </script>
+
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
 
   <script>
     const REDIRECT_KEY = "wmt_after_login";
-    const ADMIN_EMAILS = ["wmtcreator@gmail.com",
-    "italokauan4444@gmail.com"];
 
     let currentUser = null;
     let offersCache = [];
@@ -1113,11 +1116,7 @@ body{
         (currentEmail && currentEmail === getOfferOwnerEmail(offer))
       );
     }
-    function isAdminUser(user) {
-      const email = getUserEmail(user);
-      return ADMIN_EMAILS.map(normalizeEmail).filter(Boolean).includes(email);
-    }
-
+    
     function getProfileStorageKey(prefix, user) {
       const uid = getUserId(user);
       return uid ? `${prefix}_${uid}` : "";
@@ -1183,12 +1182,12 @@ body{
       if (menuProfilePhoto) menuProfilePhoto.src = photo;
       if (menuProfileName) menuProfileName.textContent = name;
       if (menuProfileSub) {
-        menuProfileSub.textContent = isAdminUser(user)
+        menuProfileSub.textContent = window.isAdminUser(user)
           ? "Conta administrativa WMT"
           : (getUserEmail(user) || "Conta WMT Market");
       }
       if (logoutBtn) logoutBtn.style.display = user ? "flex" : "none";
-      if (profilePanelLink) profilePanelLink.style.display = isAdminUser(user) ? "flex" : "none";
+      if (profilePanelLink) profilePanelLink.style.display = window.isAdminUser(user) ? "flex" : "none";
     }
     let notificationsUnsub = null;
     function getFallbackInitial(name) {
@@ -1536,7 +1535,7 @@ async function loadOffers() {
 
     profilePanelLink?.addEventListener("click", (e) => {
       const user = currentUser || auth.currentUser || null;
-      if (!user || !isAdminUser(user)) {
+      if (!user || !window.isAdminUser(user)) {
         e.preventDefault();
         showNotice({
           badge: "Acesso restrito",
