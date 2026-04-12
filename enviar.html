@@ -67,6 +67,7 @@
     html{scroll-behavior:smooth}
 
     body{
+  display:none;
   margin:0;
   font-family:'Plus Jakarta Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   color:var(--text);
@@ -76,7 +77,7 @@
     radial-gradient(circle at 92% 10%, rgba(242,201,76,.08), transparent 18%),
     radial-gradient(circle at 50% 100%, rgba(46,214,141,.06), transparent 24%),
     linear-gradient(rgba(10,13,18,.92), rgba(10,13,18,.97)),
-    url('background.jpg') center center / cover no-repeat fixed;
+    url('background.jpg') center center / cover no-repeat;
   overflow-x:hidden;
   position:relative;
 }
@@ -1944,6 +1945,40 @@ body{
   overflow-x:hidden;
 }
 
+
+
+/* WMT FINAL PERF */
+@media (max-width:760px){
+  body{
+    background:
+      linear-gradient(rgba(10,13,18,.97), rgba(10,13,18,.99)),
+      url('background.jpg') center center / cover no-repeat !important;
+  }
+
+  body::before{
+    opacity:.08 !important;
+    background-size:24px 24px !important;
+  }
+
+  .topbar{
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+    box-shadow:0 6px 16px rgba(0,0,0,.12) !important;
+  }
+
+  .profile-menu,
+  .notif-menu,
+  .hero,
+  .settings-card,
+  .preview-card,
+  .form-card,
+  .main-card,
+  .side-card,
+  .toolbar-card{
+    box-shadow:0 10px 20px rgba(0,0,0,.14) !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2306,9 +2341,51 @@ body{
         .replaceAll(">", "&gt;");
     }
 
+    function getNotificationTargets(user) {
+      const uid = typeof window.getSendPageUserId === "function" ? window.getSendPageUserId(user) : "";
+      const email = typeof window.getSendPageUserEmail === "function" ? window.getSendPageUserEmail(user) : "";
+      return [...new Set([uid, email].map(v => String(v || "").trim()).filter(Boolean))];
+    }
 
-    let notifUnsub = null;
-    let currentNotifUser = null;
+    function resetNotificationListeners() {
+      notifUnsubs.forEach((unsub) => {
+        try { unsub(); } catch (error) {}
+      });
+      notifUnsubs = [];
+      notifBuckets = new Map();
+      currentNotifTargets = [];
+    }
+
+    function getSortedNotificationItems(items) {
+      return [...items].sort((a, b) => {
+        const ad = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || a.timestamp || a.updatedAt || 0).getTime();
+        const bd = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || b.timestamp || b.updatedAt || 0).getTime();
+        return bd - ad;
+      });
+    }
+
+    async function collectNotificationDocs(targets, maxItems = 50) {
+      const docsMap = new Map();
+      await Promise.all((targets || []).map(async (target) => {
+        const q = query(collection(db, "notifications"), where("userId", "==", target), limit(maxItems));
+        const snap = await getDocs(q);
+        snap.docs.forEach((docSnap) => docsMap.set(docSnap.id, docSnap));
+      }));
+      return [...docsMap.values()];
+    }
+
+    function rebuildNotificationList() {
+      const itemMap = new Map();
+      notifBuckets.forEach((items) => {
+        items.forEach((item) => itemMap.set(item.id, item));
+      });
+      renderNotifications(getSortedNotificationItems(itemMap.values()));
+    }
+
+
+    let notifUnsubs = [];
+    let currentNotifTargets = [];
+    let notifBuckets = new Map();
     let currentUserProfile = null;
     window.sendPageCurrentProfile = null;
 
@@ -2394,14 +2471,13 @@ body{
     }
 
     async function clearAllNotifications() {
-      if (!currentNotifUser) return;
+      if (!currentNotifTargets.length) return;
       try {
         const { writeBatch } = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js");
-        const q = query(collection(db, "notifications"), where("userId", "==", currentNotifUser), limit(50));
-        const snap = await getDocs(q);
-        if (!snap.docs.length) return;
+        const docs = await collectNotificationDocs(currentNotifTargets, 50);
+        if (!docs.length) return;
         const batch = writeBatch(db);
-        snap.docs.forEach(d => batch.delete(doc(db, "notifications", d.id)));
+        docs.forEach((docSnap) => batch.delete(doc(db, "notifications", docSnap.id)));
         await batch.commit();
       } catch (error) {
         console.error(error);
@@ -2474,14 +2550,13 @@ body{
     }
 
     async function markAllRead() {
-      if (!currentNotifUser) return;
+      if (!currentNotifTargets.length) return;
       try {
-        const q = query(collection(db, "notifications"), where("userId", "==", currentNotifUser), limit(50));
-        const snap = await getDocs(q);
+        const docs = await collectNotificationDocs(currentNotifTargets, 50);
         await Promise.all(
-          snap.docs
-            .filter(d => !d.data().read)
-            .map(d => updateDoc(doc(db, "notifications", d.id), { read: true }))
+          docs
+            .filter(docSnap => !docSnap.data()?.read)
+            .map(docSnap => updateDoc(doc(db, "notifications", docSnap.id), { read: true, readAt: serverTimestamp() }))
         );
       } catch (error) {
         console.error(error);
@@ -2490,30 +2565,25 @@ body{
 
     function listenNotifications() {
       const user = window.sendPageCurrentUser || null;
-      const uid = typeof window.getSendPageUserId === "function" ? window.getSendPageUserId(user) : "";
-      currentNotifUser = uid;
+      const targets = getNotificationTargets(user);
+      resetNotificationListeners();
+      currentNotifTargets = targets;
 
-      if (notifUnsub) {
-        try { notifUnsub(); } catch (e) {}
-        notifUnsub = null;
-      }
-
-      if (!uid) {
+      if (!targets.length) {
         renderNotifications([]);
         return;
       }
 
-      const q = query(collection(db, "notifications"), where("userId", "==", uid), limit(20));
-      notifUnsub = onSnapshot(q, (snap) => {
-        const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        items.sort((a, b) => {
-          const ad = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
-          const bd = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
-          return bd - ad;
+      notifUnsubs = targets.map((target) => {
+        const q = query(collection(db, "notifications"), where("userId", "==", target));
+        return onSnapshot(q, (snap) => {
+          notifBuckets.set(target, snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          rebuildNotificationList();
+        }, (error) => {
+          console.error("notif error", error);
+          notifBuckets.set(target, []);
+          rebuildNotificationList();
         });
-        renderNotifications(items);
-      }, (error) => {
-        console.error("notif error", error);
       });
     }
 
@@ -3106,7 +3176,7 @@ document.addEventListener("wmt:send-auth-ok", async () => {
           ownerName,
           ownerPhoto,
           adminUserId: "",
-          adminEmail: "",
+          adminEmail: (typeof window.getPrimaryAdminEmail === "function" ? window.getPrimaryAdminEmail() : ""),
           streamer,
           price: Number(normalizedPrice),
           priceText: rawPrice,
@@ -3164,7 +3234,7 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-    import { isAdminUser } from "./admin-config.js";
+    import { isAdminUser, getPrimaryAdminEmail } from "./admin-config.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -3276,6 +3346,7 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       sendPageCurrentUser = user || auth.currentUser || null;
       window.sendPageCurrentUser = sendPageCurrentUser;
       window.isWmtAdminUser = isAdminUser;
+      window.getPrimaryAdminEmail = getPrimaryAdminEmail;
       window.getSendPageUserEmail = getUserEmail;
       window.getSendPageUserId = getUserId;
       window.getSendPageDisplayName = getSendPageDisplayName;
