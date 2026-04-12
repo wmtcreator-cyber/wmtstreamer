@@ -1026,6 +1026,168 @@ body{
 }
 
 
+  
+    .role-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:22px;
+      padding:0 9px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      border:1px solid rgba(255,255,255,.12);
+      white-space:nowrap;
+    }
+
+    .role-badge.streamer{
+      color:#f3dcff;
+      background:linear-gradient(180deg, rgba(168,85,247,.20), rgba(168,85,247,.10));
+      border-color:rgba(168,85,247,.34);
+      box-shadow:0 8px 18px rgba(168,85,247,.14);
+    }
+
+    .roles-card{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:20px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+      overflow:hidden;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    .roles-trigger{
+      width:100%;
+      border:none;
+      background:transparent;
+      color:#fff;
+      min-height:66px;
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      cursor:pointer;
+      text-align:left;
+    }
+
+    .roles-trigger:hover{
+      background:rgba(255,255,255,.03);
+    }
+
+    .roles-trigger-copy{
+      min-width:0;
+      display:grid;
+      gap:4px;
+    }
+
+    .roles-trigger-title{
+      font-size:14px;
+      font-weight:800;
+      letter-spacing:.01em;
+      color:#f4f8ff;
+    }
+
+    .roles-trigger-sub{
+      color:#96a7bf;
+      font-size:12px;
+      line-height:1.6;
+      font-weight:700;
+      word-break:break-word;
+    }
+
+    .roles-trigger-arrow{
+      flex:none;
+      color:#c7d5ea;
+      font-size:16px;
+      font-weight:900;
+      transition:transform .18s ease;
+    }
+
+    .roles-card.open .roles-trigger-arrow{
+      transform:rotate(180deg);
+    }
+
+    .roles-panel{
+      display:none;
+      padding:0 16px 16px;
+      border-top:1px solid rgba(255,255,255,.06);
+    }
+
+    .roles-card.open .roles-panel{
+      display:block;
+    }
+
+    .roles-panel-top{
+      padding:12px 0 10px;
+      color:#96a7bf;
+      font-size:12px;
+      font-weight:700;
+      line-height:1.65;
+    }
+
+    .roles-options{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    .role-option{
+      min-height:42px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+      color:#eef4ff;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+
+    .role-option:hover{
+      transform:translateY(-1px);
+      border-color:rgba(168,85,247,.28);
+      background:rgba(168,85,247,.08);
+    }
+
+    .role-option.active{
+      color:#f3dcff;
+      background:linear-gradient(180deg, rgba(168,85,247,.20), rgba(168,85,247,.10));
+      border-color:rgba(168,85,247,.34);
+      box-shadow:0 10px 20px rgba(168,85,247,.14);
+    }
+
+    .role-option.none-option.active{
+      color:#eef4ff;
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      border-color:rgba(255,255,255,.18);
+      box-shadow:none;
+    }
+
+    .roles-locked{
+      padding:14px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      color:#a8b7ca;
+      font-size:12px;
+      line-height:1.7;
+      font-weight:700;
+    }
+
+    .roles-locked strong{
+      display:block;
+      margin-bottom:6px;
+      color:#eef4ff;
+      font-size:13px;
+      font-weight:800;
+    }
+
+
   </style>
 </head>
 <body>
@@ -1147,6 +1309,30 @@ body{
                   <input id="photoInput" type="file" accept="image/*" hidden>
                 </div>
 
+
+                <div class="field">
+                  <label>Cargos</label>
+                  <div class="roles-card" id="rolesCard">
+                    <button type="button" class="roles-trigger" id="rolesTrigger" aria-expanded="false" aria-controls="rolesPanel">
+                      <div class="roles-trigger-copy">
+                        <span class="roles-trigger-title">Cargos do perfil</span>
+                        <span class="roles-trigger-sub" id="rolesTriggerSub">Cargos bloqueados para esta conta.</span>
+                      </div>
+                      <span class="roles-trigger-arrow" id="rolesTriggerArrow">⌄</span>
+                    </button>
+
+                    <div class="roles-panel" id="rolesPanel">
+                      <div class="roles-panel-top">Escolha o cargo que deve aparecer no seu perfil e no chat.</div>
+                      <div class="roles-locked" id="rolesLockedState">
+                        <strong>Cargos bloqueados</strong>
+                        Apenas contas liberadas pelos administradores podem usar cargos especiais.
+                      </div>
+                      <div class="roles-options" id="rolesOptions" style="display:none;"></div>
+                    </div>
+                  </div>
+                  <div class="help">Somente cargos liberados pelos administradores podem ser exibidos.</div>
+                </div>
+
                 <div class="field">
                   <button type="button" class="btn btn-primary" id="saveProfileBtn">Salvar perfil</button>
                 </div>
@@ -1238,6 +1424,12 @@ body{
     const saveProfileBtn = document.getElementById("saveProfileBtn");
     const photoInput = document.getElementById("photoInput");
     const statusBox = document.getElementById("statusBox");
+    const rolesCard = document.getElementById("rolesCard");
+    const rolesTrigger = document.getElementById("rolesTrigger");
+    const rolesTriggerSub = document.getElementById("rolesTriggerSub");
+    const rolesPanel = document.getElementById("rolesPanel");
+    const rolesOptions = document.getElementById("rolesOptions");
+    const rolesLockedState = document.getElementById("rolesLockedState");
 
     const noticeModal = document.getElementById("noticeModal");
     const noticeBadge = document.getElementById("noticeBadge");
@@ -1253,6 +1445,8 @@ body{
     let notifUnsub = null;
     let currentNotifUser = null;
     let authDecisionDone = false;
+    let currentAllowedRoles = [];
+    let currentActiveRole = "";
 
     function showNotice({ badge = "Aviso", title = "Mensagem", message = "" }) {
       noticeBadge.textContent = badge;
@@ -1443,19 +1637,95 @@ body{
       return saved || getAvatarFallback(getCurrentPreviewName());
     }
 
+
+    function normalizeRoleLabel(value) {
+      return String(value || "").trim().toUpperCase();
+    }
+
+    function sanitizeRoleList(value) {
+      if (!Array.isArray(value)) return [];
+      return [...new Set(
+        value
+          .map((item) => normalizeRoleLabel(item))
+          .filter(Boolean)
+      )];
+    }
+
+    function getAllowedRoles() {
+      return sanitizeRoleList(currentAllowedRoles);
+    }
+
+    function getSafeActiveRole() {
+      const active = normalizeRoleLabel(currentActiveRole);
+      return getAllowedRoles().includes(active) ? active : "";
+    }
+
+    function getRoleBadgeHtml(role) {
+      const clean = normalizeRoleLabel(role);
+      if (!clean) return "";
+      const roleClass = clean === "STREAMER" ? "streamer" : "";
+      return `<span class="role-badge ${roleClass}">${clean}</span>`;
+    }
+
+    function renderRolesCard() {
+      const allowedRoles = getAllowedRoles();
+      const activeRole = getSafeActiveRole();
+      const hasRoles = allowedRoles.length > 0;
+
+      rolesCard.classList.toggle("open", false);
+      rolesTrigger.setAttribute("aria-expanded", "false");
+
+      if (!hasRoles) {
+        rolesTriggerSub.textContent = "Cargos bloqueados para esta conta.";
+        rolesLockedState.style.display = "block";
+        rolesOptions.style.display = "none";
+        rolesOptions.innerHTML = "";
+        currentActiveRole = "";
+        return;
+      }
+
+      rolesTriggerSub.textContent = activeRole
+        ? `Cargo ativo: ${activeRole}`
+        : "Escolha um cargo para exibir no perfil.";
+      rolesLockedState.style.display = "none";
+      rolesOptions.style.display = "flex";
+      rolesOptions.innerHTML = `
+        <button type="button" class="role-option none-option ${!activeRole ? "active" : ""}" data-role-value="">
+          Sem cargo
+        </button>
+        ${allowedRoles.map((role) => `
+          <button type="button" class="role-option ${role === activeRole ? "active" : ""}" data-role-value="${role}">
+            ${role}
+          </button>
+        `).join("")}
+      `;
+
+      rolesOptions.querySelectorAll("[data-role-value]").forEach((button) => {
+        button.addEventListener("click", () => {
+          currentActiveRole = normalizeRoleLabel(button.getAttribute("data-role-value"));
+          renderRolesCard();
+          renderPreview();
+          hideStatus();
+        });
+      });
+    }
+
     function renderPreview() {
       const isAdmin = isAdminUser(currentUser);
       const previewName = getCurrentPreviewName();
       const previewPhoto = getCurrentPhotoForPreview();
+      const activeRole = getSafeActiveRole();
+      const verifiedHtml = isAdmin ? `<span class="verify-badge" aria-hidden="true"></span>` : "";
+      const roleHtml = activeRole ? getRoleBadgeHtml(activeRole) : "";
 
       profilePreviewPhoto.src = previewPhoto;
-      profilePreviewName.innerHTML = isAdmin
-        ? `<span>${previewName.replace(/</g, "&lt;")}</span><span class="verify-badge" aria-hidden="true"></span>`
-        : previewName.replace(/</g, "&lt;");
+      profilePreviewName.innerHTML = `<span>${escapeHtml(previewName)}</span>${verifiedHtml}${roleHtml}`;
 
-      profilePreviewSub.textContent = isAdmin
-        ? "Sua conta tem acesso administrativo. Nome e foto podem ser atualizados normalmente."
-        : "Sua foto e seu nome aparecem assim no sistema.";
+      profilePreviewSub.textContent = activeRole
+        ? "Seu cargo aparece no perfil e no chat para outras pessoas."
+        : (isAdmin
+          ? "Sua conta tem acesso administrativo. Nome e foto podem ser atualizados normalmente."
+          : "Sua foto e seu nome aparecem assim no sistema.");
 
       syncHeader(currentUser);
     }
@@ -1692,6 +1962,12 @@ body{
       const effectiveNickname = remoteNickname || storedNickname || "";
       const effectivePhoto = remotePhoto || storedPhoto || "";
 
+      currentAllowedRoles = sanitizeRoleList(currentProfileDoc?.allowedRoles);
+      currentActiveRole = normalizeRoleLabel(currentProfileDoc?.activeRole || "");
+      if (!getAllowedRoles().includes(currentActiveRole)) {
+        currentActiveRole = "";
+      }
+
       if (effectiveNickname || effectivePhoto) {
         writeProfileCache({
           nickname: effectiveNickname,
@@ -1709,9 +1985,24 @@ body{
       currentPreviewPhoto = "";
       currentSavedPhoto = effectivePhoto;
 
+      renderRolesCard();
       renderPreview();
       listenNotifications(currentUser);
     }
+
+
+    rolesTrigger.addEventListener("click", () => {
+      const hasRoles = getAllowedRoles().length > 0;
+      if (!hasRoles) {
+        rolesCard.classList.add("open");
+        rolesTrigger.setAttribute("aria-expanded", "true");
+        return;
+      }
+
+      const willOpen = !rolesCard.classList.contains("open");
+      rolesCard.classList.toggle("open", willOpen);
+      rolesTrigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    });
 
     choosePhotoBtn.addEventListener("click", () => {
       photoInput.click();
@@ -1774,12 +2065,14 @@ body{
         const uid = getCurrentUserId();
         const email = getUserEmail(currentUser);
         const profileRef = doc(db, "user_profiles", uid);
+        const nextActiveRole = getSafeActiveRole();
 
         await setDoc(profileRef, {
           userId: uid,
           email,
           nickname,
           photo: uploadedPhotoUrl,
+          activeRole: nextActiveRole,
           updatedAt: serverTimestamp()
         }, { merge: true });
 
@@ -1798,9 +2091,12 @@ body{
           userId: uid,
           email,
           nickname,
-          photo: uploadedPhotoUrl
+          photo: uploadedPhotoUrl,
+          activeRole: nextActiveRole,
+          allowedRoles: getAllowedRoles()
         };
-
+        currentActiveRole = nextActiveRole;
+        renderRolesCard();
         renderPreview();
         showStatus("<strong>Perfil salvo.</strong> Seu perfil foi salvo e já pode ser usado no chat.");
       } catch (error) {
