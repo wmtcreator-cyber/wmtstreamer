@@ -2613,6 +2613,7 @@ body{
     let lastNotifications = [];
 
     let notifUnsub = null;
+    let profileUnsub = null;
     let currentNotifUser = null;
     let currentProfile = null;
 
@@ -2670,29 +2671,49 @@ body{
       return getAvatarFallback(getDisplayName(user));
     }
 
+    function stopProfileListener(){
+      if (profileUnsub) {
+        try { profileUnsub(); } catch (e) {}
+        profileUnsub = null;
+      }
+    }
+
+    function cacheCurrentProfile(user, profileData){
+      const nicknameKey = getProfileStorageKey("wmt_nickname", user);
+      const photoKey = getProfileStorageKey("wmt_photo", user);
+      const remoteNickname = String(profileData?.nickname || "").trim();
+      const remotePhoto = String(profileData?.photo || "").trim();
+
+      if (nicknameKey) {
+        if (remoteNickname) localStorage.setItem(nicknameKey, remoteNickname);
+        else localStorage.removeItem(nicknameKey);
+      }
+
+      if (photoKey) {
+        if (remotePhoto) localStorage.setItem(photoKey, remotePhoto);
+        else localStorage.removeItem(photoKey);
+      }
+    }
+
     async function loadCurrentProfile(user){
       const uid = getUserId(user);
       currentProfile = null;
+      stopProfileListener();
       if (!uid) return null;
 
       try {
         const profileRef = doc(db, "user_profiles", uid);
         const snap = await getDoc(profileRef);
         currentProfile = snap.exists() ? snap.data() : null;
+        cacheCurrentProfile(user, currentProfile);
 
-        if (currentProfile) {
-          const nicknameKey = getProfileStorageKey("wmt_nickname", user);
-          const photoKey = getProfileStorageKey("wmt_photo", user);
-
-          if (nicknameKey && String(currentProfile.nickname || "").trim()) {
-            localStorage.setItem(nicknameKey, String(currentProfile.nickname || "").trim());
-          }
-          if (photoKey) {
-            const remotePhoto = String(currentProfile.photo || "").trim();
-            if (remotePhoto) localStorage.setItem(photoKey, remotePhoto);
-            else localStorage.removeItem(photoKey);
-          }
-        }
+        profileUnsub = onSnapshot(profileRef, (profileSnap) => {
+          currentProfile = profileSnap.exists() ? profileSnap.data() : null;
+          cacheCurrentProfile(user, currentProfile);
+          syncNav(user || auth.currentUser || null, true);
+        }, (error) => {
+          console.error("Erro ao ouvir perfil:", error);
+        });
       } catch (error) {
         console.error("Erro ao carregar perfil:", error);
         currentProfile = null;
@@ -2855,7 +2876,7 @@ body{
       }, (err) => console.error("notif error", err));
     }
 
-    function syncNav(user){
+    function syncNav(user, skipNotificationReset = false){
       const currentUser = user || auth.currentUser || null;
       const isAdmin = isAdminUser(currentUser);
 
@@ -2895,13 +2916,22 @@ body{
         profilePrimaryAction.textContent = "Vender";
         profilePrimaryAction.href = "enviar.html";
       }
-      renderNotifications([]);
-      if (currentUser) listenNotifications(currentUser);
+      if (!skipNotificationReset) {
+        renderNotifications([]);
+        if (currentUser) listenNotifications(currentUser);
+      }
     }
 
     onAuthStateChanged(auth, async (user) => {
-      await loadCurrentProfile(user || null);
-      syncNav(user || null);
+      if (!user) {
+        stopProfileListener();
+        currentProfile = null;
+        syncNav(null);
+        return;
+      }
+
+      await loadCurrentProfile(user);
+      syncNav(user);
     });
 
     syncNav(auth.currentUser || null);
