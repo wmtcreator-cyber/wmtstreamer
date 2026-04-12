@@ -1885,7 +1885,7 @@ body{
       <section class="mobile-title">
         <div class="badge">Enviar oferta</div>
         <h1>Mande seu brainrot.</h1>
-        <p>Adicione as fotos, coloque o preço e escolha o streamer.</p>
+        <p>Adicione as fotos, escolha o streamer e depois coloque o valor.</p>
       </section>
 
       <section class="layout">
@@ -1909,14 +1909,6 @@ body{
                   </div>
 
                   <div id="previewGrid" class="preview-grid"></div>
-                </div>
-              </div>
-
-              <div class="field">
-                <label for="price">Preço</label>
-                <div class="price-wrap">
-                  <span class="price-currency">R$</span>
-                  <input id="price" type="text" inputmode="decimal" placeholder="Ex: 10,99" required />
                 </div>
               </div>
 
@@ -1962,6 +1954,14 @@ body{
 
                 <input type="hidden" id="streamerValue" value="WMT">
                 <div class="help">Escolha para quem a oferta vai.</div>
+              </div>
+
+              <div class="field">
+                <label for="price">Preço</label>
+                <div class="price-wrap">
+                  <span class="price-currency">R$</span>
+                  <input id="price" type="text" inputmode="decimal" placeholder="Ex: 10,99" required />
+                </div>
               </div>
 
               <div class="field">
@@ -2053,7 +2053,7 @@ body{
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, getDoc, orderBy, query, limit, where, onSnapshot, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, getDoc, orderBy, query, limit, where, onSnapshot, updateDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -2812,6 +2812,12 @@ document.addEventListener("wmt:send-auth-ok", async () => {
         `);
 
         const imageUrls = await uploadImages(selectedFiles);
+        const brainrots = imageUrls.map((url, index) => ({
+          image: url,
+          url,
+          name: `Brainrot ${index + 1}`,
+          order: index + 1
+        }));
 
         const createdOfferRef = await addDoc(collection(db, "offers"), {
           code,
@@ -2821,6 +2827,7 @@ document.addEventListener("wmt:send-auth-ok", async () => {
           pix,
           message,
           images: imageUrls,
+          brainrots,
           imageCount: imageUrls.length,
           status: "Pendente",
           createdAt: new Date().toISOString(),
@@ -2829,6 +2836,26 @@ document.addEventListener("wmt:send-auth-ok", async () => {
           ownerName,
           ownerPhoto
         });
+
+        await setDoc(doc(db, "chats", createdOfferRef.id), {
+          offerId: createdOfferRef.id,
+          offerCode: code,
+          ownerUserId,
+          ownerEmail,
+          ownerName,
+          ownerPhoto,
+          adminUserId: "",
+          adminEmail: "",
+          streamer,
+          price: Number(normalizedPrice),
+          priceText: rawPrice,
+          pix,
+          status: "open",
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          lastMessage: "",
+          lastMessageAt: null
+        }, { merge: true });
 
         showStatus(`
           <strong>Oferta enviada com sucesso.</strong>
