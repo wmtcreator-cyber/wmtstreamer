@@ -2290,9 +2290,10 @@ body{
     async function loadLiveOffers() {
   try {
     const q = query(
-      collection(db, "offers"),
-      limit(40)
-    );
+  collection(db, "offers"),
+  where("status", "in", ["Aceita", "Aprovada"]),
+  limit(20)
+);
 
     const snapshot = await getDocs(q);
 
