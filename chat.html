@@ -582,6 +582,119 @@
       padding-top:12px;
       margin-top:2px;
     }
+    .offer-intro-grid{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .offer-thumb{
+      width:92px;
+      height:92px;
+      aspect-ratio:auto;
+      border-radius:14px;
+      cursor:pointer;
+      transition:.18s ease;
+      box-shadow:0 8px 18px rgba(0,0,0,.16);
+    }
+    .offer-thumb:hover{
+      transform:translateY(-1px);
+      border-color:rgba(77,141,255,.22);
+      box-shadow:0 12px 22px rgba(0,0,0,.20);
+    }
+    .offer-thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .offer-thumb-badge{
+      font-size:9px;
+      padding:3px 7px;
+    }
+    .offer-lightbox{
+      position:fixed;
+      inset:0;
+      z-index:260;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(4,7,13,.84);
+      backdrop-filter:blur(8px);
+      padding:18px;
+    }
+    .offer-lightbox.open{
+      display:flex;
+    }
+    .offer-lightbox-dialog{
+      width:min(980px, 100%);
+      max-height:100%;
+      display:grid;
+      gap:12px;
+      justify-items:center;
+    }
+    .offer-lightbox-top{
+      width:min(980px, 100%);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .offer-lightbox-label{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-height:38px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.06);
+      color:#eef5ff;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+    .offer-lightbox-close{
+      width:40px;
+      height:40px;
+      flex:none;
+      border:none;
+      border-radius:14px;
+      cursor:pointer;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
+      color:#fff;
+      font-size:20px;
+      font-weight:900;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .offer-lightbox-close:hover{
+      background:rgba(255,255,255,.14);
+    }
+    .offer-lightbox-stage{
+      width:min(980px, 100%);
+      border-radius:24px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(18,24,34,.98), rgba(11,16,24,.98));
+      box-shadow:0 28px 80px rgba(0,0,0,.34);
+      display:grid;
+      place-items:center;
+      padding:14px;
+    }
+    .offer-lightbox-stage img{
+      max-width:100%;
+      max-height:min(78vh, 860px);
+      width:auto;
+      height:auto;
+      display:block;
+      border-radius:18px;
+      object-fit:contain;
+      background:#0b1018;
+    }
 
 
     .composer{
@@ -903,6 +1016,8 @@
     gap:8px !important;
   }
   .offer-thumb{
+    width:78px !important;
+    height:78px !important;
     border-radius:14px !important;
   }
   .offer-meta-box{
@@ -913,6 +1028,17 @@
   .offer-intro-note{
     font-size:12px !important;
     line-height:1.55 !important;
+  }
+  .offer-lightbox{
+    padding:12px !important;
+  }
+  .offer-lightbox-stage{
+    padding:10px !important;
+    border-radius:18px !important;
+  }
+  .offer-lightbox-stage img{
+    max-height:72vh !important;
+    border-radius:14px !important;
   }
 }
 
@@ -1068,6 +1194,18 @@ body{
       </section>
     </div>
   </main>
+
+  <div class="offer-lightbox" id="offerLightbox" aria-hidden="true">
+    <div class="offer-lightbox-dialog">
+      <div class="offer-lightbox-top">
+        <div class="offer-lightbox-label" id="offerLightboxLabel">Imagem</div>
+        <button type="button" class="offer-lightbox-close" id="offerLightboxClose" aria-label="Fechar imagem">×</button>
+      </div>
+      <div class="offer-lightbox-stage">
+        <img id="offerLightboxImage" src="" alt="Imagem ampliada da oferta">
+      </div>
+    </div>
+  </div>
 
   <div class="notice-backdrop" id="noticeModal">
     <div class="notice-modal">
@@ -1420,6 +1558,10 @@ body{
     const messageInput = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
     const statusBox = document.getElementById("statusBox");
+    const offerLightbox = document.getElementById("offerLightbox");
+    const offerLightboxImage = document.getElementById("offerLightboxImage");
+    const offerLightboxLabel = document.getElementById("offerLightboxLabel");
+    const offerLightboxClose = document.getElementById("offerLightboxClose");
 
     const profilePhoto = document.getElementById("profilePhoto");
     const profileRole = document.getElementById("profileRole");
@@ -1593,10 +1735,10 @@ body{
 
       const thumbs = imageList.length
         ? imageList.map((url, index) => `
-            <div class="offer-thumb">
+            <button type="button" class="offer-thumb" data-offer-image="${escapeHtml(String(url || "").trim())}" data-offer-image-label="Brainrot ${index + 1}" aria-label="Abrir Brainrot ${index + 1}">
               <span class="offer-thumb-badge">Brainrot ${index + 1}</span>
               <img src="${escapeHtml(String(url || "").trim())}" alt="Brainrot ${index + 1}" loading="lazy" decoding="async">
-            </div>
+            </button>
           `).join("")
         : "";
 
@@ -1638,6 +1780,44 @@ body{
       `;
     }
 
+    function openOfferLightbox(src, label = "Imagem") {
+      if (!offerLightbox || !offerLightboxImage) return;
+      offerLightboxImage.src = String(src || "").trim();
+      offerLightboxImage.alt = label;
+      if (offerLightboxLabel) offerLightboxLabel.textContent = label;
+      offerLightbox.classList.add("open");
+      offerLightbox.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeOfferLightbox() {
+      if (!offerLightbox || !offerLightboxImage) return;
+      offerLightbox.classList.remove("open");
+      offerLightbox.setAttribute("aria-hidden", "true");
+      offerLightboxImage.src = "";
+      offerLightboxImage.alt = "Imagem ampliada da oferta";
+      document.body.style.overflow = "";
+    }
+
+    offerLightboxClose?.addEventListener("click", closeOfferLightbox);
+    offerLightbox?.addEventListener("click", (event) => {
+      if (event.target === offerLightbox) closeOfferLightbox();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && offerLightbox?.classList.contains("open")) {
+        closeOfferLightbox();
+      }
+    });
+
+    function bindOfferThumbs() {
+      messagesList.querySelectorAll("[data-offer-image]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const src = button.getAttribute("data-offer-image") || "";
+          const label = button.getAttribute("data-offer-image-label") || "Imagem";
+          if (src) openOfferLightbox(src, label);
+        });
+      });
+    }
 
     function startChatData() {
       if (chatReady) return;
@@ -2084,6 +2264,7 @@ body{
         if (!snapshot.docs.length) {
           const introBlock = renderOfferIntroBlock();
           messagesList.innerHTML = `${introBlock}<div class="empty">Nenhuma mensagem ainda. Comece a conversa por aqui.</div>`;
+          bindOfferThumbs();
           return;
         }
 
@@ -2131,6 +2312,7 @@ body{
 
         const introBlock = renderOfferIntroBlock();
         messagesList.innerHTML = `${introBlock}${renderedMessages}`;
+        bindOfferThumbs();
 
         if (wasNearBottom) {
           requestAnimationFrame(() => {
