@@ -2646,27 +2646,30 @@ body{
         lastRenderedMessageIds = messageIds;
 
         const renderedMessages = messages.map(message => {
-          const role = message.senderRole === "admin" ? "admin" : "owner";
-          const dateText = formatDate(message.createdAt);
-          const avatar = getMessageAvatar(message, role);
-          const senderName = renderSenderName(message, role);
+  const senderRole = message.senderRole === "admin" ? "admin" : "owner";
+  const isMine = String(message.senderId || "").trim() === getCurrentUserId();
+  const sideClass = isMine ? "admin" : "owner";
 
-          return `
-            <div class="msg-row ${role}">
-              ${role === "owner" ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
+  const dateText = formatDate(message.createdAt);
+  const avatar = getMessageAvatar(message, senderRole);
+  const senderName = renderSenderName(message, senderRole);
 
-              <div class="msg ${role}">
-                <div class="msg-top">
-                  <div class="msg-name ${role === "admin" ? "wmt-name" : ""}">${senderName}</div>
-                  <div class="msg-time">${escapeHtml(dateText || "")}</div>
-                </div>
-                <div class="msg-text">${escapeHtml(message.text || "")}</div>
-              </div>
+  return `
+    <div class="msg-row ${sideClass}">
+      ${!isMine ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
 
-              ${role === "admin" ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
-            </div>
-          `;
-        }).join("");
+      <div class="msg ${sideClass}">
+        <div class="msg-top">
+          <div class="msg-name ${senderRole === "admin" ? "wmt-name" : ""}">${senderName}</div>
+          <div class="msg-time">${escapeHtml(dateText || "")}</div>
+        </div>
+        <div class="msg-text">${escapeHtml(message.text || "")}</div>
+      </div>
+
+      ${isMine ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
+    </div>
+  `;
+}).join("");
 
         const introBlock = renderOfferIntroBlock();
         messagesList.innerHTML = `${introBlock}${renderedMessages}`;
