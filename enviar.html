@@ -2229,7 +2229,7 @@ body{
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, getDoc, orderBy, query, limit, where, onSnapshot, updateDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -2242,7 +2242,7 @@ body{
       measurementId: "G-B5X5VD667Y"
     };
 
-    const app = initializeApp(firebaseConfig);
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     const CLOUD_NAME = "drgkvipsd";
@@ -2328,7 +2328,7 @@ body{
         ? (isAdmin ? "Conta administrativa WMT" : (userEmail || "Conta conectada"))
         : "Entre para gerenciar sua conta";
       if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
-      if (logoutBtn) logoutBtn.style.display = user ? "flex" : "none";
+      if (logoutBtn) logoutBtn.style.display = user ? "inline-flex" : "none";
     }
 
     function formatNotifTime(value) {
@@ -3155,12 +3155,13 @@ document.addEventListener("wmt:send-auth-ok", async () => {
   
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import {
       getAuth,
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+    import { isAdminUser } from "./admin-config.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -3173,12 +3174,8 @@ document.addEventListener("wmt:send-auth-ok", async () => {
     };
 
     const REDIRECT_KEY = "wmt_after_login";
-    const ADMIN_EMAILS = [
-      "wmtcreator@gmail.com",
-      "italokauan4444@gmail.com"
-    ];
 
-    const firebaseApp = initializeApp(firebaseConfig);
+    const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(firebaseApp);
 
     const headerProfilePhoto = document.getElementById("headerProfilePhoto");
@@ -3203,11 +3200,6 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       return String(user?.uid || "").trim();
     }
 
-    function isAdminUser(user) {
-      const email = getUserEmail(user);
-      return ADMIN_EMAILS.map(normalizeEmail).filter(Boolean).includes(email);
-    }
-
     function getProfileStorageKey(prefix, user = sendPageCurrentUser) {
       const uid = getUserId(user);
       return uid ? `${prefix}_${uid}` : "";
@@ -3229,7 +3221,6 @@ document.addEventListener("wmt:send-auth-ok", async () => {
 
     function getSendPageDisplayName(user = sendPageCurrentUser) {
       if (!user) return "wmt";
-      if (isAdminUser(user)) return "WMT";
 
       const remoteProfile = window.sendPageCurrentProfile || null;
       const email = getUserEmail(user);
@@ -3246,9 +3237,6 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       const remoteProfile = window.sendPageCurrentProfile || null;
       const saved = String(remoteProfile?.photo || getStoredPhoto(user) || "").trim();
       if (saved) return saved;
-      if (isAdminUser(user)) {
-        return "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true";
-      }
       return getAvatarFallback(getSendPageDisplayName(user));
     }
 
@@ -3264,7 +3252,7 @@ document.addEventListener("wmt:send-auth-ok", async () => {
         ? (isAdmin ? "Conta administrativa WMT" : (getUserEmail(user) || "Conta conectada"))
         : "Entre para gerenciar sua conta";
       if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
-      if (logoutBtn) logoutBtn.style.display = user ? "flex" : "none";
+      if (logoutBtn) logoutBtn.style.display = user ? "inline-flex" : "none";
     }
 
     function revealSendPage() {
