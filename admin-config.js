@@ -14,6 +14,10 @@ export function getAdminEmails() {
   return ADMIN_EMAILS.map(normalizeEmail).filter(Boolean);
 }
 
+export function getPrimaryAdminEmail() {
+  return getAdminEmails()[0] || "";
+}
+
 export function isAdminEmail(email) {
   return getAdminEmails().includes(normalizeEmail(email));
 }
