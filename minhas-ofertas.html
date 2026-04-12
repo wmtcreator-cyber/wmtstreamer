@@ -1132,8 +1132,7 @@ body{
     }
     function getDisplayName(user) {
       if (!user) return "wmt";
-      if (isAdminUser(user)) return "wmt";
-      const email = getUserEmail(user);
+            const email = getUserEmail(user);
       return getStoredNickname(user) ||
         user?.displayName ||
         email.split("@")[0] ||
@@ -1142,8 +1141,8 @@ body{
     function getPhoto(user) {
       const customPhoto = getStoredPhoto(user);
       if (customPhoto) return customPhoto;
-      const label = isAdminUser(user) ? "WMT" : ((getDisplayName(user) || "U").charAt(0).toUpperCase());
-      const bg = isAdminUser(user) ? "4f8dff" : "1b2c45";
+      const label = (getDisplayName(user) || "U").charAt(0).toUpperCase();
+      const bg = "1b2c45";
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(label)}&background=${bg}&color=ffffff&bold=true`;
     }
     function formatNotifTime(value) {
