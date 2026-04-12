@@ -2143,18 +2143,36 @@ body{
         }
 
         const uid = getCurrentUserId();
-        const email = getUserEmail(currentUser);
-        const profileRef = doc(db, "user_profiles", uid);
-        const nextActiveRole = getSafeActiveRole();
+const email = getUserEmail(currentUser);
+const profileRef = doc(db, "user_profiles", uid);
+const profileSnap = await getDoc(profileRef);
+const nextActiveRole = getSafeActiveRole();
+const safeAllowedRoles = getAllowedRoles();
 
-        await setDoc(profileRef, {
-          userId: uid,
-          email,
-          nickname,
-          photo: uploadedPhotoUrl,
-          activeRole: nextActiveRole,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+if (!profileSnap.exists()) {
+  await setDoc(profileRef, {
+    userId: uid,
+    email,
+    nickname,
+    photo: uploadedPhotoUrl,
+    allowedRoles: [],
+    activeRole: ""
+  });
+} else {
+  const updatePayload = {
+    userId: uid,
+    email,
+    nickname,
+    photo: uploadedPhotoUrl,
+    updatedAt: serverTimestamp()
+  };
+
+  if (!nextActiveRole || safeAllowedRoles.includes(nextActiveRole)) {
+    updatePayload.activeRole = nextActiveRole;
+  }
+
+  await setDoc(profileRef, updatePayload, { merge: true });
+}
 
         writeProfileCache({
           nickname,
