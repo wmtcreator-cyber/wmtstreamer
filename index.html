@@ -1555,12 +1555,24 @@
   border:1px solid rgba(255,255,255,.08);box-shadow:0 24px 60px rgba(0,0,0,.34);
 }
 .notif-menu-head{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 4px 12px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:10px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:4px 4px 12px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:10px;
 }
 .notif-menu-head strong{color:#fff;font-size:15px;letter-spacing:-.01em}
 .notif-clear-btn{
   border:none;background:rgba(255,255,255,.05);color:#dbe7fb;border:1px solid rgba(255,255,255,.08);
   min-height:34px;padding:0 10px;border-radius:12px;font-weight:800;cursor:pointer
+}
+.notif-menu-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.notif-clear-btn.danger{
+  color:#ffe5eb;
+  border-color:rgba(255,107,131,.16);
+  background:rgba(255,107,131,.08);
 }
 .notif-list{display:grid;gap:8px;max-height:360px;overflow:auto;padding-right:2px}
 .notif-item{
@@ -1568,9 +1580,78 @@
 }
 .notif-item:hover{background:rgba(255,255,255,.05);border-color:rgba(77,141,255,.18)}
 .notif-item.unread{border-color:rgba(77,141,255,.22);background:rgba(77,141,255,.08)}
+.notif-item-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.notif-main{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  min-width:0;
+  flex:1 1 auto;
+}
+.notif-meta{
+  min-width:0;
+  flex:1 1 auto;
+}
+.notif-avatar,
+.notif-avatar-fallback{
+  width:38px;
+  height:38px;
+  flex:none;
+  border-radius:50%;
+  object-fit:cover;
+  display:block;
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 10px 18px rgba(0,0,0,.18);
+  background:#111a29;
+}
+.notif-avatar-fallback{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:#e7f0ff;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.01em;
+  background:linear-gradient(135deg, rgba(77,141,255,.30), rgba(255,255,255,.06));
+}
 .notif-title{color:#fff;font-size:13px;font-weight:800;line-height:1.4}
+.notif-sub{
+  margin-top:5px;
+  color:#8fa0b7;
+  font-size:11px;
+  font-weight:800;
+  line-height:1.45;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
 .notif-text{margin-top:4px;color:#aebbd0;font-size:12px;line-height:1.6;font-weight:600}
 .notif-time{margin-top:6px;color:#7f8ba0;font-size:11px;font-weight:700}
+.notif-delete-btn{
+  width:28px;
+  height:28px;
+  flex:none;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  color:#ffd9e0;
+  background:rgba(255,107,131,.10);
+  border:1px solid rgba(255,107,131,.12);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  font-weight:900;
+  transition:.18s ease;
+}
+.notif-delete-btn:hover{
+  background:rgba(255,107,131,.16);
+  border-color:rgba(255,107,131,.20);
+}
 .notif-empty{padding:18px 10px;color:#9eb0c8;font-size:13px;font-weight:700;text-align:center}
 
 @media (hover:hover) and (pointer:fine){
@@ -1582,7 +1663,28 @@
   .top-icon-btn{width:44px;height:44px;border-radius:14px}
   .profile-trigger{width:46px;height:46px}
   .profile-menu{width:min(340px, calc(100vw - 18px))}
-  .notif-menu{width:min(340px, calc(100vw - 18px)); right:-40px}
+  .notif-menu{
+    width:min(340px, calc(100vw - 16px));
+    max-width:calc(100vw - 16px);
+    right:0;
+    left:auto;
+  }
+  .notif-menu-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .notif-menu-actions{
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .notif-clear-btn{
+    width:100%;
+    min-height:40px;
+    padding:0 8px;
+    font-size:12px;
+  }
   .profile-menu-head{grid-template-columns:52px minmax(0,1fr)}
   .profile-sell-btn{grid-column:1/-1;justify-self:start;margin-top:4px}
 }
@@ -1828,7 +1930,10 @@ body{
       <div class="notif-menu" id="notifMenu">
         <div class="notif-menu-head">
           <strong>Notificações</strong>
-          <button type="button" id="markAllReadBtn" class="notif-clear-btn">Marcar lidas</button>
+          <div class="notif-menu-actions">
+            <button type="button" id="markAllReadBtn" class="notif-clear-btn">Marcar lidas</button>
+            <button type="button" id="clearAllNotifBtn" class="notif-clear-btn danger">Limpar tudo</button>
+          </div>
         </div>
         <div class="notif-list" id="notifList">
           <div class="notif-empty">Sem notificações.</div>
@@ -2501,6 +2606,8 @@ body{
     const notifBadge = document.getElementById("notifBadge");
     const notifList = document.getElementById("notifList");
     const markAllReadBtn = document.getElementById("markAllReadBtn");
+    const clearAllNotifBtn = document.getElementById("clearAllNotifBtn");
+    let lastNotifications = [];
 
     let notifUnsub = null;
     let currentNotifUser = null;
@@ -2674,6 +2781,7 @@ body{
     }
 
     markAllReadBtn?.addEventListener("click", markAllRead);
+    clearAllNotifBtn?.addEventListener("click", clearAllNotifications);
 
     function renderNotifications(items){
       if (!notifList) return;
