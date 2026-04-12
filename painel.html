@@ -1431,11 +1431,6 @@
     box-shadow:0 18px 28px rgba(125,65,230,.18);
   }
 
-  .role-confirm-btn.remove-mode{
-    background:linear-gradient(135deg, #ff5b75, #ff7c93);
-    box-shadow:0 18px 28px rgba(255,91,117,.20);
-  }
-
   @media (min-width: 961px){
     .hero-head-row{
       grid-template-columns:minmax(0,1fr) 260px;
@@ -1803,7 +1798,7 @@ body{
 
             <aside class="hero-role-card">
               <div class="hero-role-title">Liberar cargos</div>
-              <div class="hero-role-sub">Abra a janela rápida para liberar ou remover STREAMER, VENDEDOR ou COMPRADOR por e-mail.</div>
+              <div class="hero-role-sub">Abra a janela rápida para liberar ou remover cargo por e-mail.</div>
 
               <button type="button" class="hero-role-btn grant" id="openGrantRoleBtn">Liberar cargo</button>
               <button type="button" class="hero-role-btn remove" id="openRemoveRoleBtn">Remover cargo</button>
@@ -1868,7 +1863,7 @@ body{
         </div>
       </section>
 
-      <section id="offersContainer" class="cards-grid"></section>
+      <section id="offersContainer" class="cards-grid"></section> class="cards-grid"></section>
     </div>
   </main>
 
@@ -2349,7 +2344,6 @@ body{
 
     function closeRoleModal() {
       roleModal.style.display = "none";
-      roleModalConfirmBtn.classList.remove("remove-mode");
       hideRoleAdminStatus();
     }
 
@@ -2357,34 +2351,38 @@ body{
       currentRoleModalMode = mode === "remove" ? "remove" : "grant";
       roleModalTitle.textContent = currentRoleModalMode === "grant" ? "Liberar cargo" : "Remover cargo";
       roleModalSub.textContent = currentRoleModalMode === "grant"
-        ? "Digite o Gmail da conta e escolha entre STREAMER, VENDEDOR ou COMPRADOR."
-        : "Digite o Gmail da conta e escolha qual cargo deve ser removido.";
+        ? "Digite o Gmail da conta e escolha o cargo que será liberado."
+        : "Digite o Gmail da conta e escolha o cargo que será removido.";
       roleModalConfirmBtn.textContent = currentRoleModalMode === "grant" ? "Liberar" : "Remover";
-      roleModalConfirmBtn.classList.toggle("remove-mode", currentRoleModalMode === "remove");
-      document.getElementById("roleModalBadge").textContent = currentRoleModalMode === "grant" ? "Liberar cargo" : "Remover cargo";
       roleModal.style.display = "flex";
       hideRoleAdminStatus();
       setTimeout(() => roleUserEmailInput?.focus(), 30);
     }
 
-    async function findUserProfileByEmail(email) {
+    async function findUserProfilesByEmail(email) {
       const cleanEmail = getUserEmail({ email });
-      if (!cleanEmail) return null;
+      if (!cleanEmail) return [];
 
       const profileQuery = query(
         collection(db, "user_profiles"),
-        where("email", "==", cleanEmail),
-        limit(1)
+        where("email", "==", cleanEmail)
       );
       const snap = await getDocs(profileQuery);
-      if (!snap.docs.length) return null;
+      if (!snap.docs.length) return [];
 
-      const docSnap = snap.docs[0];
-      return {
+      const profiles = snap.docs.map((docSnap) => ({
         ref: doc(db, "user_profiles", docSnap.id),
         id: docSnap.id,
         data: docSnap.data()
-      };
+      }));
+
+      profiles.sort((a, b) => {
+        const aMatchesOwnUid = String(a.data?.userId || "").trim() === String(a.id || "").trim() ? 1 : 0;
+        const bMatchesOwnUid = String(b.data?.userId || "").trim() === String(b.id || "").trim() ? 1 : 0;
+        return bMatchesOwnUid - aMatchesOwnUid;
+      });
+
+      return profiles;
     }
 
     async function updateRolePermission(mode) {
@@ -2401,36 +2399,50 @@ body{
       roleModalCancelBtn.disabled = true;
 
       try {
-        const targetProfile = await findUserProfileByEmail(email);
+        const targetProfiles = await findUserProfilesByEmail(email);
 
-        if (!targetProfile) {
-          showRoleAdminStatus("<strong>Conta não encontrada.</strong> Esse e-mail ainda não tem perfil salvo no sistema. A pessoa precisa ter entrado e salvo o perfil pelo menos uma vez.", "error");
+        if (!targetProfiles.length) {
+          showRoleAdminStatus("<strong>Conta não encontrada.</strong> Esse e-mail ainda não tem perfil salvo no sistema. Peça para a pessoa entrar ao menos uma vez em Configurações.", "error");
           return;
         }
 
-        const profileData = targetProfile.data || {};
-        const currentRoles = sanitizeRoleList(profileData.allowedRoles);
-        let nextRoles = currentRoles.slice();
-        let nextActiveRole = normalizeRoleLabel(profileData.activeRole || "");
+        let updatedCount = 0;
+        let displayName = email;
 
-        if (mode === "grant") {
-          if (!nextRoles.includes(role)) nextRoles.push(role);
-          if (!nextActiveRole) nextActiveRole = role;
-        } else {
-          nextRoles = nextRoles.filter((item) => item !== role);
-          if (nextActiveRole === role) nextActiveRole = "";
+        for (const targetProfile of targetProfiles) {
+          const profileData = targetProfile.data || {};
+          const currentRoles = sanitizeRoleList(profileData.allowedRoles);
+          let nextRoles = currentRoles.slice();
+          let nextActiveRole = normalizeRoleLabel(profileData.activeRole || "");
+
+          if (mode === "grant") {
+            if (!nextRoles.includes(role)) nextRoles.push(role);
+            if (!nextActiveRole) nextActiveRole = role;
+          } else {
+            nextRoles = nextRoles.filter((item) => item !== role);
+            if (nextActiveRole === role) nextActiveRole = "";
+          }
+
+          await setDoc(targetProfile.ref, {
+            allowedRoles: nextRoles,
+            activeRole: nextRoles.includes(nextActiveRole) ? nextActiveRole : ""
+          }, { merge: true });
+
+          updatedCount += 1;
+
+          if (displayName === email) {
+            displayName = String(profileData.nickname || profileData.email || email).trim() || email;
+          }
         }
 
-        await setDoc(targetProfile.ref, {
-          allowedRoles: nextRoles,
-          activeRole: nextRoles.includes(nextActiveRole) ? nextActiveRole : ""
-        }, { merge: true });
+        const extraInfo = updatedCount > 1
+          ? ` <br><small>Foram sincronizados ${updatedCount} perfis com esse mesmo e-mail.</small>`
+          : "";
 
-        const nickname = String(profileData.nickname || profileData.email || email).trim();
         showRoleAdminStatus(
           mode === "grant"
-            ? `<strong>Cargo liberado.</strong> ${escapeHtml(role)} foi liberado para <strong>${escapeHtml(nickname)}</strong>.`
-            : `<strong>Cargo removido.</strong> ${escapeHtml(role)} foi removido de <strong>${escapeHtml(nickname)}</strong>.`
+            ? `<strong>Cargo liberado.</strong> ${escapeHtml(role)} foi liberado para <strong>${escapeHtml(displayName)}</strong>.${extraInfo}`
+            : `<strong>Cargo removido.</strong> ${escapeHtml(role)} foi removido de <strong>${escapeHtml(displayName)}</strong>.${extraInfo}`
         );
       } catch (error) {
         console.error(error);
