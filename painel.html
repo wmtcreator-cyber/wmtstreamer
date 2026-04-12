@@ -1776,6 +1776,7 @@ body{
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+    import { isAdminUser } from "./admin-config.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -1790,11 +1791,6 @@ body{
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    const ADMIN_EMAILS = [
-      "wmtcreator@gmail.com"
-      // "italokauan4444@gmail.com",
-      // "admin3@gmail.com"
-    ];
     const REDIRECT_KEY = "wmt_after_login";
 
     let currentUser = null;
@@ -1907,10 +1903,13 @@ body{
       return key ? String(localStorage.getItem(key) || "").trim() : "";
     }
 
+    function getStoredProfileNickname(user) {
+      const key = getProfileStorageKey("nickname", user);
+      return key ? String(localStorage.getItem(key) || "").trim() : "";
+    }
+
     function getDisplayName(user) {
-      if (isAdminUser(user)) return "WMT";
-      const nickKey = getProfileStorageKey("nickname", user);
-      const nick = nickKey ? String(localStorage.getItem(nickKey) || "").trim() : "";
+      const nick = getStoredProfileNickname(user);
       if (nick) return nick;
       const email = getUserEmail(user);
       return String(
@@ -1925,9 +1924,8 @@ body{
       const photo = getStoredProfilePhoto(user);
       if (photo) return photo;
       const initial = encodeURIComponent(String(name || "U").trim().charAt(0).toUpperCase() || "U");
-      const bg = isAdminUser(user) ? "4f8dff" : "1d2f49";
       const color = "ffffff";
-      return `https://ui-avatars.com/api/?name=${initial}&background=${bg}&color=${color}&bold=true`;
+      return `https://ui-avatars.com/api/?name=${initial}&background=1d2f49&color=${color}&bold=true`;
     }
 
     function syncHeaderProfile(user) {
@@ -1961,12 +1959,6 @@ body{
       if (!notifMenu) return;
       notifMenu.classList.toggle("open");
       closeMenu();
-    }
-
-    function isAdminUser(user) {
-      const email = getUserEmail(user);
-      const allowedEmails = ADMIN_EMAILS.map(normalizeEmail).filter(Boolean);
-      return allowedEmails.includes(email);
     }
 
     let authDecisionDone = false;
