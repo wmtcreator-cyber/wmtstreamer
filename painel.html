@@ -1324,6 +1324,128 @@
 
 
 
+  
+  .hero-head-row{
+    display:grid;
+    gap:18px;
+    align-items:start;
+  }
+
+  .hero-role-card{
+    width:100%;
+    max-width:260px;
+    margin-left:auto;
+    padding:16px;
+    border-radius:22px;
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(180deg, rgba(20,26,34,.96), rgba(15,20,28,.93));
+    box-shadow:var(--shadow-sm);
+    display:grid;
+    gap:10px;
+  }
+
+  .hero-role-title{
+    color:#fff;
+    font-size:18px;
+    font-weight:800;
+    letter-spacing:-.02em;
+  }
+
+  .hero-role-sub{
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.65;
+    font-weight:600;
+  }
+
+  .hero-role-btn{
+    width:100%;
+    min-height:48px;
+    border:none;
+    cursor:pointer;
+    border-radius:16px;
+    padding:12px 14px;
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    transition:.2s ease;
+  }
+
+  .hero-role-btn:hover{
+    transform:translateY(-1px);
+  }
+
+  .hero-role-btn.grant{
+    color:#f3dcff;
+    background:linear-gradient(180deg, rgba(168,85,247,.20), rgba(168,85,247,.10));
+    border:1px solid rgba(168,85,247,.34);
+    box-shadow:0 12px 24px rgba(168,85,247,.12);
+  }
+
+  .hero-role-btn.remove{
+    min-height:40px;
+    font-size:11px;
+    color:#ffe5eb;
+    background:linear-gradient(180deg, rgba(255,107,131,.16), rgba(255,107,131,.10));
+    border:1px solid rgba(255,107,131,.22);
+  }
+
+  .role-modal{
+    max-width:520px;
+  }
+
+  .role-modal-grid{
+    display:grid;
+    gap:12px;
+    margin-top:16px;
+  }
+
+  .role-admin-status{
+    display:none;
+    margin-top:14px;
+    padding:14px;
+    border-radius:16px;
+    border:1px solid rgba(168,85,247,.24);
+    background:rgba(168,85,247,.10);
+    color:#f3dcff;
+    font-size:13px;
+    line-height:1.7;
+    font-weight:700;
+  }
+
+  .role-admin-status.error{
+    border-color:rgba(255,107,131,.28);
+    background:rgba(255,107,131,.12);
+    color:#ffe7ec;
+  }
+
+  .role-admin-status strong{
+    display:block;
+    margin-bottom:6px;
+    font-size:14px;
+  }
+
+  .role-confirm-btn{
+    background:linear-gradient(135deg, rgba(168,85,247,.96), rgba(125,65,230,.96));
+    box-shadow:0 18px 28px rgba(125,65,230,.18);
+  }
+
+  @media (min-width: 961px){
+    .hero-head-row{
+      grid-template-columns:minmax(0,1fr) 260px;
+    }
+  }
+
+  @media (max-width: 960px){
+    .hero-role-card{
+      max-width:none;
+      margin-left:0;
+    }
+  }
+
+
+
   /* ===== Header novo estilo plataforma ===== */
   .topbar-modern{
     background:linear-gradient(180deg, rgba(5,9,16,.94), rgba(5,9,16,.86));
@@ -1571,114 +1693,6 @@ body{
 }
 
 
-  .role-admin-card{
-    border-radius:22px;
-    border:1px solid rgba(255,255,255,.08);
-    background:linear-gradient(180deg, rgba(20,26,34,.96), rgba(15,20,28,.93));
-    box-shadow:var(--shadow);
-    padding:16px;
-  }
-
-  .role-admin-head{
-    display:grid;
-    gap:6px;
-    margin-bottom:14px;
-  }
-
-  .role-admin-title{
-    color:#fff;
-    font-size:20px;
-    font-weight:800;
-    letter-spacing:-.02em;
-  }
-
-  .role-admin-sub{
-    color:var(--muted);
-    font-size:13px;
-    line-height:1.7;
-    font-weight:600;
-  }
-
-  .role-admin-grid{
-    display:grid;
-    gap:10px;
-  }
-
-  .role-admin-actions{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-  }
-
-  .role-admin-btn{
-    min-height:52px;
-    border:none;
-    cursor:pointer;
-    border-radius:16px;
-    padding:14px 16px;
-    font-size:13px;
-    font-weight:900;
-    letter-spacing:.04em;
-    text-transform:uppercase;
-    transition:.2s ease;
-  }
-
-  .role-admin-btn:hover{
-    transform:translateY(-1px);
-  }
-
-  .role-admin-btn.grant{
-    color:#f3dcff;
-    background:linear-gradient(180deg, rgba(168,85,247,.20), rgba(168,85,247,.10));
-    border:1px solid rgba(168,85,247,.34);
-    box-shadow:0 12px 24px rgba(168,85,247,.12);
-  }
-
-  .role-admin-btn.remove{
-    color:#ffe5eb;
-    background:linear-gradient(180deg, rgba(255,107,131,.16), rgba(255,107,131,.10));
-    border:1px solid rgba(255,107,131,.22);
-  }
-
-  .role-admin-status{
-    display:none;
-    margin-top:12px;
-    padding:14px;
-    border-radius:16px;
-    border:1px solid rgba(168,85,247,.24);
-    background:rgba(168,85,247,.10);
-    color:#f3dcff;
-    font-size:13px;
-    line-height:1.7;
-    font-weight:700;
-  }
-
-  .role-admin-status.error{
-    border-color:rgba(255,107,131,.28);
-    background:rgba(255,107,131,.12);
-    color:#ffe7ec;
-  }
-
-  .role-admin-status strong{
-    display:block;
-    margin-bottom:6px;
-    font-size:14px;
-  }
-
-  @media (min-width: 761px){
-    .role-admin-grid{
-      grid-template-columns:1.2fr .8fr;
-      align-items:start;
-    }
-  }
-
-  @media (max-width: 760px){
-    .role-admin-actions{
-      grid-template-columns:1fr;
-    }
-  }
-
-
 </style>
 </head>
 <body>
@@ -1775,10 +1789,20 @@ body{
     <div class="container">
       <section class="hero">
         <div class="hero-content">
-          <div>
-            <div class="badge">Painel administrativo</div>
-            <h1 class="hero-title">Ofertas no controle.</h1>
-            <p class="hero-sub">Mesmo estilo do usuário, mas com ações de admin mais rápidas.</p>
+          <div class="hero-head-row">
+            <div>
+              <div class="badge">Painel administrativo</div>
+              <h1 class="hero-title">Ofertas no controle.</h1>
+              <p class="hero-sub">Mesmo estilo do usuário, mas com ações de admin mais rápidas.</p>
+            </div>
+
+            <aside class="hero-role-card">
+              <div class="hero-role-title">Liberar cargos</div>
+              <div class="hero-role-sub">Abra a janela rápida para liberar ou remover cargo por e-mail.</div>
+
+              <button type="button" class="hero-role-btn grant" id="openGrantRoleBtn">Liberar cargo</button>
+              <button type="button" class="hero-role-btn remove" id="openRemoveRoleBtn">Remover cargo</button>
+            </aside>
           </div>
 
           <section class="stats">
@@ -1839,37 +1863,7 @@ body{
         </div>
       </section>
 
-
-      <section class="toolbar-shell">
-        <div class="role-admin-card">
-          <div class="role-admin-head">
-            <div class="badge">Cargos</div>
-            <div class="role-admin-title">Liberar cargo por e-mail</div>
-            <div class="role-admin-sub">Digite o e-mail exato da conta, escolha o cargo e libere. O usuário só poderá usar cargos que você liberar.</div>
-          </div>
-
-          <div class="role-admin-grid">
-            <div class="search-wrap">
-              <input id="roleUserEmailInput" class="search" type="email" placeholder="Digite o Gmail da conta">
-            </div>
-
-            <div class="select-wrap">
-              <select id="roleValueSelect" class="select">
-                <option value="STREAMER">STREAMER</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="role-admin-actions">
-            <button type="button" class="role-admin-btn grant" id="grantRoleBtn">Liberar cargo</button>
-            <button type="button" class="role-admin-btn remove" id="removeRoleBtn">Remover cargo</button>
-          </div>
-
-          <div class="role-admin-status" id="roleAdminStatus"></div>
-        </div>
-      </section>
-
-      <section id="offersContainer" class="cards-grid"></section>
+      <section id="offersContainer" class="cards-grid"></section> class="cards-grid"></section>
     </div>
   </main>
 
@@ -1903,6 +1897,33 @@ body{
       <div class="notice-actions">
         <button class="notice-btn secondary" id="noticeSecondaryBtn" style="display:none;">Cancelar</button>
         <button class="notice-btn primary" id="noticePrimaryBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="roleModal">
+    <div class="modal role-modal">
+      <div class="notice-badge" id="roleModalBadge">Cargos</div>
+      <h3 id="roleModalTitle">Liberar cargo</h3>
+      <p id="roleModalSub">Digite o e-mail da conta e escolha o cargo.</p>
+
+      <div class="role-modal-grid">
+        <div class="search-wrap">
+          <input id="roleUserEmailInput" class="search" type="email" placeholder="Digite o Gmail da conta">
+        </div>
+
+        <div class="select-wrap">
+          <select id="roleValueSelect" class="select">
+            <option value="STREAMER">STREAMER</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="role-admin-status" id="roleAdminStatus"></div>
+
+      <div class="modal-actions">
+        <button class="modal-btn cancel" id="roleModalCancelBtn">Cancelar</button>
+        <button class="modal-btn confirm role-confirm-btn" id="roleModalConfirmBtn">Liberar</button>
       </div>
     </div>
   </div>
@@ -2242,10 +2263,15 @@ body{
     const searchInput = document.getElementById("searchInput");
     const streamerFilter = document.getElementById("streamerFilter");
     const statusFilter = document.getElementById("statusFilter");
+    const openGrantRoleBtn = document.getElementById("openGrantRoleBtn");
+    const openRemoveRoleBtn = document.getElementById("openRemoveRoleBtn");
+    const roleModal = document.getElementById("roleModal");
+    const roleModalTitle = document.getElementById("roleModalTitle");
+    const roleModalSub = document.getElementById("roleModalSub");
     const roleUserEmailInput = document.getElementById("roleUserEmailInput");
     const roleValueSelect = document.getElementById("roleValueSelect");
-    const grantRoleBtn = document.getElementById("grantRoleBtn");
-    const removeRoleBtn = document.getElementById("removeRoleBtn");
+    const roleModalConfirmBtn = document.getElementById("roleModalConfirmBtn");
+    const roleModalCancelBtn = document.getElementById("roleModalCancelBtn");
     const roleAdminStatus = document.getElementById("roleAdminStatus");
 
     const statTotal = document.getElementById("statTotal");
@@ -2265,6 +2291,7 @@ body{
     let offerToDeleteId = null;
     let panelStarted = false;
     let notificationsUnsub = null;
+    let currentRoleModalMode = "grant";
 
     function getPanelUser() {
       return window.__wmtPanelCurrentUser || null;
@@ -2313,6 +2340,23 @@ body{
       roleAdminStatus.innerHTML = "";
     }
 
+    function closeRoleModal() {
+      roleModal.style.display = "none";
+      hideRoleAdminStatus();
+    }
+
+    function openRoleModal(mode) {
+      currentRoleModalMode = mode === "remove" ? "remove" : "grant";
+      roleModalTitle.textContent = currentRoleModalMode === "grant" ? "Liberar cargo" : "Remover cargo";
+      roleModalSub.textContent = currentRoleModalMode === "grant"
+        ? "Digite o Gmail da conta e escolha o cargo que será liberado."
+        : "Digite o Gmail da conta e escolha o cargo que será removido.";
+      roleModalConfirmBtn.textContent = currentRoleModalMode === "grant" ? "Liberar" : "Remover";
+      roleModal.style.display = "flex";
+      hideRoleAdminStatus();
+      setTimeout(() => roleUserEmailInput?.focus(), 30);
+    }
+
     async function findUserProfileByEmail(email) {
       const cleanEmail = getUserEmail({ email });
       if (!cleanEmail) return null;
@@ -2343,8 +2387,8 @@ body{
       }
 
       hideRoleAdminStatus();
-      grantRoleBtn.disabled = true;
-      removeRoleBtn.disabled = true;
+      roleModalConfirmBtn.disabled = true;
+      roleModalCancelBtn.disabled = true;
 
       try {
         const targetProfile = await findUserProfileByEmail(email);
@@ -2382,8 +2426,8 @@ body{
         console.error(error);
         showRoleAdminStatus(`<strong>Erro ao atualizar cargo.</strong> ${escapeHtml(error?.message || "Tente novamente.")}`, "error");
       } finally {
-        grantRoleBtn.disabled = false;
-        removeRoleBtn.disabled = false;
+        roleModalConfirmBtn.disabled = false;
+        roleModalCancelBtn.disabled = false;
       }
     }
 
@@ -2582,12 +2626,17 @@ body{
     searchInput.addEventListener("input", renderOffers);
     streamerFilter.addEventListener("change", renderOffers);
     statusFilter.addEventListener("change", renderOffers);
-    grantRoleBtn?.addEventListener("click", () => updateRolePermission("grant"));
-    removeRoleBtn?.addEventListener("click", () => updateRolePermission("remove"));
+    openGrantRoleBtn?.addEventListener("click", () => openRoleModal("grant"));
+    openRemoveRoleBtn?.addEventListener("click", () => openRoleModal("remove"));
+    roleModalConfirmBtn?.addEventListener("click", () => updateRolePermission(currentRoleModalMode));
+    roleModalCancelBtn?.addEventListener("click", closeRoleModal);
+    roleModal?.addEventListener("click", (event) => {
+      if (event.target === roleModal) closeRoleModal();
+    });
     roleUserEmailInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        updateRolePermission("grant");
+        updateRolePermission(currentRoleModalMode);
       }
     });
 
