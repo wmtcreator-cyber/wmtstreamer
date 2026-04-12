@@ -1699,6 +1699,7 @@ body{
     import {
       getAuth,
       onAuthStateChanged,
+      signInAnonymously,
       signOut
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
     import { isAdminUser } from "./admin-config.js";
@@ -1982,31 +1983,47 @@ body{
       revealPage();
     }
 
-    function finalizeProtectedAccess() {
+    async function finalizeProtectedAccess() {
       if (authDecisionDone) return;
-      authDecisionDone = true;
-      goToLogin(currentPageTarget());
+
+      try {
+        const cred = await signInAnonymously(auth);
+        applyAuthenticatedState(cred.user);
+      } catch (error) {
+        console.error("Erro ao iniciar sessão anônima no chat:", error);
+        authDecisionDone = true;
+        showNotice({
+          badge: "Sessão indisponível",
+          title: "Não foi possível abrir o chat agora",
+          message: "Ative o login anônimo no Firebase Authentication para permitir que visitantes entrem no chat sem login tradicional.",
+          primaryText: "Voltar ao início",
+          onPrimary: () => {
+            window.location.href = "index.html";
+          }
+        });
+        revealPage();
+      }
     }
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
         applyAuthenticatedState(user);
         return;
       }
 
       if (!authDecisionDone) {
-        finalizeProtectedAccess();
+        await finalizeProtectedAccess();
       } else {
         currentUser = null;
         window.__wmtChatCurrentUser = null;
         window.__wmtChatAuthorized = false;
-        authDecisionDone = true;
+        authDecisionDone = false;
         closeHeaderMenus();
         if (window.__wmtChatLiveProfiles && typeof window.__wmtChatLiveProfiles.clear === "function") {
           window.__wmtChatLiveProfiles.clear();
         }
         syncHeaderProfile();
-        window.location.href = "index.html";
+        await finalizeProtectedAccess();
       }
     });
 
