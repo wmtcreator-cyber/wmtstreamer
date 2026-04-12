@@ -1692,11 +1692,7 @@ body{
       return String(user?.uid || "").trim();
     }
 
-    function isAdminUser(user) {
-      const email = getUserEmail(user);
-      return ADMIN_EMAILS.map(normalizeEmail).filter(Boolean).includes(email);
-    }
-
+    
     function revealPage() {
       document.body.style.display = "block";
       document.dispatchEvent(new Event("wmt:chat-auth-ok"));
