@@ -2582,6 +2582,14 @@ body{
     searchInput.addEventListener("input", renderOffers);
     streamerFilter.addEventListener("change", renderOffers);
     statusFilter.addEventListener("change", renderOffers);
+    grantRoleBtn?.addEventListener("click", () => updateRolePermission("grant"));
+    removeRoleBtn?.addEventListener("click", () => updateRolePermission("remove"));
+    roleUserEmailInput?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        updateRolePermission("grant");
+      }
+    });
 
     cancelDeleteBtn.addEventListener("click", closeDeleteModal);
     deleteModal.addEventListener("click", (e) => {
