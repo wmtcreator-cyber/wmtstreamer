@@ -2326,7 +2326,7 @@ body{
       if (menuProfileName) menuProfileName.textContent = displayName;
       if (menuProfileSub) menuProfileSub.textContent = user
         ? (isAdmin ? "Conta administrativa WMT" : (userEmail || "Conta conectada"))
-        : "Entre para gerenciar sua conta";
+        : "Sessão temporária pronta para enviar oferta";
       if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
       if (logoutBtn) logoutBtn.style.display = user ? "inline-flex" : "none";
     }
@@ -3162,7 +3162,8 @@ document.addEventListener("wmt:send-auth-ok", async () => {
     import {
       getAuth,
       onAuthStateChanged,
-      signOut
+      signOut,
+      signInAnonymously
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
     import { isAdminUser } from "./admin-config.js";
 
@@ -3223,7 +3224,7 @@ document.addEventListener("wmt:send-auth-ok", async () => {
     }
 
     function getSendPageDisplayName(user = sendPageCurrentUser) {
-      if (!user) return "wmt";
+      if (!user) return "Visitante";
 
       const remoteProfile = window.sendPageCurrentProfile || null;
       const email = getUserEmail(user);
@@ -3253,7 +3254,7 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       if (menuProfileName) menuProfileName.textContent = displayName;
       if (menuProfileSub) menuProfileSub.textContent = user
         ? (isAdmin ? "Conta administrativa WMT" : (getUserEmail(user) || "Conta conectada"))
-        : "Entre para gerenciar sua conta";
+        : "Sessão temporária pronta para enviar oferta";
       if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
       if (logoutBtn) logoutBtn.style.display = user ? "inline-flex" : "none";
     }
@@ -3267,9 +3268,18 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       sessionStorage.setItem(REDIRECT_KEY, target);
     }
 
-    function goToLogin(target) {
-      setRedirectTarget(target);
-      window.location.href = "login.html";
+    async function ensureAnonymousSession() {
+      try {
+        if (auth.currentUser) {
+          return auth.currentUser;
+        }
+
+        const credential = await signInAnonymously(auth);
+        return credential.user || auth.currentUser || null;
+      } catch (error) {
+        console.error("Erro ao criar sessão anônima:", error);
+        return null;
+      }
     }
 
     function syncSendAuth(user) {
@@ -3292,24 +3302,24 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       document.dispatchEvent(new Event("wmt:send-auth-ok"));
     }
 
-    function finalizeProtectedAccess() {
-      if (authDecisionDone) return;
-      authDecisionDone = true;
-      goToLogin("enviar.html");
-    }
-
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
         applyAuthenticatedState(user);
         return;
       }
 
-      if (!authDecisionDone) {
-        finalizeProtectedAccess();
-      } else {
-        syncSendAuth(null);
-        goToLogin("enviar.html");
+      const anonymousUser = await ensureAnonymousSession();
+
+      if (anonymousUser) {
+        applyAuthenticatedState(anonymousUser);
+        return;
       }
+
+      syncSendAuth(null);
+      syncSendHeader(null);
+      authDecisionDone = true;
+      revealSendPage();
+      showStatus(`<strong>Sessão temporária indisponível.</strong> Não foi possível criar um usuário temporário agora. Tente recarregar a página.`, "error");
     });
 
     logoutBtn?.addEventListener("click", async () => {
