@@ -1570,6 +1570,115 @@ body{
   overflow-x:hidden;
 }
 
+
+  .role-admin-card{
+    border-radius:22px;
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(180deg, rgba(20,26,34,.96), rgba(15,20,28,.93));
+    box-shadow:var(--shadow);
+    padding:16px;
+  }
+
+  .role-admin-head{
+    display:grid;
+    gap:6px;
+    margin-bottom:14px;
+  }
+
+  .role-admin-title{
+    color:#fff;
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:-.02em;
+  }
+
+  .role-admin-sub{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.7;
+    font-weight:600;
+  }
+
+  .role-admin-grid{
+    display:grid;
+    gap:10px;
+  }
+
+  .role-admin-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+
+  .role-admin-btn{
+    min-height:52px;
+    border:none;
+    cursor:pointer;
+    border-radius:16px;
+    padding:14px 16px;
+    font-size:13px;
+    font-weight:900;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    transition:.2s ease;
+  }
+
+  .role-admin-btn:hover{
+    transform:translateY(-1px);
+  }
+
+  .role-admin-btn.grant{
+    color:#f3dcff;
+    background:linear-gradient(180deg, rgba(168,85,247,.20), rgba(168,85,247,.10));
+    border:1px solid rgba(168,85,247,.34);
+    box-shadow:0 12px 24px rgba(168,85,247,.12);
+  }
+
+  .role-admin-btn.remove{
+    color:#ffe5eb;
+    background:linear-gradient(180deg, rgba(255,107,131,.16), rgba(255,107,131,.10));
+    border:1px solid rgba(255,107,131,.22);
+  }
+
+  .role-admin-status{
+    display:none;
+    margin-top:12px;
+    padding:14px;
+    border-radius:16px;
+    border:1px solid rgba(168,85,247,.24);
+    background:rgba(168,85,247,.10);
+    color:#f3dcff;
+    font-size:13px;
+    line-height:1.7;
+    font-weight:700;
+  }
+
+  .role-admin-status.error{
+    border-color:rgba(255,107,131,.28);
+    background:rgba(255,107,131,.12);
+    color:#ffe7ec;
+  }
+
+  .role-admin-status strong{
+    display:block;
+    margin-bottom:6px;
+    font-size:14px;
+  }
+
+  @media (min-width: 761px){
+    .role-admin-grid{
+      grid-template-columns:1.2fr .8fr;
+      align-items:start;
+    }
+  }
+
+  @media (max-width: 760px){
+    .role-admin-actions{
+      grid-template-columns:1fr;
+    }
+  }
+
+
 </style>
 </head>
 <body>
@@ -1727,6 +1836,36 @@ body{
               </select>
             </div>
           </div>
+        </div>
+      </section>
+
+
+      <section class="toolbar-shell">
+        <div class="role-admin-card">
+          <div class="role-admin-head">
+            <div class="badge">Cargos</div>
+            <div class="role-admin-title">Liberar cargo por e-mail</div>
+            <div class="role-admin-sub">Digite o e-mail exato da conta, escolha o cargo e libere. O usuário só poderá usar cargos que você liberar.</div>
+          </div>
+
+          <div class="role-admin-grid">
+            <div class="search-wrap">
+              <input id="roleUserEmailInput" class="search" type="email" placeholder="Digite o Gmail da conta">
+            </div>
+
+            <div class="select-wrap">
+              <select id="roleValueSelect" class="select">
+                <option value="STREAMER">STREAMER</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="role-admin-actions">
+            <button type="button" class="role-admin-btn grant" id="grantRoleBtn">Liberar cargo</button>
+            <button type="button" class="role-admin-btn remove" id="removeRoleBtn">Remover cargo</button>
+          </div>
+
+          <div class="role-admin-status" id="roleAdminStatus"></div>
         </div>
       </section>
 
@@ -2103,6 +2242,11 @@ body{
     const searchInput = document.getElementById("searchInput");
     const streamerFilter = document.getElementById("streamerFilter");
     const statusFilter = document.getElementById("statusFilter");
+    const roleUserEmailInput = document.getElementById("roleUserEmailInput");
+    const roleValueSelect = document.getElementById("roleValueSelect");
+    const grantRoleBtn = document.getElementById("grantRoleBtn");
+    const removeRoleBtn = document.getElementById("removeRoleBtn");
+    const roleAdminStatus = document.getElementById("roleAdminStatus");
 
     const statTotal = document.getElementById("statTotal");
     const statPendente = document.getElementById("statPendente");
@@ -2141,6 +2285,106 @@ body{
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+
+    function normalizeRoleLabel(value) {
+      return String(value || "").trim().toUpperCase();
+    }
+
+    function sanitizeRoleList(value) {
+      if (!Array.isArray(value)) return [];
+      return [...new Set(
+        value
+          .map((item) => normalizeRoleLabel(item))
+          .filter(Boolean)
+      )];
+    }
+
+    function showRoleAdminStatus(message, type = "info") {
+      roleAdminStatus.style.display = "block";
+      roleAdminStatus.classList.toggle("error", type === "error");
+      roleAdminStatus.innerHTML = message;
+    }
+
+    function hideRoleAdminStatus() {
+      roleAdminStatus.style.display = "none";
+      roleAdminStatus.classList.remove("error");
+      roleAdminStatus.innerHTML = "";
+    }
+
+    async function findUserProfileByEmail(email) {
+      const cleanEmail = getUserEmail({ email });
+      if (!cleanEmail) return null;
+
+      const profileQuery = query(
+        collection(db, "user_profiles"),
+        where("email", "==", cleanEmail),
+        limit(1)
+      );
+      const snap = await getDocs(profileQuery);
+      if (!snap.docs.length) return null;
+
+      const docSnap = snap.docs[0];
+      return {
+        ref: doc(db, "user_profiles", docSnap.id),
+        id: docSnap.id,
+        data: docSnap.data()
+      };
+    }
+
+    async function updateRolePermission(mode) {
+      const email = getUserEmail({ email: roleUserEmailInput.value });
+      const role = normalizeRoleLabel(roleValueSelect.value);
+
+      if (!email) {
+        showRoleAdminStatus("<strong>E-mail obrigatório.</strong> Digite o e-mail exato da conta.", "error");
+        return;
+      }
+
+      hideRoleAdminStatus();
+      grantRoleBtn.disabled = true;
+      removeRoleBtn.disabled = true;
+
+      try {
+        const targetProfile = await findUserProfileByEmail(email);
+
+        if (!targetProfile) {
+          showRoleAdminStatus("<strong>Conta não encontrada.</strong> Esse e-mail ainda não tem perfil salvo no sistema.", "error");
+          return;
+        }
+
+        const profileData = targetProfile.data || {};
+        const currentRoles = sanitizeRoleList(profileData.allowedRoles);
+        let nextRoles = currentRoles.slice();
+        let nextActiveRole = normalizeRoleLabel(profileData.activeRole || "");
+
+        if (mode === "grant") {
+          if (!nextRoles.includes(role)) nextRoles.push(role);
+          if (!nextActiveRole) nextActiveRole = role;
+        } else {
+          nextRoles = nextRoles.filter((item) => item !== role);
+          if (nextActiveRole === role) nextActiveRole = "";
+        }
+
+        await setDoc(targetProfile.ref, {
+          allowedRoles: nextRoles,
+          activeRole: nextRoles.includes(nextActiveRole) ? nextActiveRole : ""
+        }, { merge: true });
+
+        const nickname = String(profileData.nickname || profileData.email || email).trim();
+        showRoleAdminStatus(
+          mode === "grant"
+            ? `<strong>Cargo liberado.</strong> ${escapeHtml(role)} foi liberado para <strong>${escapeHtml(nickname)}</strong>.`
+            : `<strong>Cargo removido.</strong> ${escapeHtml(role)} foi removido de <strong>${escapeHtml(nickname)}</strong>.`
+        );
+      } catch (error) {
+        console.error(error);
+        showRoleAdminStatus(`<strong>Erro ao atualizar cargo.</strong> ${escapeHtml(error?.message || "Tente novamente.")}`, "error");
+      } finally {
+        grantRoleBtn.disabled = false;
+        removeRoleBtn.disabled = false;
+      }
     }
 
     function escapeAttribute(str) {
