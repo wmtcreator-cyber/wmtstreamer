@@ -1114,7 +1114,7 @@ body{
       <section class="hero">
         <div class="badge">Conta</div>
         <h1 class="hero-title">Seu perfil.</h1>
-        <p class="hero-sub">Troque nome e foto da conta. O admin continua como WMT no nome, mas a foto pode ser atualizada normalmente.</p>
+        <p class="hero-sub">Troque nome e foto da conta. As alterações atualizam sua identidade visual no sistema.</p>
       </section>
 
       <section class="settings-shell">
@@ -1134,7 +1134,7 @@ body{
                 <div class="field">
                   <label for="nicknameInput">Nickname</label>
                   <input id="nicknameInput" type="text" placeholder="Digite seu nickname" maxlength="24">
-                  <div class="help">Para admin, o nome continua fixo como WMT.</div>
+                  <div class="help">Escolha o nome que deve aparecer no sistema.</div>
                 </div>
 
                 <div class="field">
@@ -1185,6 +1185,7 @@ body{
       setDoc,
       collection,
       updateDoc,
+      deleteDoc,
       serverTimestamp,
       query,
       where,
@@ -1192,6 +1193,7 @@ body{
       limit,
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+    import { isAdminUser } from "./admin-config.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -1205,8 +1207,6 @@ body{
 
     const CLOUD_NAME = "drgkvipsd";
     const UPLOAD_PRESET = "wmt_upload";
-    const ADMIN_EMAILS = ["wmtcreator@gmail.com",
-    "italokauan4444@gmail.com"];
     const REDIRECT_KEY = "wmt_after_login";
 
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
@@ -1322,7 +1322,6 @@ body{
 
     function getDisplayName(user) {
       if (!user) return "Conta";
-      if (isAdminUser(user)) return "WMT";
 
       const email = getUserEmail(user);
       return String(
@@ -1340,9 +1339,6 @@ body{
       const saved = remotePhoto || cachedPhoto;
 
       if (saved) return saved;
-      if (isAdminUser(user)) {
-        return "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true";
-      }
       return getAvatarFallback(getDisplayName(user));
     }
 
@@ -1443,15 +1439,11 @@ body{
     }
 
     function getCurrentPreviewName() {
-      if (isAdminUser(currentUser)) return "WMT";
       return String(nicknameInput.value || "").trim() || getDisplayName(currentUser);
     }
 
     function getCurrentPhotoForPreview() {
       const saved = String(currentPreviewPhoto || currentSavedPhoto || currentProfileDoc?.photo || getStoredPhoto() || "").trim();
-      if (isAdminUser(currentUser)) {
-        return saved || "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true";
-      }
       return saved || getAvatarFallback(getCurrentPreviewName());
     }
 
@@ -1462,11 +1454,11 @@ body{
 
       profilePreviewPhoto.src = previewPhoto;
       profilePreviewName.innerHTML = isAdmin
-        ? `<span>WMT</span><span class="verify-badge" aria-hidden="true"></span>`
+        ? `<span>${previewName.replace(/</g, "&lt;")}</span><span class="verify-badge" aria-hidden="true"></span>`
         : previewName.replace(/</g, "&lt;");
 
       profilePreviewSub.textContent = isAdmin
-        ? "Admin continua como WMT. Aqui você pode trocar a foto do perfil."
+        ? "Sua conta tem acesso administrativo. Nome e foto podem ser atualizados normalmente."
         : "Sua foto e seu nome aparecem assim no sistema.";
 
       syncHeader(currentUser);
@@ -1706,18 +1698,13 @@ body{
 
       if (effectiveNickname || effectivePhoto) {
         writeProfileCache({
-          nickname: isAdminUser(currentUser) ? "WMT" : effectiveNickname,
+          nickname: effectiveNickname,
           photo: effectivePhoto
         });
       }
 
-      if (isAdminUser(currentUser)) {
-        nicknameInput.value = "WMT";
-        nicknameInput.disabled = true;
-      } else {
-        nicknameInput.disabled = false;
-        nicknameInput.value = effectiveNickname || getDisplayName(currentUser);
-      }
+      nicknameInput.disabled = false;
+      nicknameInput.value = effectiveNickname || getDisplayName(currentUser);
 
       choosePhotoBtn.disabled = false;
       removePhotoBtn.disabled = false;
@@ -1768,10 +1755,10 @@ body{
     });
 
     saveProfileBtn.addEventListener("click", async () => {
-      const rawNickname = isAdminUser(currentUser) ? "WMT" : String(nicknameInput.value || "").trim();
+      const rawNickname = String(nicknameInput.value || "").trim();
       const nickname = rawNickname.replace(/\s+/g, " ").trim();
 
-      if (!isAdminUser(currentUser) && !nickname) {
+      if (!nickname) {
         showStatus("<strong>Nickname obrigatório.</strong> Digite um nome antes de salvar.", "error");
         return;
       }
