@@ -2302,6 +2302,33 @@ body{
         return dbb - da;
       });
 
+    async function loadLiveOffers() {
+  try {
+    const q = query(
+      collection(db, "offers"),
+      limit(40)
+    );
+
+    const snapshot = await getDocs(q);
+
+    const offers = snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(offer => isPublishedOffer(offer.status))
+      .sort((a, b) => {
+        const getTime = (value) => {
+          try {
+            if (value?.toDate) return value.toDate().getTime();
+            const parsed = new Date(value || 0).getTime();
+            return Number.isFinite(parsed) ? parsed : 0;
+          } catch (e) {
+            return 0;
+          }
+        };
+
+        return getTime(b.createdAt) - getTime(a.createdAt);
+      })
+      .slice(0, 20);
+
     updateOnlineCounter(offers);
     await renderLiveTicker(offers);
   } catch (error) {
