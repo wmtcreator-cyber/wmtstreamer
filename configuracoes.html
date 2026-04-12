@@ -1282,11 +1282,7 @@ body{
       return String(currentUser?.uid || "").trim();
     }
 
-    function isAdminUser(user) {
-      const email = getUserEmail(user);
-      return ADMIN_EMAILS.map(normalizeEmail).filter(Boolean).includes(email);
-    }
-
+    
     function setRedirectTarget(target) {
       localStorage.setItem(REDIRECT_KEY, target);
       sessionStorage.setItem(REDIRECT_KEY, target);
