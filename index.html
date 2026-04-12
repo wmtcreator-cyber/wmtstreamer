@@ -1942,17 +1942,17 @@ body{
 
       <div class="profile-menu-shell">
         <button class="top-icon-btn profile-trigger" id="profileTrigger" type="button" aria-label="Abrir menu da conta" aria-expanded="false" aria-controls="profileMenu">
-          <img id="headerProfilePhoto" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+          <img id="headerProfilePhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%23101a2b'/><circle cx='32' cy='24' r='12' fill='%23ffffff'/><path d='M16 52c2-10 11-16 16-16s14 6 16 16' fill='%23ffffff'/></svg>" alt="Perfil">
         </button>
 
         <div class="profile-menu" id="profileMenu">
           <div class="profile-menu-head">
-            <img id="menuProfilePhoto" class="profile-menu-avatar" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+            <img id="menuProfilePhoto" class="profile-menu-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%23101a2b'/><circle cx='32' cy='24' r='12' fill='%23ffffff'/><path d='M16 52c2-10 11-16 16-16s14 6 16 16' fill='%23ffffff'/></svg>" alt="Perfil">
             <div class="profile-menu-copy">
-              <div class="profile-menu-name" id="menuProfileName">wmt</div>
-              <div class="profile-menu-sub" id="menuProfileSub">Conta WMT Market</div>
+              <div class="profile-menu-name" id="menuProfileName">Entrar</div>
+              <div class="profile-menu-sub" id="menuProfileSub">Faça login para acessar sua conta</div>
             </div>
-            <a href="enviar.html" class="profile-sell-btn" id="profilePrimaryAction">Vender</a>
+            <a href="login.html" class="profile-sell-btn" id="profilePrimaryAction">Entrar</a>
           </div>
 
           <div class="profile-menu-links">
@@ -2563,7 +2563,8 @@ body{
       limit,
       getDocs,
       onSnapshot,
-      updateDoc
+      updateDoc,
+      deleteDoc
     } = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js");
 
     const firebaseConfig = {
@@ -2620,23 +2621,39 @@ body{
       const key = getProfileStorageKey("wmt_photo", user);
       return key ? String(localStorage.getItem(key) || "").trim() : "";
     }
+    const LOGGED_OUT_AVATAR = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%23101a2b'/><circle cx='32' cy='24' r='12' fill='%23ffffff'/><path d='M16 52c2-10 11-16 16-16s14 6 16 16' fill='%23ffffff'/></svg>`;
+
     function getAvatarFallback(name){
       return `https://ui-avatars.com/api/?name=${encodeURIComponent((name || "U").charAt(0).toUpperCase())}&background=1b2c45&color=ffffff&bold=true`;
     }
+    function isPlaceholderName(value){
+      const clean = String(value || "").trim().toLowerCase();
+      return clean === "wmt" || clean === "wm" || clean === "entrar";
+    }
+    function isPlaceholderPhoto(value){
+      const clean = String(value || "").trim().toLowerCase();
+      return clean.includes("ui-avatars.com/api/") && (clean.includes("name=wmt") || clean.includes("name=wm") || clean.includes("name=e"));
+    }
     function getDisplayName(user){
-      if (!user) return "wmt";
+      if (!user) return "Entrar";
       const email = getUserEmail(user);
-      return String(
-        currentProfile?.nickname ||
-        getStoredNickname(user) ||
-        user?.displayName ||
-        email.split("@")[0] ||
+      const candidates = [
+        currentProfile?.nickname,
+        getStoredNickname(user),
+        user?.displayName,
+        email.split("@")[0],
         "Usuário"
-      ).trim();
+      ];
+      for (const candidate of candidates) {
+        const clean = String(candidate || "").trim();
+        if (clean && !isPlaceholderName(clean)) return clean;
+      }
+      return "Usuário";
     }
     function getPhoto(user){
+      if (!user) return LOGGED_OUT_AVATAR;
       const saved = String(currentProfile?.photo || getStoredPhoto(user) || "").trim();
-      if (saved) return saved;
+      if (saved && !isPlaceholderPhoto(saved)) return saved;
       return getAvatarFallback(getDisplayName(user));
     }
 
@@ -2758,6 +2775,17 @@ body{
       }
     }
 
+    async function clearAllNotifications(){
+      if (!currentNotifUser) return;
+      try {
+        const q = query(collection(db, "notifications"), where("userId", "==", currentNotifUser), limit(50));
+        const snap = await getDocs(q);
+        await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "notifications", d.id))));
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
     markAllReadBtn?.addEventListener("click", markAllRead);
     clearAllNotifBtn?.addEventListener("click", clearAllNotifications);
 
@@ -2819,13 +2847,13 @@ body{
       const isAdmin = isAdminUser(currentUser);
 
       if (!currentUser) {
-        const loggedOutAvatar = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="%23101a2b"/><circle cx="32" cy="24" r="12" fill="%23ffffff"/><path d="M16 52c2-10 11-16 16-16s14 6 16 16" fill="%23ffffff"/></svg>`;
+        currentProfile = null;
         if (profilePanelLink) profilePanelLink.style.display = "none";
         if (logoutBtn) logoutBtn.style.display = "none";
-        if (headerProfilePhoto) headerProfilePhoto.src = loggedOutAvatar;
-        if (menuProfilePhoto) menuProfilePhoto.src = loggedOutAvatar;
+        if (headerProfilePhoto) headerProfilePhoto.src = LOGGED_OUT_AVATAR;
+        if (menuProfilePhoto) menuProfilePhoto.src = LOGGED_OUT_AVATAR;
         if (menuProfileName) menuProfileName.textContent = "Entrar";
-        if (menuProfileSub) menuProfileSub.textContent = "Faça login para continuar";
+        if (menuProfileSub) menuProfileSub.textContent = "Faça login para acessar sua conta";
         if (profilePrimaryAction) {
           profilePrimaryAction.textContent = "Entrar";
           profilePrimaryAction.href = "login.html";
@@ -2848,7 +2876,7 @@ body{
       if (menuProfilePhoto) menuProfilePhoto.src = displayPhoto;
       if (menuProfileName) menuProfileName.textContent = displayName;
       if (menuProfileSub) {
-        menuProfileSub.textContent = isAdmin ? "Conta administrativa WMT" : (getUserEmail(currentUser) || "Conta conectada");
+        menuProfileSub.textContent = isAdmin ? "Conta administrativa" : (getUserEmail(currentUser) || "Conta conectada");
       }
       if (profilePrimaryAction) {
         profilePrimaryAction.textContent = "Vender";
