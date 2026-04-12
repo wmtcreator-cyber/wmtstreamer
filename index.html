@@ -2283,17 +2283,7 @@ body{
       const approxOnline = Math.max(offers.length + 7, 12);
       onlineCounter.textContent = `${approxOnline} online`;
     }
-
-    const snapshot = await getDocs(q);
-
-    const offers = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .sort((a, b) => {
-        const da = new Date(a.createdAt || 0).getTime();
-        const dbb = new Date(b.createdAt || 0).getTime();
-        return dbb - da;
-      });
-
+  
     async function loadLiveOffers() {
   try {
     const q = query(
