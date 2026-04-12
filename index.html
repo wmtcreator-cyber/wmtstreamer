@@ -2284,14 +2284,6 @@ body{
       onlineCounter.textContent = `${approxOnline} online`;
     }
 
-    async function loadLiveOffers() {
-  try {
-    const q = query(
-      collection(db, "offers"),
-      where("status", "in", ["Aceita", "Aprovada"]),
-      limit(20)
-    );
-
     const snapshot = await getDocs(q);
 
     const offers = snapshot.docs
