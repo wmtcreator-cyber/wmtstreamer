@@ -1629,6 +1629,97 @@
   font-weight:800;
   cursor:pointer;
 }
+
+.notif-menu-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.notif-clear-btn.danger{
+  color:#ffe5eb;
+  border-color:rgba(255,107,131,.16);
+  background:rgba(255,107,131,.08);
+}
+
+.notif-item-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.notif-meta{
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.notif-main{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.notif-avatar,
+.notif-avatar-fallback{
+  width:38px;
+  height:38px;
+  flex:none;
+  border-radius:50%;
+  object-fit:cover;
+  display:block;
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 10px 18px rgba(0,0,0,.18);
+  background:#111a29;
+}
+
+.notif-avatar-fallback{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:#e7f0ff;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.01em;
+  background:linear-gradient(135deg, rgba(77,141,255,.30), rgba(255,255,255,.06));
+}
+
+.notif-sub{
+  margin-top:5px;
+  color:#8fa0b7;
+  font-size:11px;
+  font-weight:800;
+  line-height:1.45;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.notif-delete-btn{
+  width:28px;
+  height:28px;
+  flex:none;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  color:#ffd9e0;
+  background:rgba(255,107,131,.10);
+  border:1px solid rgba(255,107,131,.12);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  font-weight:900;
+  transition:.18s ease;
+}
+
+.notif-delete-btn:hover{
+  background:rgba(255,107,131,.16);
+  border-color:rgba(255,107,131,.20);
+}
+
 .notif-list{display:grid;gap:8px;max-height:360px;overflow:auto;padding-right:2px}
 .notif-item{
   border:1px solid rgba(255,255,255,.07);
@@ -1745,10 +1836,34 @@
   }
 
   .notif-menu{
-    width:min(340px, calc(100vw - 18px)) !important;
-    right:-40px !important;
+    width:calc(100vw - 12px) !important;
+    max-width:calc(100vw - 12px) !important;
+    right:6px !important;
     left:auto !important;
-    top:calc(100% + 10px) !important;
+    top:calc(100% + 8px) !important;
+    padding:10px !important;
+    border-radius:18px !important;
+  }
+
+  .notif-menu-head{
+    width:100% !important;
+    align-items:stretch !important;
+    flex-direction:column !important;
+    gap:8px !important;
+  }
+
+  .notif-menu-actions{
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+  }
+
+  .notif-clear-btn{
+    width:100% !important;
+    min-height:42px !important;
+    font-size:12px !important;
+    padding:0 10px !important;
   }
 
   .profile-menu-head{
@@ -1863,7 +1978,11 @@ body{
       <div class="notif-menu" id="notifMenu">
         <div class="notif-menu-head">
           <strong>Notificações</strong>
-          <button type="button" id="markAllReadBtn" class="notif-clear-btn">Marcar lidas</button>
+
+          <div class="notif-menu-actions">
+            <button type="button" id="markAllReadBtn" class="notif-clear-btn">Marcar lidas</button>
+            <button type="button" id="clearAllNotifBtn" class="notif-clear-btn danger">Limpar tudo</button>
+          </div>
         </div>
         <div class="notif-list" id="notifList">
           <div class="notif-empty">Sem notificações.</div>
@@ -2152,6 +2271,7 @@ body{
     const notifBadge = document.getElementById("notifBadge");
     const notifList = document.getElementById("notifList");
     const markAllReadBtn = document.getElementById("markAllReadBtn");
+    const clearAllNotifBtn = document.getElementById("clearAllNotifBtn");
 
     const streamerTrigger = document.getElementById("streamerTrigger");
     const streamerMenu = document.getElementById("streamerMenu");
@@ -2224,6 +2344,70 @@ body{
       return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
     }
 
+    function getFallbackInitial(name) {
+      return String(name || "U").trim().charAt(0).toUpperCase() || "U";
+    }
+
+    function getNotifAvatar(item) {
+      const senderName = String(item?.senderName || item?.title || "U").trim();
+      const senderPhoto = String(item?.senderPhoto || "").trim();
+      const initial = encodeURIComponent(getFallbackInitial(senderName));
+      return senderPhoto || `https://ui-avatars.com/api/?name=${initial}&background=1b2434&color=dce6f8&bold=true`;
+    }
+
+    function getNotifSubtitle(item) {
+      const storedSubtitle = String(item?.subtitle || "").trim();
+      if (storedSubtitle) return storedSubtitle;
+      return "Chat privado da oferta";
+    }
+
+    function getNotifTitle(item) {
+      const storedTitle = String(item?.title || "").trim();
+      if (storedTitle && storedTitle.toLowerCase() !== "nova mensagem no chat") return storedTitle;
+
+      const senderName = String(item?.senderName || "").trim();
+      if (senderName) {
+        if (senderName.toLowerCase() === "wmt") return "WMT respondeu sua oferta";
+        return `${senderName} respondeu sua oferta`;
+      }
+
+      return "Nova notificação";
+    }
+
+    async function markNotificationRead(id) {
+      if (!id) return;
+      try {
+        await updateDoc(doc(db, "notifications", id), { read: true, readAt: serverTimestamp() });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function deleteNotification(id) {
+      if (!id) return;
+      try {
+        const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js");
+        await deleteDoc(doc(db, "notifications", id));
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function clearAllNotifications() {
+      if (!currentNotifUser) return;
+      try {
+        const { writeBatch } = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js");
+        const q = query(collection(db, "notifications"), where("userId", "==", currentNotifUser), limit(50));
+        const snap = await getDocs(q);
+        if (!snap.docs.length) return;
+        const batch = writeBatch(db);
+        snap.docs.forEach(d => batch.delete(doc(db, "notifications", d.id)));
+        await batch.commit();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
     function renderNotifications(items) {
       if (!notifList || !notifBadge) return;
 
@@ -2237,22 +2421,54 @@ body{
       notifBadge.textContent = String(unread);
       notifBadge.style.display = unread ? "inline-flex" : "none";
 
-      notifList.innerHTML = items.map(item => `
-        <div class="notif-item ${item.read ? "" : "unread"}" data-notif-id="${item.id}" data-chat-id="${item.chatId || ""}">
-          <div class="notif-title">${escapeHtml(String(item.title || "Nova atividade"))}</div>
-          <div class="notif-text">${escapeHtml(String(item.text || ""))}</div>
-          <div class="notif-time">${formatNotifTime(item.createdAt)}</div>
-        </div>
-      `).join("");
+      notifList.innerHTML = items.map(item => {
+        const title = escapeHtml(getNotifTitle(item));
+        const subtitle = escapeHtml(getNotifSubtitle(item));
+        const text = escapeHtml(String(item.message || item.text || ""));
+        const when = formatNotifTime(item.createdAt);
+        const chatId = String(item.offerId || item.chatId || "").trim();
+        const avatar = escapeAttribute(getNotifAvatar(item));
+        const fallback = escapeHtml(getFallbackInitial(item.senderName || item.title || "U"));
+
+        return `
+          <div class="notif-item ${item.read ? "" : "unread"}" data-notif-id="${item.id}" data-chat-id="${chatId}">
+            <div class="notif-item-head">
+              <div class="notif-main">
+                <img class="notif-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                <span class="notif-avatar-fallback" style="display:none;">${fallback}</span>
+
+                <div class="notif-meta">
+                  <div class="notif-title">${title}</div>
+                  <div class="notif-sub">${subtitle}</div>
+                </div>
+              </div>
+
+              <button class="notif-delete-btn" type="button" data-delete-notification-id="${item.id}" aria-label="Excluir notificação" title="Excluir">×</button>
+            </div>
+
+            <div class="notif-text">${text || "Toque para abrir."}</div>
+            <div class="notif-time">${when || "Agora há pouco"}</div>
+          </div>
+        `;
+      }).join("");
 
       notifList.querySelectorAll(".notif-item").forEach(el => {
-        el.addEventListener("click", async () => {
+        el.addEventListener("click", async (event) => {
+          const deleteBtn = event.target.closest("[data-delete-notification-id]");
+          if (deleteBtn) return;
+
           const id = el.dataset.notifId;
           const chatId = el.dataset.chatId;
-          if (id) {
-            try { await updateDoc(doc(db, "notifications", id), { read: true }); } catch (error) { console.error(error); }
-          }
+          if (id) await markNotificationRead(id);
           if (chatId) window.location.href = `chat.html?id=${encodeURIComponent(chatId)}`;
+        });
+      });
+
+      notifList.querySelectorAll("[data-delete-notification-id]").forEach(btn => {
+        btn.addEventListener("click", async (event) => {
+          event.stopPropagation();
+          const id = btn.getAttribute("data-delete-notification-id");
+          await deleteNotification(id);
         });
       });
     }
@@ -2622,6 +2838,7 @@ body{
     });
 
     markAllReadBtn?.addEventListener("click", markAllRead);
+    clearAllNotifBtn?.addEventListener("click", clearAllNotifications);
 document.addEventListener("wmt:send-auth-ok", async () => {
       await loadCurrentUserProfile();
       syncHeaderMenu();
