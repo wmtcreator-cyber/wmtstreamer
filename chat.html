@@ -1411,6 +1411,19 @@ body{
       return "Chat privado da oferta";
     }
 
+    function getNotificationTitle(item) {
+      const storedTitle = String(item?.title || "").trim();
+      if (storedTitle && storedTitle.toLowerCase() !== "nova mensagem no chat") return storedTitle;
+
+      const senderName = String(item?.senderName || "").trim();
+      if (senderName) {
+        if (senderName.toLowerCase() === "wmt") return "WMT respondeu sua oferta";
+        return `${senderName} respondeu sua oferta`;
+      }
+
+      return "Nova notificação";
+    }
+
     function getCurrentUserName() {
       if (isAdminUser(getChatUser())) return "WMT";
       const storedNickname = getStoredNickname();
@@ -1496,7 +1509,7 @@ body{
   }
 
   notifList.innerHTML = lastNotifications.map((item) => {
-    const title = escapeHtml(item.title || "Nova notificação");
+    const title = escapeHtml(getNotificationTitle(item));
     const text = escapeHtml(item.message || item.text || "");
     const sub = escapeHtml(getNotificationSubtitle(item));
     const when = escapeHtml(formatDate(item.createdAt) || "");
@@ -1565,33 +1578,33 @@ body{
       }
     }
 
+    async function deleteNotification(notificationId) {
+      if (!notificationId) return;
+
+      try {
+        await deleteDoc(doc(db, "notifications", notificationId));
+      } catch (error) {
+        console.error("Erro ao excluir notificação:", error);
+      }
+    }
+
+    async function clearAllNotifications() {
+      if (!lastNotifications.length) return;
+
+      try {
+        const batch = writeBatch(db);
+
+        lastNotifications.forEach((item) => {
+          batch.delete(doc(db, "notifications", item.id));
+        });
+
+        await batch.commit();
+      } catch (error) {
+        console.error("Erro ao limpar notificações:", error);
+      }
+    }
+
     async function markAllNotificationsRead() {
-
-      async function deleteNotification(notificationId) {
-  if (!notificationId) return;
-
-  try {
-    await deleteDoc(doc(db, "notifications", notificationId));
-  } catch (error) {
-    console.error("Erro ao excluir notificação:", error);
-  }
-}
-
-async function clearAllNotifications() {
-  if (!lastNotifications.length) return;
-
-  try {
-    const batch = writeBatch(db);
-
-    lastNotifications.forEach((item) => {
-      batch.delete(doc(db, "notifications", item.id));
-    });
-
-    await batch.commit();
-  } catch (error) {
-    console.error("Erro ao limpar notificações:", error);
-  }
-}
       if (!lastNotifications.length) return;
       const unread = lastNotifications.filter((item) => !item.read);
       if (!unread.length) return;
