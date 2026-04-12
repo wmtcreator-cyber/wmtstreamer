@@ -134,7 +134,8 @@ body{
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { isAdminUser } from "./admin-config.js";
     import {
       getAuth,
       GoogleAuthProvider,
@@ -156,10 +157,8 @@ body{
     };
 
     const REDIRECT_KEY = "wmt_after_login";
-    const ADMIN_EMAILS = ["wmtcreator@gmail.com",
-    "italokauan4444@gmail.com"];
 
-    const app = initializeApp(firebaseConfig);
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
@@ -186,9 +185,6 @@ body{
       return normalizeEmail(user?.email || "");
     }
 
-    function isAdminUser(user) {
-      return ADMIN_EMAILS.map(normalizeEmail).includes(getUserEmail(user));
-    }
 
     function getRedirectTarget() {
       return localStorage.getItem(REDIRECT_KEY) || sessionStorage.getItem(REDIRECT_KEY) || "enviar.html";
@@ -239,7 +235,7 @@ body{
         } else if (err?.code === "auth/popup-blocked") {
           showStatus("<strong>Popup bloqueado.</strong><br>Permita popups para este site e tente novamente.", "error");
         } else if (err?.code === "auth/unauthorized-domain") {
-          showStatus("<strong>Domínio não autorizado.</strong><br>Adicione seu domínio da Netlify em Authentication → Configurações → Domínios autorizados.", "error");
+          showStatus("<strong>Domínio não autorizado.</strong><br>Adicione seu domínio atual em Firebase Authentication → Settings → Authorized domains.", "error");
         } else {
           showStatus("<strong>Erro no login.</strong><br>" + (err?.message || "Tente novamente."), "error");
         }
