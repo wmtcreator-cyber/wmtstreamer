@@ -2682,90 +2682,122 @@ body{
         showStatus(`<strong>Erro ao ouvir mensagens.</strong> ${escapeHtml(error?.message || "Tente novamente.")}`, "error");
       });
     }
+ 
+let isSendingMessage = false;
 
-    async function sendMessage() {
-      if (!currentChat || !currentRole) return;
+async function sendMessage() {
+  if (!currentChat || !currentRole || isSendingMessage) return;
 
-      const text = messageInput.value.trim();
-      if (!text) {
-        showStatus("<strong>Mensagem vazia.</strong> Digite algo antes de enviar.", "error");
-        return;
-      }
+  const rawText = String(messageInput.value || "");
+  const text = rawText.trim();
 
-      if (text.length > 3000) {
-        showStatus("<strong>Mensagem muito grande.</strong> Reduza o texto antes de enviar.", "error");
-        return;
-      }
+  if (!text) {
+    showStatus("<strong>Mensagem vazia.</strong> Digite algo antes de enviar.", "error");
+    return;
+  }
 
-      const chatRef = doc(db, "chats", currentChat.id);
-      const messagesRef = collection(chatRef, "messages");
+  if (text.length > 3000) {
+    showStatus("<strong>Mensagem muito grande.</strong> Reduza o texto antes de enviar.", "error");
+    return;
+  }
 
-      try {
-        sendBtn.disabled = true;
-        sendBtn.textContent = "Enviando...";
+  const chatRef = doc(db, "chats", currentChat.id);
+  const messagesRef = collection(chatRef, "messages");
 
-        await addDoc(messagesRef, {
-          senderId: getCurrentUserId(),
-          senderRole: currentRole,
-          senderName: getCurrentUserName(),
-          senderPhoto: getCurrentUserPhoto(),
-          text,
-          createdAt: serverTimestamp()
-        });
+  const previousValue = rawText;
 
-        await updateDoc(chatRef, {
-          updatedAt: serverTimestamp(),
-          lastMessage: text,
-          lastMessageAt: serverTimestamp()
-        });
+  try {
+    isSendingMessage = true;
+    sendBtn.disabled = true;
+    sendBtn.textContent = "Enviando...";
 
-        const receiverUserId =
-          currentRole === "admin"
-            ? String(currentChat.ownerUserId || "").trim()
-            : String(currentChat.adminUserId || "").trim();
+    // UI imediata
+    messageInput.value = "";
+    messageInput.focus();
+    hideStatus();
 
-        const receiverName =
-          currentRole === "admin"
-            ? String(currentChat.ownerName || currentChat.ownerEmail || "Usuário").trim()
-            : "WMT";
+    const senderId = getCurrentUserId();
+    const senderName = getCurrentUserName();
+    const senderPhoto = getCurrentUserPhoto();
 
-        if (receiverUserId && receiverUserId !== getCurrentUserId()) {
-  const offerCodeLabel = String(currentChat.offerCode || currentChat.offerId || currentChat.id || "").trim();
-  const senderDisplayName = currentRole === "admin" ? "WMT" : getCurrentUserName();
-  const previewText = text.length > 90 ? text.slice(0, 90) + "..." : text;
+    // Mensagem + metadados do chat
+    await addDoc(messagesRef, {
+      senderId,
+      senderRole: currentRole,
+      senderName,
+      senderPhoto,
+      text,
+      createdAt: serverTimestamp()
+    });
 
-  const notificationTitle =
-    currentRole === "admin"
-      ? "WMT respondeu sua oferta"
-      : `${senderDisplayName} respondeu sua oferta`;
+    await updateDoc(chatRef, {
+      updatedAt: serverTimestamp(),
+      lastMessage: text,
+      lastMessageAt: serverTimestamp()
+    });
 
-  await addDoc(collection(db, "notifications"), {
-    userId: receiverUserId,
-    title: notificationTitle,
-    subtitle: currentRole === "admin" ? "Nova resposta no chat" : "Chat privado da sua oferta",
-    message: previewText,
-    offerId: currentChat.id,
-    chatId: currentChat.id,
-    offerCode: offerCodeLabel,
-    senderId: getCurrentUserId(),
-    senderName: senderDisplayName,
-    senderPhoto: getCurrentUserPhoto(),
-    receiverName,
-    read: false,
-    createdAt: serverTimestamp()
-  });
+    // Notificação sem travar a UI
+    const receiverUserId =
+      currentRole === "admin"
+        ? String(currentChat.ownerUserId || "").trim()
+        : String(currentChat.adminUserId || "").trim();
+
+    const receiverName =
+      currentRole === "admin"
+        ? String(currentChat.ownerName || currentChat.ownerEmail || "Usuário").trim()
+        : "WMT";
+
+    if (receiverUserId && receiverUserId !== senderId) {
+      const offerCodeLabel = String(
+        currentChat.offerCode || currentChat.offerId || currentChat.id || ""
+      ).trim();
+
+      const senderDisplayName = currentRole === "admin" ? "WMT" : senderName;
+      const previewText = text.length > 90 ? text.slice(0, 90) + "..." : text;
+
+      const notificationTitle =
+        currentRole === "admin"
+          ? "WMT respondeu sua oferta"
+          : `${senderDisplayName} respondeu sua oferta`;
+
+      addDoc(collection(db, "notifications"), {
+        userId: receiverUserId,
+        title: notificationTitle,
+        subtitle: currentRole === "admin" ? "Nova resposta no chat" : "Chat privado da sua oferta",
+        message: previewText,
+        offerId: currentChat.id,
+        chatId: currentChat.id,
+        offerCode: offerCodeLabel,
+        senderId,
+        senderName: senderDisplayName,
+        senderPhoto,
+        receiverName,
+        read: false,
+        createdAt: serverTimestamp()
+      }).catch((error) => {
+        console.error("Erro ao criar notificação:", error);
+      });
+    }
+  } catch (error) {
+    console.error(error);
+
+    // restaura texto se falhar
+    if (!messageInput.value.trim()) {
+      messageInput.value = previousValue;
+    }
+
+    showStatus(
+      `<strong>Erro ao enviar mensagem.</strong> ${escapeHtml(error?.message || "Tente novamente.")}`,
+      "error"
+    );
+  } finally {
+    isSendingMessage = false;
+    sendBtn.disabled = false;
+    sendBtn.textContent = "Enviar mensagem";
+    messageInput.focus();
+  }
 }
 
-        messageInput.value = "";
-        hideStatus();
-      } catch (error) {
-        console.error(error);
-        showStatus(`<strong>Erro ao enviar mensagem.</strong> ${escapeHtml(error?.message || "Tente novamente.")}`, "error");
-      } finally {
-        sendBtn.disabled = false;
-        sendBtn.textContent = "Enviar mensagem";
-      }
-    }
   </script>
   <div class="mobile-menu-backdrop" id="mobileMenuBackdrop"></div>
 </body>
