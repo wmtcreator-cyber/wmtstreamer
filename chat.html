@@ -3053,43 +3053,56 @@ async function sendMessage() {
 
     // Notificação sem travar a UI
     const receiverUserId =
-      currentRole === "admin"
-        ? String(currentChat.ownerUserId || "").trim()
-        : String(currentChat.adminUserId || "").trim();
+  currentRole === "admin"
+    ? String(currentChat.ownerUserId || "").trim()
+    : String(currentChat.adminUserId || "").trim();
 
-    const receiverName =
-      currentRole === "admin"
-        ? String(currentChat.ownerName || currentChat.ownerEmail || "Usuário").trim()
-        : "Administrador";
+const receiverEmail =
+  currentRole === "admin"
+    ? normalizeEmail(currentChat.ownerEmail || "")
+    : normalizeEmail(currentChat.adminEmail || "");
 
-    if (receiverUserId && receiverUserId !== senderId) {
-      const offerCodeLabel = String(
-        currentChat.offerCode || currentChat.offerId || currentChat.id || ""
-      ).trim();
+const receiverName =
+  currentRole === "admin"
+    ? String(currentChat.ownerName || currentChat.ownerEmail || "Usuário").trim()
+    : "Administrador";
 
-      const senderDisplayName = getCurrentUserName();
-      const previewText = text.length > 90 ? text.slice(0, 90) + "..." : text;
+const senderEmail = getUserEmail(getChatUser());
 
-      const notificationTitle = `${senderDisplayName} respondeu sua oferta`;
+if (
+  (
+    receiverUserId && receiverUserId !== senderId
+  ) || (
+    !receiverUserId && receiverEmail && receiverEmail !== senderEmail
+  )
+) {
+  const offerCodeLabel = String(
+    currentChat.offerCode || currentChat.offerId || currentChat.id || ""
+  ).trim();
 
-      addDoc(collection(db, "notifications"), {
-        userId: receiverUserId,
-        title: notificationTitle,
-        subtitle: currentRole === "admin" ? "Nova resposta no chat" : "Chat privado da sua oferta",
-        message: previewText,
-        offerId: currentChat.id,
-        chatId: currentChat.id,
-        offerCode: offerCodeLabel,
-        senderId,
-        senderName: senderDisplayName,
-        senderPhoto,
-        receiverName,
-        read: false,
-        createdAt: serverTimestamp()
-      }).catch((error) => {
-        console.error("Erro ao criar notificação:", error);
-      });
-    }
+  const senderDisplayName = getCurrentUserName();
+  const previewText = text.length > 90 ? text.slice(0, 90) + "..." : text;
+
+  const notificationTitle = `${senderDisplayName} respondeu sua oferta`;
+
+  addDoc(collection(db, "notifications"), {
+    userId: receiverUserId || receiverEmail,
+    title: notificationTitle,
+    subtitle: currentRole === "admin" ? "Nova resposta no chat" : "Chat privado da sua oferta",
+    message: previewText,
+    offerId: currentChat.id,
+    chatId: currentChat.id,
+    offerCode: offerCodeLabel,
+    senderId,
+    senderName: senderDisplayName,
+    senderPhoto,
+    receiverName,
+    read: false,
+    createdAt: serverTimestamp()
+  }).catch((error) => {
+    console.error("Erro ao criar notificação:", error);
+  });
+}
   } catch (error) {
     console.error(error);
 
