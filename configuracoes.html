@@ -682,6 +682,36 @@
       max-width:340px;
     }
 
+    .preview-role{
+      min-height:24px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      margin-top:-2px;
+      width:100%;
+    }
+
+    .preview-card .roles-field{
+      width:100%;
+      margin-top:6px;
+      text-align:left;
+    }
+
+    .preview-card .roles-field label{
+      display:block;
+      margin-bottom:4px;
+    }
+
+    .preview-card .roles-trigger{
+      width:100%;
+      text-align:left;
+    }
+
+    .preview-card .roles-trigger-copy{
+      text-align:left;
+    }
+
     .verify-badge{
       width:17px;
       height:17px;
@@ -1288,29 +1318,11 @@ body{
               </div>
 
               <div class="preview-name" id="profilePreviewName">WMT</div>
+              <div class="preview-role" id="profilePreviewRole"></div>
               <div class="preview-sub" id="profilePreviewSub">Sua foto e seu nome aparecem assim no sistema.</div>
-            </section>
-
-            <section class="form-card">
-              <div class="form-grid">
-                <div class="field">
-                  <label for="nicknameInput">Nickname</label>
-                  <input id="nicknameInput" type="text" placeholder="Digite seu nickname" maxlength="24">
-                  <div class="help">Escolha o nome que deve aparecer no sistema.</div>
-                </div>
-
-                <div class="field">
-                  <label>Foto de perfil</label>
-                  <div class="photo-actions">
-                    <button type="button" class="btn btn-secondary" id="choosePhotoBtn">Escolher foto</button>
-                    <button type="button" class="btn btn-danger" id="removePhotoBtn">Remover foto</button>
-                  </div>
-                  <div class="help">A prévia atualiza na hora.</div>
-                  <input id="photoInput" type="file" accept="image/*" hidden>
-                </div>
 
 
-                <div class="field">
+                <div class="field roles-field">
                   <label>Cargos</label>
                   <div class="roles-card" id="rolesCard">
                     <button type="button" class="roles-trigger" id="rolesTrigger" aria-expanded="false" aria-controls="rolesPanel">
@@ -1332,6 +1344,27 @@ body{
                   </div>
                   <div class="help">Somente cargos liberados pelos administradores podem ser exibidos.</div>
                 </div>
+
+            </section>
+
+            <section class="form-card">
+              <div class="form-grid">
+                <div class="field">
+                  <label for="nicknameInput">Nickname</label>
+                  <input id="nicknameInput" type="text" placeholder="Digite seu nickname" maxlength="24">
+                  <div class="help">Escolha o nome que deve aparecer no sistema.</div>
+                </div>
+
+                <div class="field">
+                  <label>Foto de perfil</label>
+                  <div class="photo-actions">
+                    <button type="button" class="btn btn-secondary" id="choosePhotoBtn">Escolher foto</button>
+                    <button type="button" class="btn btn-danger" id="removePhotoBtn">Remover foto</button>
+                  </div>
+                  <div class="help">A prévia atualiza na hora.</div>
+                  <input id="photoInput" type="file" accept="image/*" hidden>
+                </div>
+
 
                 <div class="field">
                   <button type="button" class="btn btn-primary" id="saveProfileBtn">Salvar perfil</button>
@@ -1417,6 +1450,7 @@ body{
 
     const profilePreviewPhoto = document.getElementById("profilePreviewPhoto");
     const profilePreviewName = document.getElementById("profilePreviewName");
+    const profilePreviewRole = document.getElementById("profilePreviewRole");
     const profilePreviewSub = document.getElementById("profilePreviewSub");
     const nicknameInput = document.getElementById("nicknameInput");
     const choosePhotoBtn = document.getElementById("choosePhotoBtn");
@@ -1719,7 +1753,11 @@ body{
       const roleHtml = activeRole ? getRoleBadgeHtml(activeRole) : "";
 
       profilePreviewPhoto.src = previewPhoto;
-      profilePreviewName.innerHTML = `<span>${escapeHtml(previewName)}</span>${verifiedHtml}${roleHtml}`;
+      profilePreviewName.innerHTML = `<span>${escapeHtml(previewName)}</span>${verifiedHtml}`;
+      if (profilePreviewRole) {
+        profilePreviewRole.innerHTML = roleHtml;
+        profilePreviewRole.style.display = roleHtml ? "flex" : "none";
+      }
 
       profilePreviewSub.textContent = activeRole
         ? "Seu cargo aparece no perfil e no chat para outras pessoas."
