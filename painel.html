@@ -1418,6 +1418,51 @@
   .notif-text{margin-top:4px;color:#aebbd0;font-size:12px;line-height:1.6;font-weight:600}
   .notif-time{margin-top:6px;color:#7f8ba0;font-size:11px;font-weight:700}
   .notif-empty{padding:18px 10px;color:#9eb0c8;font-size:13px;font-weight:700;text-align:center}
+  .notif-menu-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .notif-item{
+    display:grid;
+    grid-template-columns:44px minmax(0,1fr) auto;
+    gap:10px;
+    align-items:start;
+  }
+  .notif-avatar{
+    width:44px;
+    height:44px;
+    border-radius:999px;
+    object-fit:cover;
+    display:block;
+    border:1px solid rgba(255,255,255,.08);
+    background:#0f151d;
+  }
+  .notif-body{min-width:0}
+  .notif-subtitle{
+    margin-top:3px;
+    color:#8ea0b8;
+    font-size:11px;
+    font-weight:700;
+    line-height:1.5;
+  }
+  .notif-delete-btn{
+    width:34px;
+    height:34px;
+    border:none;
+    border-radius:12px;
+    background:rgba(255,255,255,.05);
+    color:#dbe7fb;
+    border:1px solid rgba(255,255,255,.08);
+    cursor:pointer;
+    font-weight:900;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    transition:.18s ease;
+    flex:none;
+  }
+  .notif-delete-btn:hover{
+    background:rgba(255,107,131,.14);
+    border-color:rgba(255,107,131,.22);
+    color:#fff;
+  }
   @media (hover:hover) and (pointer:fine){
     .profile-menu-shell:hover .profile-menu{
       display:block;opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;
@@ -1427,7 +1472,37 @@
     .top-icon-btn{width:44px;height:44px;border-radius:14px}
     .profile-trigger{width:46px;height:46px}
     .profile-menu{width:min(340px, calc(100vw - 18px))}
-    .notif-menu{width:min(340px, calc(100vw - 18px));right:-40px}
+    .notif-menu{
+      width:min(340px, calc(100vw - 16px));
+      max-width:calc(100vw - 16px);
+      right:0;
+      left:auto;
+    }
+    .notif-menu-head{
+      align-items:flex-start;
+      flex-direction:column;
+    }
+    .notif-menu-actions{
+      width:100%;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
+    .notif-clear-btn{
+      width:100%;
+      min-height:40px;
+      padding:0 8px;
+      font-size:12px;
+    }
+    .notif-item{
+      grid-template-columns:40px minmax(0,1fr) 32px;
+      gap:8px;
+      padding:10px;
+    }
+    .notif-avatar{
+      width:40px;
+      height:40px;
+    }
     .profile-menu-head{grid-template-columns:52px minmax(0,1fr)}
     .profile-sell-btn{grid-column:1/-1;justify-self:start;margin-top:4px}
   }
@@ -1529,7 +1604,10 @@ body{
       <div class="notif-menu" id="notifMenu">
         <div class="notif-menu-head">
           <strong>Notificações</strong>
-          <button type="button" id="markAllReadBtn" class="notif-clear-btn">Marcar lidas</button>
+          <div class="notif-menu-actions">
+            <button type="button" id="markAllReadBtn" class="notif-clear-btn">Marcar lidas</button>
+            <button type="button" id="clearAllNotifBtn" class="notif-clear-btn">Limpar tudo</button>
+          </div>
         </div>
         <div class="notif-list" id="notifList">
           <div class="notif-empty">Sem notificações.</div>
@@ -1735,6 +1813,7 @@ body{
     const notifBadge = document.getElementById("notifBadge");
     const notifList = document.getElementById("notifList");
     const markAllReadBtn = document.getElementById("markAllReadBtn");
+    const clearAllNotifBtn = document.getElementById("clearAllNotifBtn");
     const headerProfilePhoto = document.getElementById("headerProfilePhoto");
     const menuProfilePhoto = document.getElementById("menuProfilePhoto");
     const menuProfileName = document.getElementById("menuProfileName");
@@ -2134,6 +2213,50 @@ body{
       return date.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
     }
 
+    function getNotifAvatar(item) {
+      return String(
+        item.senderPhoto ||
+        item.photo ||
+        item.avatar ||
+        "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true"
+      ).trim();
+    }
+
+    function getNotifTitle(item) {
+      return String(item.title || "Nova atividade").trim();
+    }
+
+    function getNotifSubtitle(item) {
+      return String(item.subtitle || "").trim();
+    }
+
+    function getNotifMessage(item) {
+      return String(item.message || item.text || "Você recebeu uma atualização.").trim();
+    }
+
+    async function deleteNotification(notifId) {
+      if (!notifId) return;
+      try {
+        await deleteDoc(doc(db, "notifications", notifId));
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function clearAllNotifications() {
+      const userId = getUserId(getPanelUser());
+      if (!userId) return;
+      try {
+        const snap = await getDocs(query(collection(db, "notifications"), where("userId", "==", userId)));
+        const batch = writeBatch(db);
+        snap.forEach(docSnap => batch.delete(docSnap.ref));
+        await batch.commit();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+
     function renderNotifications(items) {
       if (!notifList) return;
       if (!items.length) {
@@ -2147,13 +2270,18 @@ body{
         notifBadge.textContent = unread > 99 ? "99+" : String(unread);
       }
       notifList.innerHTML = items.map(item => {
-        const offerId = item.offerId || "";
-        const href = offerId ? `chat.html?id=${encodeURIComponent(offerId)}` : "#";
+        const notifId = item.id || "";
+        const offerId = item.offerId || item.chatId || "";
         return `
-          <div class="notif-item ${item.read ? "" : "unread"}" data-notif-id="${item.id}" data-offer-id="${escapeAttribute(offerId)}" data-href="${escapeAttribute(href)}">
-            <div class="notif-title">${escapeHtml(item.title || "Nova notificação")}</div>
-            <div class="notif-text">${escapeHtml(item.message || "")}</div>
-            <div class="notif-time">${escapeHtml(formatNotifDate(item.createdAt || item.updatedAt || item.lastMessageAt || ""))}</div>
+          <div class="notif-item ${item.read ? "" : "unread"}" data-notif-id="${escapeAttribute(notifId)}" data-offer-id="${escapeAttribute(offerId)}">
+            <img class="notif-avatar" src="${escapeAttribute(getNotifAvatar(item))}" alt="Perfil">
+            <div class="notif-body">
+              <div class="notif-title">${escapeHtml(getNotifTitle(item))}</div>
+              ${getNotifSubtitle(item) ? `<div class="notif-subtitle">${escapeHtml(getNotifSubtitle(item))}</div>` : ""}
+              <div class="notif-text">${escapeHtml(getNotifMessage(item))}</div>
+              <div class="notif-time">${escapeHtml(formatNotifDate(item.createdAt || item.updatedAt || item.lastMessageAt || ""))}</div>
+            </div>
+            <button type="button" class="notif-delete-btn" data-delete-notif="${escapeAttribute(notifId)}" aria-label="Excluir notificação">×</button>
           </div>
         `;
       }).join("");
@@ -2162,7 +2290,8 @@ body{
 
     function bindNotificationClicks() {
       document.querySelectorAll(".notif-item[data-notif-id]").forEach(item => {
-        item.addEventListener("click", async () => {
+        item.addEventListener("click", async (event) => {
+          if (event.target.closest("[data-delete-notif]")) return;
           const notifId = item.getAttribute("data-notif-id");
           const offerId = item.getAttribute("data-offer-id");
           try {
@@ -2173,6 +2302,14 @@ body{
             console.error(error);
           }
           if (offerId) window.location.href = `chat.html?id=${encodeURIComponent(offerId)}`;
+        });
+      });
+
+      document.querySelectorAll("[data-delete-notif]").forEach(button => {
+        button.addEventListener("click", async (event) => {
+          event.stopPropagation();
+          const notifId = button.getAttribute("data-delete-notif");
+          await deleteNotification(notifId);
         });
       });
     }
@@ -2202,6 +2339,9 @@ body{
       } catch (error) {
         console.error(error);
       }
+    });
+    clearAllNotifBtn?.addEventListener("click", async () => {
+      await clearAllNotifications();
     });
     searchInput.addEventListener("input", renderOffers);
     streamerFilter.addEventListener("change", renderOffers);
