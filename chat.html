@@ -2941,16 +2941,23 @@ body{
     }
 
     function renderSenderName(message, role) {
-      const { finalName, liveProfile } = resolveSenderNameData(message, role);
-      const activeRole = getProfileActiveRole(liveProfile);
-      const roleHtml = activeRole ? renderSpecialRoleBadge(activeRole, "msg-role-badge") : "";
+  const { finalName, liveProfile } = resolveSenderNameData(message, role);
 
-      if (role === "admin") {
-  return `<span class="admin-name-wrap"><span class="admin-name-text">${escapeHtml(finalName)}</span><span class="verify-badge admin-verify" aria-hidden="true"></span>${roleHtml}</span>`;
+  let roleHtml = "";
+
+  if (role === "admin") {
+    roleHtml = renderSpecialRoleBadge("STREAMER", "msg-role-badge");
+  } else {
+    const activeRole = getProfileActiveRole(liveProfile);
+    roleHtml = activeRole ? renderSpecialRoleBadge(activeRole, "msg-role-badge") : "";
+  }
+
+  if (role === "admin") {
+    return `<span class="admin-name-wrap"><span class="admin-name-text">${escapeHtml(finalName)}</span><span class="verify-badge admin-verify" aria-hidden="true"></span>${roleHtml}</span>`;
+  }
+
+  return `<span>${escapeHtml(finalName || currentChat?.ownerName || "Usuário")}</span>${roleHtml}`;
 }
-
-      return `<span>${escapeHtml(finalName || currentChat?.ownerName || "Usuário")}</span>${roleHtml}`;
-    }
 
     function getMessageAvatar(message, role) {
       return resolveSenderPhoto(message, role);
