@@ -822,16 +822,37 @@
     }
 
     @media (max-width: 760px){
-      .top-icon-btn{width:44px; height:44px; border-radius:14px}
-      .profile-trigger{width:46px; height:46px}
-      .profile-menu{width:min(340px, calc(100vw - 18px))}
-      .notif-menu{width:min(340px, calc(100vw - 18px)); right:-40px}
-      .profile-menu-head{grid-template-columns:52px minmax(0,1fr)}
-      .profile-sell-btn{grid-column:1/-1; justify-self:start; margin-top:4px}
-      .msg{max-width:86%}
-      .chat-head-left{align-items:flex-start}
-      .chat-head-avatar{width:44px; height:44px; border-radius:16px}
-    }
+  .top-icon-btn{width:44px; height:44px; border-radius:14px}
+  .profile-trigger{width:46px; height:46px}
+  .profile-menu{width:min(340px, calc(100vw - 18px))}
+  .notif-menu{
+    width:min(340px, calc(100vw - 16px));
+    max-width:calc(100vw - 16px);
+    right:0;
+    left:auto;
+  }
+  .notif-menu-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .notif-menu-actions{
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .notif-clear-btn{
+    width:100%;
+    min-height:40px;
+    padding:0 8px;
+    font-size:12px;
+  }
+  .profile-menu-head{grid-template-columns:52px minmax(0,1fr)}
+  .profile-sell-btn{grid-column:1/-1; justify-self:start; margin-top:4px}
+  .msg{max-width:86%}
+  .chat-head-left{align-items:flex-start}
+  .chat-head-avatar{width:44px; height:44px; border-radius:16px}
+}
       
     @media (max-width: 760px){
   body{
