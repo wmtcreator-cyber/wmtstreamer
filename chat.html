@@ -1497,6 +1497,20 @@ body{
       box-shadow:0 8px 18px rgba(168,85,247,.14);
     }
 
+    .role-badge.vendedor{
+      color:#e7fff2;
+      background:linear-gradient(180deg, rgba(46,214,141,.20), rgba(46,214,141,.10));
+      border:1px solid rgba(82,231,163,.28);
+      box-shadow:0 8px 18px rgba(46,214,141,.12);
+    }
+
+    .role-badge.comprador{
+      color:#fff0d8;
+      background:linear-gradient(180deg, rgba(242,201,76,.20), rgba(242,201,76,.10));
+      border:1px solid rgba(242,201,76,.30);
+      box-shadow:0 8px 18px rgba(242,201,76,.12);
+    }
+
     .msg-role-badge{
       margin-left:2px;
     }
@@ -2165,7 +2179,12 @@ body{
     function renderSpecialRoleBadge(role, extraClass = "") {
       const clean = normalizeRoleLabel(role);
       if (!clean) return "";
-      const roleClass = clean === "STREAMER" ? "streamer" : "";
+
+      const roleClass =
+        clean === "STREAMER" ? "streamer" :
+        clean === "VENDEDOR" ? "vendedor" :
+        clean === "COMPRADOR" ? "comprador" : "";
+
       const joinedClass = ["role-badge", roleClass, extraClass].filter(Boolean).join(" ");
       return `<span class="${joinedClass}">${clean}</span>`;
     }
