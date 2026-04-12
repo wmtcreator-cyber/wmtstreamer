@@ -1431,6 +1431,11 @@
     box-shadow:0 18px 28px rgba(125,65,230,.18);
   }
 
+  .role-confirm-btn.remove-mode{
+    background:linear-gradient(135deg, #ff5b75, #ff7c93);
+    box-shadow:0 18px 28px rgba(255,91,117,.20);
+  }
+
   @media (min-width: 961px){
     .hero-head-row{
       grid-template-columns:minmax(0,1fr) 260px;
@@ -1798,7 +1803,7 @@ body{
 
             <aside class="hero-role-card">
               <div class="hero-role-title">Liberar cargos</div>
-              <div class="hero-role-sub">Abra a janela rápida para liberar ou remover cargo por e-mail.</div>
+              <div class="hero-role-sub">Abra a janela rápida para liberar ou remover STREAMER, VENDEDOR ou COMPRADOR por e-mail.</div>
 
               <button type="button" class="hero-role-btn grant" id="openGrantRoleBtn">Liberar cargo</button>
               <button type="button" class="hero-role-btn remove" id="openRemoveRoleBtn">Remover cargo</button>
@@ -1863,7 +1868,7 @@ body{
         </div>
       </section>
 
-      <section id="offersContainer" class="cards-grid"></section> class="cards-grid"></section>
+      <section id="offersContainer" class="cards-grid"></section>
     </div>
   </main>
 
@@ -1915,6 +1920,8 @@ body{
         <div class="select-wrap">
           <select id="roleValueSelect" class="select">
             <option value="STREAMER">STREAMER</option>
+            <option value="VENDEDOR">VENDEDOR</option>
+            <option value="COMPRADOR">COMPRADOR</option>
           </select>
         </div>
       </div>
@@ -2342,6 +2349,7 @@ body{
 
     function closeRoleModal() {
       roleModal.style.display = "none";
+      roleModalConfirmBtn.classList.remove("remove-mode");
       hideRoleAdminStatus();
     }
 
@@ -2349,9 +2357,11 @@ body{
       currentRoleModalMode = mode === "remove" ? "remove" : "grant";
       roleModalTitle.textContent = currentRoleModalMode === "grant" ? "Liberar cargo" : "Remover cargo";
       roleModalSub.textContent = currentRoleModalMode === "grant"
-        ? "Digite o Gmail da conta e escolha o cargo que será liberado."
-        : "Digite o Gmail da conta e escolha o cargo que será removido.";
+        ? "Digite o Gmail da conta e escolha entre STREAMER, VENDEDOR ou COMPRADOR."
+        : "Digite o Gmail da conta e escolha qual cargo deve ser removido.";
       roleModalConfirmBtn.textContent = currentRoleModalMode === "grant" ? "Liberar" : "Remover";
+      roleModalConfirmBtn.classList.toggle("remove-mode", currentRoleModalMode === "remove");
+      document.getElementById("roleModalBadge").textContent = currentRoleModalMode === "grant" ? "Liberar cargo" : "Remover cargo";
       roleModal.style.display = "flex";
       hideRoleAdminStatus();
       setTimeout(() => roleUserEmailInput?.focus(), 30);
@@ -2394,7 +2404,7 @@ body{
         const targetProfile = await findUserProfileByEmail(email);
 
         if (!targetProfile) {
-          showRoleAdminStatus("<strong>Conta não encontrada.</strong> Esse e-mail ainda não tem perfil salvo no sistema.", "error");
+          showRoleAdminStatus("<strong>Conta não encontrada.</strong> Esse e-mail ainda não tem perfil salvo no sistema. A pessoa precisa ter entrado e salvo o perfil pelo menos uma vez.", "error");
           return;
         }
 
