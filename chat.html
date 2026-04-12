@@ -2721,13 +2721,20 @@ body{
     }
 
     function resolveSenderNameData(message, role) {
-      const liveProfile = getResolvedSenderProfile(message);
-      const liveName = sanitizeDisplayName(liveProfile?.nickname || "");
-      const rawName = sanitizeDisplayName(message?.senderName || "");
-      const finalName = liveName || rawName || (role === "admin" ? "Administrador" : (currentChat?.ownerName || "Usuário"));
+  const liveProfile = getResolvedSenderProfile(message);
+  const liveName = sanitizeDisplayName(liveProfile?.nickname || "");
+  const rawName = sanitizeDisplayName(message?.senderName || "");
+  const isMyMessage = String(message?.senderId || "").trim() === getCurrentUserId();
+  const currentName = sanitizeDisplayName(getCurrentUserName() || "");
 
-      return { finalName, liveProfile };
-    }
+  const finalName =
+    (isMyMessage && currentName) ||
+    liveName ||
+    rawName ||
+    (role === "admin" ? "WMT" : (currentChat?.ownerName || "Usuário"));
+
+  return { finalName, liveProfile };
+}
 
     function resolveSenderPhoto(message, role) {
       const liveProfile = getResolvedSenderProfile(message);
