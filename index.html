@@ -2122,7 +2122,7 @@ body{
 
     let liveTickerStarted = false;
     let liveTickerRaf = null;
-    let liveTickerSpeed = window.innerWidth <= 760 ? 0.45 : 0.6;
+    let liveTickerSpeed = window.innerWidth <= 760 ? 0.55 : 0.78;
     let liveTickerOffset = 0;
     let liveTickerTrackWidth = 0;
     let liveTickerStartX = 0;
@@ -2224,14 +2224,18 @@ body{
       if (liveTickerStarted || !liveTrack || !liveMarquee || !liveTickerTrackWidth) return;
       liveTickerStarted = true;
 
+      const loopGap = window.innerWidth <= 760 ? 28 : 40;
+
       function step() {
         liveTickerOffset += liveTickerSpeed;
 
-        if (liveTickerOffset > (liveTickerTrackWidth + liveTickerStartX)) {
+        const totalTravel = liveTickerStartX + liveTickerTrackWidth + loopGap;
+        if (liveTickerOffset >= totalTravel) {
           liveTickerOffset = 0;
         }
 
-        liveTrack.style.transform = `translate3d(${liveTickerStartX - liveTickerOffset}px, 0, 0)`;
+        const currentX = liveTickerStartX - liveTickerOffset;
+        liveTrack.style.transform = `translate3d(${currentX}px, 0, 0)`;
         liveTickerRaf = requestAnimationFrame(step);
       }
 
@@ -2259,14 +2263,13 @@ body{
       }
 
       resetLiveTicker();
-      const cardsHtml = buildTickerCards(liveTickerOffersCache);
-      liveTrack.innerHTML = cardsHtml + cardsHtml;
+      liveTrack.innerHTML = buildTickerCards(liveTickerOffersCache);
       liveTrack.style.transform = "translate3d(0,0,0)";
 
       await waitForTickerImages();
 
-      liveTickerTrackWidth = liveTrack.scrollWidth / 2;
-      liveTickerStartX = liveMarquee.clientWidth;
+      liveTickerTrackWidth = liveTrack.scrollWidth;
+      liveTickerStartX = liveMarquee.clientWidth + (window.innerWidth <= 760 ? 18 : 26);
       liveTickerOffset = 0;
 
       liveTrack.style.transform = `translate3d(${liveTickerStartX}px, 0, 0)`;
@@ -2333,7 +2336,7 @@ body{
     setInterval(loadLiveOffers, 20000);
 
     window.addEventListener("resize", () => {
-      liveTickerSpeed = window.innerWidth <= 760 ? 0.45 : 0.6;
+      liveTickerSpeed = window.innerWidth <= 760 ? 0.55 : 0.78;
 
       clearTimeout(liveTickerResizeTimer);
       liveTickerResizeTimer = setTimeout(() => {
@@ -2342,7 +2345,7 @@ body{
     });
 
     window.addEventListener("orientationchange", () => {
-      liveTickerSpeed = window.innerWidth <= 760 ? 0.45 : 0.6;
+      liveTickerSpeed = window.innerWidth <= 760 ? 0.55 : 0.78;
 
       clearTimeout(liveTickerResizeTimer);
       liveTickerResizeTimer = setTimeout(() => {
