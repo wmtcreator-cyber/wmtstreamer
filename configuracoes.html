@@ -1057,12 +1057,13 @@ body{
 
 
   
+
     .role-badge{
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      min-height:22px;
-      padding:0 9px;
+      min-height:24px;
+      padding:0 10px;
       border-radius:999px;
       font-size:10px;
       font-weight:900;
@@ -1072,17 +1073,44 @@ body{
       white-space:nowrap;
     }
 
-    .role-badge.streamer{
+    .role-badge.streamer,
+    .role-badge.vendedor,
+    .role-badge.comprador{
       color:#f3dcff;
-      background:linear-gradient(180deg, rgba(168,85,247,.20), rgba(168,85,247,.10));
+      background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(168,85,247,.12));
       border-color:rgba(168,85,247,.34);
       box-shadow:0 8px 18px rgba(168,85,247,.14);
+    }
+
+    .roles-field{
+      width:100%;
+      display:grid;
+      gap:10px;
+      margin-top:4px;
+    }
+
+    .roles-label-chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:max-content;
+      min-height:24px;
+      padding:0 10px;
+      border-radius:999px;
+      color:#f3dcff;
+      background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(168,85,247,.12));
+      border:1px solid rgba(168,85,247,.34);
+      box-shadow:0 8px 18px rgba(168,85,247,.14);
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
     }
 
     .roles-card{
       border:1px solid rgba(255,255,255,.08);
       border-radius:20px;
-      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
       overflow:hidden;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
     }
@@ -1092,7 +1120,7 @@ body{
       border:none;
       background:transparent;
       color:#fff;
-      min-height:66px;
+      min-height:58px;
       padding:14px 16px;
       display:flex;
       align-items:center;
@@ -1113,16 +1141,16 @@ body{
     }
 
     .roles-trigger-title{
-      font-size:14px;
+      font-size:15px;
       font-weight:800;
-      letter-spacing:.01em;
+      letter-spacing:-.01em;
       color:#f4f8ff;
     }
 
     .roles-trigger-sub{
       color:#96a7bf;
       font-size:12px;
-      line-height:1.6;
+      line-height:1.55;
       font-weight:700;
       word-break:break-word;
     }
@@ -1141,7 +1169,7 @@ body{
 
     .roles-panel{
       display:none;
-      padding:0 16px 16px;
+      padding:8px 16px 16px;
       border-top:1px solid rgba(255,255,255,.06);
     }
 
@@ -1149,24 +1177,16 @@ body{
       display:block;
     }
 
-    .roles-panel-top{
-      padding:12px 0 10px;
-      color:#96a7bf;
-      font-size:12px;
-      font-weight:700;
-      line-height:1.65;
-    }
-
     .roles-options{
-      display:flex;
-      flex-wrap:wrap;
+      display:grid;
       gap:10px;
     }
 
     .role-option{
-      min-height:42px;
+      min-height:46px;
+      width:100%;
       padding:0 14px;
-      border-radius:999px;
+      border-radius:16px;
       border:1px solid rgba(255,255,255,.10);
       background:rgba(255,255,255,.04);
       color:#eef4ff;
@@ -1176,6 +1196,11 @@ body{
       text-transform:uppercase;
       cursor:pointer;
       transition:.18s ease;
+      text-align:left;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
     }
 
     .role-option:hover{
@@ -1191,31 +1216,41 @@ body{
       box-shadow:0 10px 20px rgba(168,85,247,.14);
     }
 
-    .role-option.none-option.active{
-      color:#eef4ff;
-      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
-      border-color:rgba(255,255,255,.18);
+    .role-option.unlocked:not(.active){
+      border-color:rgba(168,85,247,.16);
+      background:rgba(168,85,247,.05);
+    }
+
+    .role-option.blocked{
+      color:#ffced8;
+      background:linear-gradient(180deg, rgba(255,107,131,.14), rgba(255,107,131,.07));
+      border-color:rgba(255,107,131,.24);
       box-shadow:none;
+      cursor:not-allowed;
     }
 
-    .roles-locked{
-      padding:14px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.03);
-      color:#a8b7ca;
-      font-size:12px;
-      line-height:1.7;
-      font-weight:700;
+    .role-option.blocked:hover{
+      transform:none;
+      border-color:rgba(255,107,131,.24);
+      background:linear-gradient(180deg, rgba(255,107,131,.14), rgba(255,107,131,.07));
     }
 
-    .roles-locked strong{
-      display:block;
-      margin-bottom:6px;
-      color:#eef4ff;
-      font-size:13px;
-      font-weight:800;
+    .role-option-label{
+      min-width:0;
+      display:flex;
+      align-items:center;
+      gap:8px;
     }
+
+    .role-option-state{
+      flex:none;
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      opacity:.96;
+    }
+
 
 
   </style>
@@ -1323,26 +1358,20 @@ body{
 
 
                 <div class="field roles-field">
-                  <label>Cargos</label>
+                  <span class="roles-label-chip">Cargos</span>
                   <div class="roles-card" id="rolesCard">
                     <button type="button" class="roles-trigger" id="rolesTrigger" aria-expanded="false" aria-controls="rolesPanel">
                       <div class="roles-trigger-copy">
-                        <span class="roles-trigger-title">Cargos do perfil</span>
-                        <span class="roles-trigger-sub" id="rolesTriggerSub">Cargos bloqueados para esta conta.</span>
+                        <span class="roles-trigger-title">Escolher cargo</span>
+                        <span class="roles-trigger-sub" id="rolesTriggerSub">Nenhum cargo ativo.</span>
                       </div>
                       <span class="roles-trigger-arrow" id="rolesTriggerArrow">⌄</span>
                     </button>
 
                     <div class="roles-panel" id="rolesPanel">
-                      <div class="roles-panel-top">Escolha o cargo que deve aparecer no seu perfil e no chat.</div>
-                      <div class="roles-locked" id="rolesLockedState">
-                        <strong>Cargos bloqueados</strong>
-                        Apenas contas liberadas pelos administradores podem usar cargos especiais.
-                      </div>
-                      <div class="roles-options" id="rolesOptions" style="display:none;"></div>
+                      <div class="roles-options" id="rolesOptions"></div>
                     </div>
                   </div>
-                  <div class="help">Somente cargos liberados pelos administradores podem ser exibidos.</div>
                 </div>
 
             </section>
@@ -1477,10 +1506,12 @@ body{
     let currentPreviewPhoto = "";
     let currentSavedPhoto = "";
     let notifUnsub = null;
+    let profileUnsub = null;
     let currentNotifUser = null;
     let authDecisionDone = false;
     let currentAllowedRoles = [];
     let currentActiveRole = "";
+    const AVAILABLE_PROFILE_ROLES = ["STREAMER", "VENDEDOR", "COMPRADOR"];
 
     function showNotice({ badge = "Aviso", title = "Mensagem", message = "" }) {
       noticeBadge.textContent = badge;
@@ -1697,46 +1728,49 @@ body{
     function getRoleBadgeHtml(role) {
       const clean = normalizeRoleLabel(role);
       if (!clean) return "";
-      const roleClass = clean === "STREAMER" ? "streamer" : "";
+      const roleClass = clean.toLowerCase();
       return `<span class="role-badge ${roleClass}">${clean}</span>`;
     }
 
     function renderRolesCard() {
       const allowedRoles = getAllowedRoles();
       const activeRole = getSafeActiveRole();
-      const hasRoles = allowedRoles.length > 0;
 
-      rolesCard.classList.toggle("open", false);
-      rolesTrigger.setAttribute("aria-expanded", "false");
+      rolesOptions.innerHTML = AVAILABLE_PROFILE_ROLES.map((role) => {
+        const unlocked = allowedRoles.includes(role);
+        const isActive = unlocked && role === activeRole;
+        const classes = [
+          "role-option",
+          unlocked ? "unlocked" : "blocked",
+          isActive ? "active" : ""
+        ].filter(Boolean).join(" ");
 
-      if (!hasRoles) {
-        rolesTriggerSub.textContent = "Cargos bloqueados para esta conta.";
-        rolesLockedState.style.display = "block";
-        rolesOptions.style.display = "none";
-        rolesOptions.innerHTML = "";
-        currentActiveRole = "";
-        return;
-      }
-
-      rolesTriggerSub.textContent = activeRole
-        ? `Cargo ativo: ${activeRole}`
-        : "Escolha um cargo para exibir no perfil.";
-      rolesLockedState.style.display = "none";
-      rolesOptions.style.display = "flex";
-      rolesOptions.innerHTML = `
-        <button type="button" class="role-option none-option ${!activeRole ? "active" : ""}" data-role-value="">
-          Sem cargo
-        </button>
-        ${allowedRoles.map((role) => `
-          <button type="button" class="role-option ${role === activeRole ? "active" : ""}" data-role-value="${role}">
-            ${role}
+        return `
+          <button
+            type="button"
+            class="${classes}"
+            data-role-value="${role}"
+            ${unlocked ? "" : 'data-role-blocked="true"'}
+            ${unlocked ? "" : "disabled"}
+          >
+            <span class="role-option-label">${role}</span>
+            <span class="role-option-state">${unlocked ? (isActive ? "ativo" : "liberado") : "bloqueado"}</span>
           </button>
-        `).join("")}
-      `;
+        `;
+      }).join("");
+
+      rolesTriggerSub.textContent = activeRole ? activeRole : "Nenhum cargo ativo.";
 
       rolesOptions.querySelectorAll("[data-role-value]").forEach((button) => {
+        const isBlocked = button.hasAttribute("data-role-blocked");
         button.addEventListener("click", () => {
-          currentActiveRole = normalizeRoleLabel(button.getAttribute("data-role-value"));
+          if (isBlocked) {
+            showStatus("<strong>Cargo bloqueado.</strong> Aguarde um administrador liberar esse cargo para sua conta.", "error");
+            return;
+          }
+
+          const nextRole = normalizeRoleLabel(button.getAttribute("data-role-value"));
+          currentActiveRole = nextRole === activeRole ? "" : nextRole;
           renderRolesCard();
           renderPreview();
           hideStatus();
@@ -1760,9 +1794,9 @@ body{
       }
 
       profilePreviewSub.textContent = activeRole
-        ? "Seu cargo aparece no perfil e no chat para outras pessoas."
+        ? "Seu cargo aparece no perfil e no chat."
         : (isAdmin
-          ? "Sua conta tem acesso administrativo. Nome e foto podem ser atualizados normalmente."
+          ? "Sua conta tem acesso administrativo."
           : "Sua foto e seu nome aparecem assim no sistema.");
 
       syncHeader(currentUser);
@@ -1987,56 +2021,64 @@ body{
       const uid = getCurrentUserId();
       if (!uid) return;
 
+      if (profileUnsub) {
+        try { profileUnsub(); } catch (e) {}
+        profileUnsub = null;
+      }
+
       const profileRef = doc(db, "user_profiles", uid);
-      const profileSnap = await getDoc(profileRef);
 
-      currentProfileDoc = profileSnap.exists() ? profileSnap.data() : null;
+      profileUnsub = onSnapshot(profileRef, (profileSnap) => {
+        currentProfileDoc = profileSnap.exists() ? profileSnap.data() : null;
 
-      const storedNickname = getStoredNickname();
-      const storedPhoto = getStoredPhoto();
-      const remoteNickname = String(currentProfileDoc?.nickname || "").trim();
-      const remotePhoto = String(currentProfileDoc?.photo || "").trim();
+        const storedNickname = getStoredNickname();
+        const storedPhoto = getStoredPhoto();
+        const remoteNickname = String(currentProfileDoc?.nickname || "").trim();
+        const remotePhoto = String(currentProfileDoc?.photo || "").trim();
 
-      const effectiveNickname = remoteNickname || storedNickname || "";
-      const effectivePhoto = remotePhoto || storedPhoto || "";
+        const effectiveNickname = remoteNickname || storedNickname || "";
+        const effectivePhoto = remotePhoto || storedPhoto || "";
 
-      currentAllowedRoles = sanitizeRoleList(currentProfileDoc?.allowedRoles);
-      currentActiveRole = normalizeRoleLabel(currentProfileDoc?.activeRole || "");
-      if (!getAllowedRoles().includes(currentActiveRole)) {
-        currentActiveRole = "";
-      }
+        currentAllowedRoles = sanitizeRoleList(currentProfileDoc?.allowedRoles);
+        currentActiveRole = normalizeRoleLabel(currentProfileDoc?.activeRole || "");
+        if (!getAllowedRoles().includes(currentActiveRole)) {
+          currentActiveRole = "";
+        }
 
-      if (effectiveNickname || effectivePhoto) {
-        writeProfileCache({
-          nickname: effectiveNickname,
-          photo: effectivePhoto
+        if (effectiveNickname || effectivePhoto) {
+          writeProfileCache({
+            nickname: effectiveNickname,
+            photo: effectivePhoto
+          });
+        }
+
+        nicknameInput.disabled = false;
+        nicknameInput.value = effectiveNickname || getDisplayName(currentUser);
+
+        choosePhotoBtn.disabled = false;
+        removePhotoBtn.disabled = false;
+        saveProfileBtn.disabled = false;
+
+        if (!currentSelectedFile) {
+          currentPreviewPhoto = "";
+        }
+        currentSavedPhoto = effectivePhoto;
+
+        renderRolesCard();
+        renderPreview();
+        listenNotifications(currentUser);
+      }, (error) => {
+        console.error(error);
+        showNotice({
+          badge: "Erro",
+          title: "Não foi possível carregar o perfil",
+          message: "Tente recarregar a página."
         });
-      }
-
-      nicknameInput.disabled = false;
-      nicknameInput.value = effectiveNickname || getDisplayName(currentUser);
-
-      choosePhotoBtn.disabled = false;
-      removePhotoBtn.disabled = false;
-      saveProfileBtn.disabled = false;
-      currentSelectedFile = null;
-      currentPreviewPhoto = "";
-      currentSavedPhoto = effectivePhoto;
-
-      renderRolesCard();
-      renderPreview();
-      listenNotifications(currentUser);
+      });
     }
 
 
     rolesTrigger.addEventListener("click", () => {
-      const hasRoles = getAllowedRoles().length > 0;
-      if (!hasRoles) {
-        rolesCard.classList.add("open");
-        rolesTrigger.setAttribute("aria-expanded", "true");
-        return;
-      }
-
       const willOpen = !rolesCard.classList.contains("open");
       rolesCard.classList.toggle("open", willOpen);
       rolesTrigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
@@ -2186,6 +2228,10 @@ body{
         if (notifUnsub) {
           try { notifUnsub(); } catch (e) {}
           notifUnsub = null;
+        }
+        if (profileUnsub) {
+          try { profileUnsub(); } catch (e) {}
+          profileUnsub = null;
         }
         window.location.href = "index.html";
       }
