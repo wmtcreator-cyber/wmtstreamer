@@ -2252,17 +2252,16 @@ body{
     }
 
     function getCurrentUserName() {
-      if (isAdminUser(getChatUser())) return "WMT";
-      const storedNickname = getStoredNickname();
-      if (storedNickname) return storedNickname;
+  const storedNickname = getStoredNickname();
+  if (storedNickname) return storedNickname;
 
-      const email = getUserEmail(getChatUser());
-      return String(
-        getChatUser()?.displayName ||
-        email.split("@")[0] ||
-        "Usuário"
-      ).trim();
-    }
+  const email = getUserEmail(getChatUser());
+  return String(
+    getChatUser()?.displayName ||
+    email.split("@")[0] ||
+    "Usuário"
+  ).trim();
+}
 
     function getCurrentUserPhoto() {
       if (isAdminUser(getChatUser())) {
@@ -2273,23 +2272,21 @@ body{
 
 
     function updateProfileCard() {
-      const user = getChatUser();
-      const isAdmin = isAdminUser(user);
-      const name = getCurrentUserName();
-      const photo = getCurrentUserPhoto();
-      const email = getUserEmail(user);
+  const user = getChatUser();
+  const isAdmin = isAdminUser(user);
+  const name = getCurrentUserName();
+  const photo = getCurrentUserPhoto();
+  const email = getUserEmail(user);
 
-      profilePhoto.src = isAdmin
-        ? (photo || "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true")
-        : getAvatarUrl(name, photo);
-      profileRole.textContent = isAdmin ? "Administrador" : "Seu perfil";
-      profileName.innerHTML = isAdmin
-        ? `<span>WMT</span><span class="verify-badge" aria-hidden="true"></span>`
-        : escapeHtml(name);
-      profileSub.textContent = isAdmin
-        ? "Conta administrativa com selo verificado no chat."
-        : (email || "Defina nickname e foto em Configurações.");
-    }
+  profilePhoto.src = getAvatarUrl(name, photo);
+  profileRole.textContent = isAdmin ? "Administrador" : "Seu perfil";
+  profileName.innerHTML = isAdmin
+    ? `<span>${escapeHtml(name)}</span><span class="verify-badge" aria-hidden="true"></span>`
+    : escapeHtml(name);
+  profileSub.textContent = isAdmin
+    ? "Conta administrativa verificada."
+    : (email || "Defina nickname e foto em Configurações.");
+}
 
     async function bootNotifications() {
       const userId = getCurrentUserId();
@@ -2588,14 +2585,14 @@ body{
     }
 
     function renderSenderName(message, role) {
-      const rawName = String(message.senderName || "").trim();
+  const rawName = String(message.senderName || "").trim();
 
-      if (role === "admin") {
-        return `<span class="wmt-name">WMT</span><span class="verify-badge" aria-hidden="true"></span>`;
-      }
+  if (role === "admin") {
+    return `<span class="wmt-name">${escapeHtml(rawName || "Administrador")}</span><span class="verify-badge" aria-hidden="true"></span>`;
+  }
 
-      return escapeHtml(rawName || currentChat?.ownerName || "Usuário");
-    }
+  return escapeHtml(rawName || currentChat?.ownerName || "Usuário");
+}
 
     function getMessageAvatar(message, role) {
       if (role === "admin") {
@@ -2755,7 +2752,7 @@ async function sendMessage() {
         currentChat.offerCode || currentChat.offerId || currentChat.id || ""
       ).trim();
 
-      const senderDisplayName = currentRole === "admin" ? "WMT" : senderName;
+      const senderDisplayName = getCurrentUserName();
       const previewText = text.length > 90 ? text.slice(0, 90) + "..." : text;
 
       const notificationTitle =
