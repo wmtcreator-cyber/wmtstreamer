@@ -469,6 +469,120 @@
     .msg-text{
       color:#fff; font-size:14px; line-height:1.72; font-weight:600; white-space:pre-wrap; word-break:break-word;
     }
+    .offer-intro{
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+      border-radius:24px;
+      padding:14px;
+      box-shadow:var(--shadow-xs);
+      max-width:min(92%, 760px);
+      align-self:flex-start;
+    }
+    .offer-intro-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+    .offer-intro-title{
+      color:#fff;
+      font-size:14px;
+      font-weight:800;
+      letter-spacing:-.01em;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .offer-intro-tag{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:28px;
+      padding:0 10px;
+      border-radius:999px;
+      border:1px solid rgba(77,141,255,.18);
+      background:rgba(77,141,255,.10);
+      color:#dce9ff;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+    .offer-intro-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .offer-thumb{
+      position:relative;
+      overflow:hidden;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.08);
+      background:#0f151d;
+      aspect-ratio:1/1;
+    }
+    .offer-thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .offer-thumb-badge{
+      position:absolute;
+      left:8px;
+      top:8px;
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(0,0,0,.70);
+      border:1px solid rgba(255,255,255,.10);
+      color:#fff;
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+    .offer-intro-meta{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .offer-meta-box{
+      border-radius:16px;
+      padding:12px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.07);
+    }
+    .offer-meta-k{
+      color:var(--muted-2);
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+    .offer-meta-v{
+      color:#fff;
+      font-size:13px;
+      font-weight:800;
+      line-height:1.6;
+      word-break:break-word;
+    }
+    .offer-intro-note{
+      color:#d7e2f2;
+      font-size:13px;
+      font-weight:700;
+      line-height:1.7;
+      white-space:pre-wrap;
+      word-break:break-word;
+      border-top:1px solid rgba(255,255,255,.07);
+      padding-top:12px;
+      margin-top:2px;
+    }
+
 
     .composer{
       padding:16px 18px 18px; border-top:1px solid rgba(255,255,255,.08);
@@ -778,6 +892,30 @@
   }
 }
 
+@media (max-width: 760px){
+  .offer-intro{
+    max-width:100% !important;
+    border-radius:18px !important;
+    padding:12px !important;
+  }
+  .offer-intro-grid,
+  .offer-intro-meta{
+    gap:8px !important;
+  }
+  .offer-thumb{
+    border-radius:14px !important;
+  }
+  .offer-meta-box{
+    border-radius:14px !important;
+    padding:10px !important;
+  }
+  .offer-meta-v,
+  .offer-intro-note{
+    font-size:12px !important;
+    line-height:1.55 !important;
+  }
+}
+
 
 html,
 body{
@@ -915,13 +1053,13 @@ body{
 
           <div class="mini-grid">
             <div class="mini-box">
-              <div class="k">Última mensagem</div>
-              <div class="v" id="infoLastMessage">Sem mensagens ainda.</div>
+              <div class="k">Valor pedido</div>
+              <div class="v" id="infoPrice">Carregando...</div>
             </div>
 
             <div class="mini-box">
-              <div class="k">ID da oferta</div>
-              <div class="v" id="infoOfferId">-</div>
+              <div class="k">PIX para pagamento</div>
+              <div class="v" id="infoPix">Carregando...</div>
             </div>
           </div>
 
@@ -1273,7 +1411,8 @@ body{
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const infoOfferId = document.getElementById("infoOfferId");
+    const infoPrice = document.getElementById("infoPrice");
+    const infoPix = document.getElementById("infoPix");
     const chatTitle = document.getElementById("chatTitle");
     const chatSub = document.getElementById("chatSub");
     const chatStatusChip = document.getElementById("chatStatusChip");
@@ -1295,6 +1434,7 @@ body{
     const chatId = String(params.get("id") || "").trim();
 
     let currentChat = null;
+    let currentOffer = null;
     let currentRole = null;
     let unsubscribeMessages = null;
     let unsubscribeNotifications = null;
@@ -1349,6 +1489,155 @@ body{
       if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
       return date.toLocaleString("pt-BR");
     }
+    function getOfferImageList(offer) {
+      if (!offer) return [];
+      if (Array.isArray(offer.images)) return offer.images.filter(Boolean);
+      if (Array.isArray(offer.brainrots)) {
+        return offer.brainrots
+          .map((item) => String(item?.image || item?.url || item?.src || "").trim())
+          .filter(Boolean);
+      }
+      return [];
+    }
+
+    function getOfferPriceValue(offer) {
+      if (!offer) return "Não informado";
+      const textValue = String(
+        offer.priceText ||
+        offer.valorTexto ||
+        offer.priceFormatted ||
+        offer.valorFormatado ||
+        ""
+      ).trim();
+
+      if (textValue) {
+        return textValue.startsWith("R$") ? textValue : `R$ ${textValue}`;
+      }
+
+      const numberValue = Number(
+        offer.price ??
+        offer.valor ??
+        offer.offerPrice ??
+        offer.amount ??
+        NaN
+      );
+
+      if (Number.isFinite(numberValue) && numberValue > 0) {
+        return numberValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      }
+
+      return "Não informado";
+    }
+
+    function getOfferPixValue(offer) {
+      const pix = String(
+        offer?.pix ||
+        offer?.pixKey ||
+        offer?.paymentPix ||
+        offer?.paymentKey ||
+        ""
+      ).trim();
+
+      return pix || "Não informado";
+    }
+
+    function getOfferStreamerValue(offer) {
+      return String(
+        offer?.streamer ||
+        offer?.streamerName ||
+        offer?.targetStreamer ||
+        ""
+      ).trim() || "WMT";
+    }
+
+    function getOfferMessageValue(offer) {
+      return String(
+        offer?.message ||
+        offer?.description ||
+        offer?.note ||
+        ""
+      ).trim();
+    }
+
+    async function loadOfferData(offerId) {
+      if (!offerId) {
+        currentOffer = null;
+        return null;
+      }
+
+      try {
+        const offerSnap = await getDoc(doc(db, "offers", offerId));
+        currentOffer = offerSnap.exists() ? { id: offerSnap.id, ...offerSnap.data() } : null;
+        return currentOffer;
+      } catch (error) {
+        console.error("Erro ao carregar oferta vinculada ao chat:", error);
+        currentOffer = null;
+        return null;
+      }
+    }
+
+    function renderOfferIntroBlock() {
+      if (!currentOffer) return "";
+
+      const ownerAvatar = getAvatarUrl(
+        String(currentOffer.ownerName || currentChat?.ownerName || "Usuário").trim(),
+        String(currentOffer.ownerPhoto || "").trim()
+      );
+
+      const imageList = getOfferImageList(currentOffer).slice(0, 10);
+      const streamer = escapeHtml(getOfferStreamerValue(currentOffer));
+      const price = escapeHtml(getOfferPriceValue(currentOffer));
+      const pix = escapeHtml(getOfferPixValue(currentOffer));
+      const note = escapeHtml(getOfferMessageValue(currentOffer));
+      const offerCode = escapeHtml(String(currentOffer.code || currentChat?.offerCode || currentChat?.offerId || currentChat?.id || "").trim());
+
+      const thumbs = imageList.length
+        ? imageList.map((url, index) => `
+            <div class="offer-thumb">
+              <span class="offer-thumb-badge">Brainrot ${index + 1}</span>
+              <img src="${escapeHtml(String(url || "").trim())}" alt="Brainrot ${index + 1}" loading="lazy" decoding="async">
+            </div>
+          `).join("")
+        : "";
+
+      return `
+        <div class="msg-row owner">
+          <img class="msg-avatar" src="${ownerAvatar}" alt="Avatar" loading="lazy" decoding="async">
+          <div class="offer-intro">
+            <div class="offer-intro-top">
+              <div class="offer-intro-title">
+                <span>Brainrots enviados na oferta</span>
+              </div>
+              <div class="offer-intro-tag">${offerCode || "Oferta"}</div>
+            </div>
+
+            ${thumbs ? `<div class="offer-intro-grid">${thumbs}</div>` : ""}
+
+            <div class="offer-intro-meta">
+              <div class="offer-meta-box">
+                <div class="offer-meta-k">Streamer</div>
+                <div class="offer-meta-v">${streamer}</div>
+              </div>
+              <div class="offer-meta-box">
+                <div class="offer-meta-k">Valor pedido</div>
+                <div class="offer-meta-v">${price}</div>
+              </div>
+              <div class="offer-meta-box">
+                <div class="offer-meta-k">PIX</div>
+                <div class="offer-meta-v">${pix}</div>
+              </div>
+              <div class="offer-meta-box">
+                <div class="offer-meta-k">Fotos enviadas</div>
+                <div class="offer-meta-v">${imageList.length || 0}</div>
+              </div>
+            </div>
+
+            ${note ? `<div class="offer-intro-note">${note}</div>` : ""}
+          </div>
+        </div>
+      `;
+    }
+
 
     function startChatData() {
       if (chatReady) return;
@@ -1681,7 +1970,25 @@ body{
           chatSnap = await getDoc(chatRef);
         }
 
+
         currentChat = { id: chatSnap.id, ...chatSnap.data() };
+
+        if ((!String(currentChat.ownerUserId || "").trim() || !String(currentChat.ownerEmail || "").trim() || !String(currentChat.ownerName || "").trim()) && String(currentChat.offerId || chatId || "").trim()) {
+          const missingOfferSnap = await getDoc(doc(db, "offers", String(currentChat.offerId || chatId || "").trim()));
+          if (missingOfferSnap.exists()) {
+            const missingOffer = { id: missingOfferSnap.id, ...missingOfferSnap.data() };
+            const patchData = {
+              ownerUserId: String(currentChat.ownerUserId || missingOffer.ownerUserId || "").trim(),
+              ownerEmail: normalizeEmail(currentChat.ownerEmail || missingOffer.ownerEmail || ""),
+              ownerName: String(currentChat.ownerName || missingOffer.ownerName || missingOffer.nickname || "Usuário").trim(),
+              offerCode: String(currentChat.offerCode || missingOffer.code || missingOffer.id || "").trim()
+            };
+
+            await setDoc(chatRef, patchData, { merge: true });
+            chatSnap = await getDoc(chatRef);
+            currentChat = { id: chatSnap.id, ...chatSnap.data() };
+          }
+        }
 
         if (!canAccessChat(currentChat)) {
           showStatus("<strong>Acesso negado.</strong> Esse chat é privado e você não participa dele.", "error");
@@ -1692,6 +1999,7 @@ body{
         }
 
         currentRole = resolveCurrentRole(currentChat);
+        await loadOfferData(String(currentChat.offerId || currentChat.id || "").trim());
         fillChatInfo(currentChat);
         listenMessages(chatRef);
       } catch (error) {
@@ -1730,11 +2038,10 @@ body{
     function fillChatInfo(chat) {
       const offerCode = chat.offerCode || chat.offerId || chat.id;
       const ownerLabel = chat.ownerName || chat.ownerEmail || "-";
-      const roleLabel = currentRole === "admin" ? "Administrador" : "Dono da oferta";
       const statusLabel = chat.status || "open";
-      const lastMessage = chat.lastMessage || "Sem mensagens ainda.";
 
-      infoOfferId.textContent = chat.offerId || chat.id;
+      infoPrice.textContent = getOfferPriceValue(currentOffer);
+      infoPix.textContent = getOfferPixValue(currentOffer);
 
       chatTitle.textContent = `Chat da oferta ${offerCode}`;
       chatSub.textContent = `Conversa privada com ${ownerLabel}.`;
@@ -1775,9 +2082,8 @@ body{
 
       unsubscribeMessages = onSnapshot(q, (snapshot) => {
         if (!snapshot.docs.length) {
-          if (!messagesList.querySelector(".empty")) {
-            messagesList.innerHTML = `<div class="empty">Nenhuma mensagem ainda. Comece a conversa por aqui.</div>`;
-          }
+          const introBlock = renderOfferIntroBlock();
+          messagesList.innerHTML = `${introBlock}<div class="empty">Nenhuma mensagem ainda. Comece a conversa por aqui.</div>`;
           return;
         }
 
@@ -1800,7 +2106,7 @@ body{
 
         lastRenderedMessageIds = messageIds;
 
-        messagesList.innerHTML = messages.map(message => {
+        const renderedMessages = messages.map(message => {
           const role = message.senderRole === "admin" ? "admin" : "owner";
           const dateText = formatDate(message.createdAt);
           const avatar = getMessageAvatar(message, role);
@@ -1822,6 +2128,9 @@ body{
             </div>
           `;
         }).join("");
+
+        const introBlock = renderOfferIntroBlock();
+        messagesList.innerHTML = `${introBlock}${renderedMessages}`;
 
         if (wasNearBottom) {
           requestAnimationFrame(() => {
