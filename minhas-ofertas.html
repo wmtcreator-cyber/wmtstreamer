@@ -730,6 +730,16 @@
       border:none; background:rgba(255,255,255,.05); color:#dbe7fb; border:1px solid rgba(255,255,255,.08);
       min-height:34px; padding:0 10px; border-radius:12px; font-weight:800; cursor:pointer;
     }
+    .notif-menu-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .notif-clear-btn.danger{ color:#ffe5eb; border-color:rgba(255,107,131,.16); background:rgba(255,107,131,.08); }
+    .notif-item-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .notif-main{ display:flex; align-items:flex-start; gap:10px; min-width:0; flex:1 1 auto; }
+    .notif-meta{ min-width:0; flex:1 1 auto; }
+    .notif-avatar,.notif-avatar-fallback{ width:38px; height:38px; flex:none; border-radius:50%; object-fit:cover; display:block; border:1px solid rgba(255,255,255,.10); box-shadow:0 10px 18px rgba(0,0,0,.18); background:#111a29; }
+    .notif-avatar-fallback{ display:inline-flex; align-items:center; justify-content:center; color:#e7f0ff; font-size:13px; font-weight:900; letter-spacing:.01em; background:linear-gradient(135deg, rgba(77,141,255,.30), rgba(255,255,255,.06)); }
+    .notif-sub{ margin-top:5px; color:#8fa0b7; font-size:11px; font-weight:800; line-height:1.45; text-transform:uppercase; letter-spacing:.04em; }
+    .notif-delete-btn{ width:28px; height:28px; flex:none; border:none; border-radius:10px; cursor:pointer; color:#ffd9e0; background:rgba(255,107,131,.10); border:1px solid rgba(255,107,131,.12); display:inline-flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; transition:.18s ease; }
+    .notif-delete-btn:hover{ background:rgba(255,107,131,.16); border-color:rgba(255,107,131,.20); }
     .notif-list{ display:grid; gap:8px; max-height:360px; overflow:auto; padding-right:2px; }
     .notif-item{
       border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.03); border-radius:14px; padding:12px;
@@ -751,7 +761,10 @@
       .top-icon-btn{ width:44px; height:44px; border-radius:14px; }
       .profile-trigger{ width:46px; height:46px; }
       .profile-menu{ width:min(340px, calc(100vw - 18px)); }
-      .notif-menu{ width:min(340px, calc(100vw - 18px)); right:-40px; }
+      .notif-menu{ width:min(340px, calc(100vw - 16px)); max-width:calc(100vw - 16px); right:0; left:auto; }
+      .notif-menu-head{ align-items:flex-start; flex-direction:column; }
+      .notif-menu-actions{ width:100%; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+      .notif-clear-btn{ width:100%; min-height:40px; padding:0 8px; font-size:12px; }
       .profile-menu-head{ grid-template-columns:52px minmax(0,1fr); }
       .profile-sell-btn{ grid-column:1 / -1; justify-self:start; margin-top:4px; }
     }
@@ -872,7 +885,10 @@ body{
         <div class="notif-menu" id="notifMenu">
           <div class="notif-menu-head">
             <strong>Notificações</strong>
-            <button type="button" id="markAllReadBtn" class="notif-clear-btn">Marcar lidas</button>
+            <div class="notif-menu-actions">
+              <button type="button" id="markAllReadBtn" class="notif-clear-btn">Marcar lidas</button>
+              <button type="button" id="clearAllNotifBtn" class="notif-clear-btn danger">Limpar tudo</button>
+            </div>
           </div>
           <div class="notif-list" id="notifList">
             <div class="notif-empty">Sem notificações.</div>
@@ -1001,6 +1017,7 @@ body{
     const notifBadge = document.getElementById("notifBadge");
     const notifList = document.getElementById("notifList");
     const markAllReadBtn = document.getElementById("markAllReadBtn");
+    const clearAllNotifBtn = document.getElementById("clearAllNotifBtn");
     const offersContainer = document.getElementById("offersContainer");
     const searchInput = document.getElementById("searchInput");
     const statusFilter = document.getElementById("statusFilter");
@@ -1053,7 +1070,17 @@ body{
       if (!userId) return;
       try {
         const snap = await db.collection("notifications").where("userId", "==", userId).get();
-        await Promise.all(snap.docs.map((doc) => doc.ref.set({ read: true }, { merge: true })));
+        await Promise.all(snap.docs.filter((doc) => !doc.data()?.read).map((doc) => doc.ref.set({ read: true, readAt: new Date().toISOString() }, { merge: true })));
+      } catch (error) {
+        console.error(error);
+      }
+    });
+    clearAllNotifBtn?.addEventListener("click", async () => {
+      const userId = getUserId(currentUser);
+      if (!userId) return;
+      try {
+        const snap = await db.collection("notifications").where("userId", "==", userId).get();
+        await Promise.all(snap.docs.map((doc) => doc.ref.delete()));
       } catch (error) {
         console.error(error);
       }
@@ -1164,6 +1191,44 @@ body{
       if (profilePanelLink) profilePanelLink.style.display = isAdminUser(user) ? "flex" : "none";
     }
     let notificationsUnsub = null;
+    function getFallbackInitial(name) {
+      return String(name || "U").trim().charAt(0).toUpperCase() || "U";
+    }
+    function getAvatarUrl(name, photo) {
+      const cleanPhoto = String(photo || "").trim();
+      if (cleanPhoto) return cleanPhoto;
+      const initial = encodeURIComponent(getFallbackInitial(name));
+      return `https://ui-avatars.com/api/?name=${initial}&background=1b2434&color=dce6f8&bold=true`;
+    }
+    function getNotificationAvatar(item) {
+      const senderName = String(item?.senderName || item?.title || "U").trim();
+      const senderPhoto = String(item?.senderPhoto || "").trim();
+      return getAvatarUrl(senderName, senderPhoto);
+    }
+    function getNotificationSubtitle(item) {
+      const storedSubtitle = String(item?.subtitle || "").trim();
+      if (storedSubtitle) return storedSubtitle;
+      return "Chat privado da oferta";
+    }
+    function getNotificationTitle(item) {
+      const storedTitle = String(item?.title || "").trim();
+      if (storedTitle && storedTitle.toLowerCase() !== "nova mensagem no chat") return storedTitle;
+      const senderName = String(item?.senderName || "").trim();
+      if (senderName) {
+        if (senderName.toLowerCase() === "wmt") return "WMT respondeu sua oferta";
+        return `${senderName} respondeu sua oferta`;
+      }
+      return "Nova notificação";
+    }
+    async function deleteNotification(notificationId) {
+      if (!notificationId) return;
+      try {
+        await db.collection("notifications").doc(notificationId).delete();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
     function renderNotifications(items) {
       if (!notifList) return;
       if (!items.length) {
@@ -1176,26 +1241,41 @@ body{
         notifBadge.textContent = String(unreadCount);
         notifBadge.style.display = unreadCount ? "inline-flex" : "none";
       }
-      notifList.innerHTML = items.map(item => {
-        const title = escapeHtml(item.title || "Nova atividade");
-        const text = escapeHtml(item.message || item.text || "Você recebeu uma atualização.");
+      notifList.innerHTML = items.map((item) => {
+        const title = escapeHtml(getNotificationTitle(item));
+        const text = escapeHtml(item.message || item.text || "");
+        const sub = escapeHtml(getNotificationSubtitle(item));
+        const when = escapeHtml(formatNotifTime(item.createdAt || item.timestamp || item.updatedAt));
         const offerId = escapeAttribute(item.offerId || item.chatId || "");
+        const avatar = escapeAttribute(getNotificationAvatar(item));
+        const fallbackInitial = escapeHtml(getFallbackInitial(item.senderName || item.title || "U"));
         return `
           <div class="notif-item ${item.read ? "" : "unread"}" data-notif-id="${escapeAttribute(item.id)}" data-offer-id="${offerId}">
-            <div class="notif-title">${title}</div>
-            <div class="notif-text">${text}</div>
-            <div class="notif-time">${escapeHtml(formatNotifTime(item.createdAt || item.timestamp || item.updatedAt))}</div>
+            <div class="notif-item-head">
+              <div class="notif-main">
+                <img class="notif-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                <span class="notif-avatar-fallback" style="display:none;">${fallbackInitial}</span>
+                <div class="notif-meta">
+                  <div class="notif-title">${title}</div>
+                  <div class="notif-sub">${sub}</div>
+                </div>
+              </div>
+              <button class="notif-delete-btn" type="button" data-delete-notification-id="${escapeAttribute(item.id)}" aria-label="Excluir notificação" title="Excluir">×</button>
+            </div>
+            <div class="notif-text">${text || "Toque para abrir."}</div>
+            <div class="notif-time">${when || "Agora há pouco"}</div>
           </div>
         `;
       }).join("");
-      notifList.querySelectorAll(".notif-item").forEach((el) => {
-        el.addEventListener("click", async () => {
-          const notifId = el.getAttribute("data-notif-id");
-          const offerId = el.getAttribute("data-offer-id");
+
+      notifList.querySelectorAll('.notif-item').forEach((el) => {
+        el.addEventListener('click', async (event) => {
+          const deleteBtn = event.target.closest('[data-delete-notification-id]');
+          if (deleteBtn) return;
+          const notifId = el.getAttribute('data-notif-id');
+          const offerId = el.getAttribute('data-offer-id');
           try {
-            if (notifId) {
-              await db.collection("notifications").doc(notifId).set({ read: true }, { merge: true });
-            }
+            if (notifId) await db.collection('notifications').doc(notifId).set({ read: true, readAt: new Date().toISOString() }, { merge: true });
           } catch (error) {
             console.error(error);
           }
@@ -1203,8 +1283,17 @@ body{
           if (offerId) window.location.href = `chat.html?id=${encodeURIComponent(offerId)}`;
         });
       });
+
+      notifList.querySelectorAll('[data-delete-notification-id]').forEach((btn) => {
+        btn.addEventListener('click', async (event) => {
+          event.stopPropagation();
+          const notificationId = btn.getAttribute('data-delete-notification-id');
+          await deleteNotification(notificationId);
+        });
+      });
     }
-    function watchNotifications(user) {
+
+        function watchNotifications(user) {
       if (notificationsUnsub) {
         notificationsUnsub();
         notificationsUnsub = null;
