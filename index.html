@@ -2489,23 +2489,31 @@ body{
 
     function handleProtectedNavigation(target) {
       const user = currentUser || auth.currentUser || null;
+      const publicTargets = new Set(["enviar.html", "minhas-ofertas.html"]);
 
-      if (!user) {
-        openLoginFor(target);
+      if (publicTargets.has(target)) {
+        goToTarget(target);
         return;
       }
 
-      if (target === "painel.html" && !isAdminUser(user)) {
-        showNotice({
-          badge: "Acesso restrito",
-          title: "Painel exclusivo para administradores",
-          message: "Sua conta não possui permissão para acessar esta área administrativa.",
-          primaryText: "Ir para enviar oferta",
-          secondaryText: "Voltar ao início",
-          onPrimary: () => goToTarget("enviar.html"),
-          onSecondary: () => goToTarget("index.html")
-        });
-        return;
+      if (target === "painel.html") {
+        if (!user) {
+          openLoginFor(target);
+          return;
+        }
+
+        if (!isAdminUser(user)) {
+          showNotice({
+            badge: "Acesso restrito",
+            title: "Painel exclusivo para administradores",
+            message: "Sua conta não possui permissão para acessar esta área administrativa.",
+            primaryText: "Ir para enviar oferta",
+            secondaryText: "Voltar ao início",
+            onPrimary: () => goToTarget("enviar.html"),
+            onSecondary: () => goToTarget("index.html")
+          });
+          return;
+        }
       }
 
       goToTarget(target);
@@ -2986,8 +2994,8 @@ body{
         if (menuProfileName) menuProfileName.textContent = "Entrar";
         if (menuProfileSub) menuProfileSub.textContent = "Faça login para acessar sua conta";
         if (profilePrimaryAction) {
-          profilePrimaryAction.textContent = "Entrar";
-          profilePrimaryAction.href = "login.html";
+          profilePrimaryAction.textContent = "Vender";
+          profilePrimaryAction.href = "enviar.html";
         }
         renderNotifications([]);
         if (notifUnsub) {
