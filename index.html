@@ -2103,6 +2103,7 @@ body{
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
    import { getFirestore, collection, getDocs, query, where, limit, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+    import { getDatabase, ref as rtdbRef, set as rtdbSet, onValue, onDisconnect, remove as rtdbRemove, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -2116,6 +2117,7 @@ body{
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const rtdb = getDatabase(app);
 
     const liveMarquee = document.getElementById("liveMarquee");
     const liveTrack = document.getElementById("liveTrack");
@@ -2286,7 +2288,11 @@ body{
     const PRESENCE_ONLINE_WINDOW_MS = 5 * 60 * 1000;
     let presenceHeartbeat = null;
     let presenceUnsub = null;
+    let presenceConnectionUnsub = null;
     let lastPresenceUser = null;
+    let currentPresencePage = "index";
+    let presenceDisconnectHandle = null;
+    let latestPresenceWriteAt = 0;
 
     function getPresenceDisplayName(user) {
       if (!user) return "Conta temporária";
@@ -2303,20 +2309,34 @@ body{
       return String(user?.displayName || email.split("@")[0] || "Usuário").trim();
     }
 
-    async function updatePresenceForUser(user, pageName = "index") {
+    function getPresenceRefForUser(user) {
+      return user?.uid ? rtdbRef(rtdb, `presence/${user.uid}`) : null;
+    }
+
+    async function writeRealtimePresence(user, pageName = "index", force = false) {
       if (!user?.uid) return;
+      const now = Date.now();
+      if (!force && now - latestPresenceWriteAt < 5000) return;
+
       lastPresenceUser = user;
+      currentPresencePage = pageName;
+      latestPresenceWriteAt = now;
+
+      const presenceRef = getPresenceRefForUser(user);
+      if (!presenceRef) return;
+
       try {
-        await setDoc(doc(db, "presence", user.uid), {
-  uid: user.uid,
-  nickname: getPresenceDisplayName(user),
-  isAnonymous: !!user.isAnonymous,
-  page: pageName,
-  lastSeen: serverTimestamp(),
-  lastSeenMs: Date.now()
-}, { merge: true });
+        await rtdbSet(presenceRef, {
+          uid: user.uid,
+          nickname: getPresenceDisplayName(user),
+          isAnonymous: !!user.isAnonymous,
+          page: pageName,
+          state: "online",
+          lastChanged: rtdbServerTimestamp(),
+          lastSeenMs: now
+        });
       } catch (error) {
-        console.error("Erro ao atualizar presence:", error);
+        console.error("Erro ao atualizar presence realtime:", error);
       }
     }
 
@@ -2325,47 +2345,90 @@ body{
         clearInterval(presenceHeartbeat);
         presenceHeartbeat = null;
       }
+      if (presenceConnectionUnsub) {
+        try { presenceConnectionUnsub(); } catch (error) { console.error(error); }
+        presenceConnectionUnsub = null;
+      }
+      presenceDisconnectHandle = null;
+      latestPresenceWriteAt = 0;
     }
 
     function startPresenceHeartbeatForUser(user, pageName = "index") {
       stopPresenceHeartbeat();
       if (!user?.uid) return;
+
       lastPresenceUser = user;
-      updatePresenceForUser(user, pageName);
+      currentPresencePage = pageName;
+
+      const presenceRef = getPresenceRefForUser(user);
+      const connectedRef = rtdbRef(rtdb, ".info/connected");
+      if (!presenceRef) return;
+
+      presenceConnectionUnsub = onValue(connectedRef, async (snap) => {
+        if (snap.val() !== true) return;
+
+        try {
+          presenceDisconnectHandle = onDisconnect(presenceRef);
+          await presenceDisconnectHandle.remove();
+          await writeRealtimePresence(user, pageName, true);
+        } catch (error) {
+          console.error("Erro ao conectar presence realtime:", error);
+        }
+      }, (error) => {
+        console.error("Erro em .info/connected:", error);
+      });
+
+      writeRealtimePresence(user, pageName, true);
+
       presenceHeartbeat = setInterval(() => {
-        updatePresenceForUser(user, pageName);
+        writeRealtimePresence(user, currentPresencePage || pageName, false);
       }, PRESENCE_HEARTBEAT_MS);
     }
 
     async function clearPresenceForUser(user) {
       if (!user?.uid) return;
+      const presenceRef = getPresenceRefForUser(user);
+      if (!presenceRef) return;
+
       try {
-        await deleteDoc(doc(db, "presence", user.uid));
+        if (presenceDisconnectHandle) {
+          try { await presenceDisconnectHandle.cancel(); } catch (error) { console.error(error); }
+        }
+        await rtdbRemove(presenceRef);
       } catch (error) {
-        console.error("Erro ao limpar presence:", error);
+        console.error("Erro ao limpar presence realtime:", error);
       }
     }
 
     function watchRealOnlineCounter() {
       if (!onlineCounter) return;
       if (presenceUnsub) return;
-      presenceUnsub = onSnapshot(collection(db, "presence"), (snapshot) => {
+
+      const presenceRootRef = rtdbRef(rtdb, "presence");
+
+      presenceUnsub = onValue(presenceRootRef, (snapshot) => {
         const now = Date.now();
-        const total = snapshot.docs.filter((docSnap) => {
-  const data = docSnap.data() || {};
-  let ts = 0;
+        let total = 0;
 
-  if (typeof data.lastSeenMs === "number" && Number.isFinite(data.lastSeenMs)) {
-    ts = data.lastSeenMs;
-  } else if (data?.lastSeen?.toDate) {
-    ts = data.lastSeen.toDate().getTime();
-  }
+        snapshot.forEach((childSnap) => {
+          const data = childSnap.val() || {};
+          let ts = 0;
 
-  return ts && (now - ts) <= PRESENCE_ONLINE_WINDOW_MS;
-}).length;
+          if (typeof data.lastSeenMs === "number" && Number.isFinite(data.lastSeenMs)) {
+            ts = data.lastSeenMs;
+          } else if (typeof data.lastChanged === "number" && Number.isFinite(data.lastChanged)) {
+            ts = data.lastChanged;
+          }
+
+          const isOnlineState = String(data.state || "").toLowerCase() === "online";
+          if (isOnlineState && ts && (now - ts) <= PRESENCE_ONLINE_WINDOW_MS) {
+            total += 1;
+          }
+        });
+
         onlineCounter.textContent = `${total} online`;
       }, (error) => {
-        console.error("Erro no contador online:", error);
+        console.error("Erro no contador online realtime:", error);
       });
     }
 
@@ -2393,14 +2456,20 @@ body{
 
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible" && lastPresenceUser?.uid) {
-        updatePresenceForUser(lastPresenceUser, "index");
+        writeRealtimePresence(lastPresenceUser, currentPresencePage || "index", true);
+      }
+    });
+
+    window.addEventListener("focus", () => {
+      if (lastPresenceUser?.uid) {
+        writeRealtimePresence(lastPresenceUser, currentPresencePage || "index", true);
       }
     });
 
     window.addEventListener("beforeunload", () => {
       stopPresenceHeartbeat();
     });
-  
+
     async function loadLiveOffers() {
   try {
     const q = query(
