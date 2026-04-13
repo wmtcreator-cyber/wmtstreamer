@@ -1575,10 +1575,10 @@ body{
             <div class="profile-menu-head">
               <img id="menuProfilePhoto" class="profile-menu-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%231b2434'/><circle cx='32' cy='24' r='11' fill='%23dce6f8'/><path d='M14 52c3-9 11-15 18-15s15 6 18 15' fill='%23dce6f8'/></svg>" alt="Perfil">
               <div class="profile-menu-copy">
-                <div class="profile-menu-name" id="menuProfileName">Entrar</div>
-                <div class="profile-menu-sub" id="menuProfileSub">Faça login para acessar sua conta</div>
+                <div class="profile-menu-name" id="menuProfileName">Conta temporária</div>
+                <div class="profile-menu-sub" id="menuProfileSub">Conta temporária ativa</div>
               </div>
-              <a href="enviar.html" class="profile-sell-btn">Vender</a>
+              <a href="login.html" class="profile-sell-btn" id="profilePrimaryAction">Fazer login</a>
             </div>
 
             <div class="profile-menu-links">
@@ -1689,6 +1689,7 @@ body{
       <p id="noticeMessage">Texto da mensagem.</p>
       <div class="notice-actions">
         <button class="notice-btn secondary" id="noticeSecondaryBtn" style="display:none;">Cancelar</button>
+        <button class="notice-btn secondary" id="noticeTertiaryBtn" style="display:none;">Cancelar</button>
         <button class="notice-btn primary" id="noticePrimaryBtn">Fechar</button>
       </div>
     </div>
@@ -1727,11 +1728,13 @@ body{
     const noticeMessage = document.getElementById("noticeMessage");
     const noticePrimaryBtn = document.getElementById("noticePrimaryBtn");
     const noticeSecondaryBtn = document.getElementById("noticeSecondaryBtn");
+    const noticeTertiaryBtn = document.getElementById("noticeTertiaryBtn");
     const profileTrigger = document.getElementById("profileTrigger");
     const profileMenu = document.getElementById("profileMenu");
     const notifTrigger = document.getElementById("notifTrigger");
     const notifMenu = document.getElementById("notifMenu");
     const logoutBtn = document.getElementById("logoutBtn");
+    const profilePrimaryAction = document.getElementById("profilePrimaryAction");
     const profilePanelLink = document.getElementById("profilePanelLink");
     const headerProfilePhoto = document.getElementById("headerProfilePhoto");
     const menuProfilePhoto = document.getElementById("menuProfilePhoto");
@@ -1744,8 +1747,10 @@ body{
       message = "",
       primaryText = "Fechar",
       secondaryText = "",
+      tertiaryText = "",
       onPrimary = null,
-      onSecondary = null
+      onSecondary = null,
+      onTertiary = null
     }) {
       noticeBadge.textContent = badge;
       noticeTitle.textContent = title;
@@ -1753,6 +1758,10 @@ body{
       noticePrimaryBtn.textContent = primaryText;
       noticeSecondaryBtn.textContent = secondaryText || "Cancelar";
       noticeSecondaryBtn.style.display = secondaryText ? "inline-flex" : "none";
+      if (noticeTertiaryBtn) {
+        noticeTertiaryBtn.textContent = tertiaryText || "Cancelar";
+        noticeTertiaryBtn.style.display = tertiaryText ? "inline-flex" : "none";
+      }
 
       noticePrimaryBtn.onclick = () => {
         closeNotice();
@@ -1764,11 +1773,21 @@ body{
         if (typeof onSecondary === "function") onSecondary();
       };
 
+      if (noticeTertiaryBtn) {
+        noticeTertiaryBtn.onclick = () => {
+          closeNotice();
+          if (typeof onTertiary === "function") onTertiary();
+        };
+      }
+
       noticeModal.style.display = "flex";
     }
 
     function closeNotice() {
       noticeModal.style.display = "none";
+      noticePrimaryBtn.onclick = null;
+      noticeSecondaryBtn.onclick = null;
+      if (noticeTertiaryBtn) noticeTertiaryBtn.onclick = null;
     }
 
     noticeModal?.addEventListener("click", (e) => {
@@ -1882,12 +1901,20 @@ body{
     }
 
     function getCurrentDisplayName(user){
-      if (!user) return "Entrar";
+      if (!user) return "Conta temporária";
 
       const liveProfile = getLiveHeaderProfile(user);
       const liveNickname = String(liveProfile?.nickname || "").trim();
       const storedNickname = getStoredNicknameForUser(user);
       const email = getUserEmail(user);
+
+      if (user?.isAnonymous) {
+        return String(
+          (!isBrandPlaceholderName(liveNickname) && liveNickname) ||
+          (!isBrandPlaceholderName(storedNickname) && storedNickname) ||
+          "Conta temporária"
+        ).trim();
+      }
 
       return String(
         (!isBrandPlaceholderName(liveNickname) && liveNickname) ||
@@ -1899,6 +1926,7 @@ body{
     }
 
     function getCurrentDisplayPhoto(user){
+      if (!user) return getLoggedOutAvatar();
       const name = getCurrentDisplayName(user);
       const liveProfile = getLiveHeaderProfile(user);
       const livePhoto = String(liveProfile?.photo || "").trim();
@@ -1906,20 +1934,27 @@ body{
       const chosenPhoto = !isBrandPlaceholderPhoto(livePhoto) && livePhoto
         ? livePhoto
         : ((!isBrandPlaceholderPhoto(storedPhoto) && storedPhoto) ? storedPhoto : "");
-      return getAvatarUrlByName(name, chosenPhoto, isAdminUser(user));
+      if (chosenPhoto) return chosenPhoto;
+      if (user?.isAnonymous) return getLoggedOutAvatar();
+      return getAvatarUrlByName(name, "", isAdminUser(user));
     }
 
     function syncHeaderProfile(){
       const user = currentUser || auth.currentUser || null;
       const loggedIn = !!user;
       const isAdmin = isAdminUser(user);
+      const isAnonymous = !!user?.isAnonymous;
 
       if (!loggedIn) {
         const guestAvatar = getLoggedOutAvatar();
         headerProfilePhoto.src = guestAvatar;
         menuProfilePhoto.src = guestAvatar;
-        menuProfileName.textContent = "Entrar";
-        menuProfileSub.textContent = "Faça login para acessar sua conta";
+        menuProfileName.textContent = "Conta temporária";
+        menuProfileSub.textContent = "Conta temporária ativa";
+        if (profilePrimaryAction) {
+          profilePrimaryAction.textContent = "Fazer login";
+          profilePrimaryAction.href = "login.html";
+        }
         if (logoutBtn) logoutBtn.style.display = "none";
         if (profilePanelLink) profilePanelLink.style.display = "none";
         return;
@@ -1931,15 +1966,27 @@ body{
 
       headerProfilePhoto.src = displayPhoto;
       menuProfilePhoto.src = displayPhoto;
-      menuProfileName.textContent = displayName || "Conta";
+      menuProfileName.textContent = displayName || "Conta temporária";
       menuProfileSub.textContent = isAdmin
-        ? "Conta administrativa verificada"
-        : (email || "Conta conectada");
+        ? "Conta conectada • administrador"
+        : (isAnonymous ? "Conta temporária ativa" : (email || "Conta conectada"));
+      if (profilePrimaryAction) {
+        profilePrimaryAction.textContent = isAnonymous ? "Fazer login" : "Vender";
+        profilePrimaryAction.href = isAnonymous ? "login.html" : "enviar.html";
+      }
       if (logoutBtn) logoutBtn.style.display = "flex";
       if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
     }
 
     window.syncChatHeaderProfile = syncHeaderProfile;
+
+    profilePrimaryAction?.addEventListener("click", (event) => {
+      const user = currentUser || auth.currentUser || null;
+      if (!user || user?.isAnonymous) {
+        event.preventDefault();
+        goToLogin(currentPageTarget());
+      }
+    });
 
     function closeHeaderMenus(){
       profileMenu?.classList.remove("open");
@@ -2027,7 +2074,7 @@ body{
       }
     });
 
-    document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+    async function continueAndLogout() {
       try {
         await signOut(auth);
       } catch (error) {
@@ -2038,6 +2085,26 @@ body{
         window.__wmtChatAuthorized = false;
         window.location.href = "index.html";
       }
+    }
+
+    document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+      const user = currentUser || auth.currentUser || null;
+
+      if (user?.isAnonymous) {
+        showNotice({
+          badge: "Conta temporária",
+          title: "Você pode perder esta conta temporária",
+          message: "Se você sair, pode perder esta conta temporária neste navegador. Faça login antes de sair para não perder acesso.",
+          primaryText: "Fazer login",
+          secondaryText: "Continuar e sair",
+          tertiaryText: "Cancelar",
+          onPrimary: () => goToLogin(currentPageTarget()),
+          onSecondary: () => continueAndLogout()
+        });
+        return;
+      }
+
+      await continueAndLogout();
     });
   </script>
 
@@ -2061,6 +2128,13 @@ body{
   limit,
   writeBatch
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+    import {
+      getDatabase,
+      ref as rtdbRef,
+      set as rtdbSet,
+      onDisconnect,
+      push
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
     import { isAdminUser } from "./admin-config.js";
 
     const firebaseConfig = {
@@ -2075,6 +2149,7 @@ body{
 
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const rtdb = getDatabase(app);
 
     const infoPrice = document.getElementById("infoPrice");
     const infoPix = document.getElementById("infoPix");
@@ -2113,6 +2188,14 @@ body{
     let liveMessages = [];
     const liveProfiles = new Map();
     window.__wmtChatLiveProfiles = liveProfiles;
+
+    const PRESENCE_HEARTBEAT_MS = 15000;
+    let presenceHeartbeat = null;
+    let currentPresenceConnectionRef = null;
+    let presenceDisconnectHandle = null;
+    let latestPresenceWriteAt = 0;
+    let currentPresencePage = "chat";
+    let lastPresenceUser = null;
 
     function getChatUser() {
       return window.__wmtChatCurrentUser || null;
@@ -2423,11 +2506,110 @@ body{
       });
     }
 
+    function getPresenceDisplayName(user) {
+      if (!user) return "Conta temporária";
+      if (typeof getCurrentUserName === "function") {
+        try {
+          const resolved = String(getCurrentUserName() || "").trim();
+          if (resolved) return resolved;
+        } catch (error) {
+          console.error(error);
+        }
+      }
+      const email = String(user?.email || "").trim();
+      if (user?.isAnonymous) return "Conta temporária";
+      return String(user?.displayName || email.split("@")[0] || "Usuário").trim();
+    }
+
+    function getPresenceConnectionsRef(user) {
+      return user?.uid ? rtdbRef(rtdb, `presence/${user.uid}/connections`) : null;
+    }
+
+    function getPresencePayload(user, pageName = "chat") {
+      return {
+        uid: user.uid,
+        nickname: getPresenceDisplayName(user),
+        isAnonymous: !!user.isAnonymous,
+        page: pageName,
+        state: "online",
+        lastSeenMs: Date.now()
+      };
+    }
+
+    async function ensurePresenceConnection(user) {
+      const presenceRootRef = getPresenceConnectionsRef(user);
+      if (!presenceRootRef) return null;
+
+      if (!currentPresenceConnectionRef) {
+        currentPresenceConnectionRef = push(presenceRootRef);
+        presenceDisconnectHandle = onDisconnect(currentPresenceConnectionRef);
+        await presenceDisconnectHandle.remove();
+      }
+
+      return currentPresenceConnectionRef;
+    }
+
+    async function writeRealtimePresence(user, pageName = "chat", force = false) {
+      if (!user?.uid) return;
+
+      const now = Date.now();
+      if (!force && now - latestPresenceWriteAt < 5000) return;
+
+      lastPresenceUser = user;
+      currentPresencePage = pageName;
+      latestPresenceWriteAt = now;
+
+      try {
+        const connectionRef = await ensurePresenceConnection(user);
+        if (!connectionRef) return;
+
+        await rtdbSet(connectionRef, getPresencePayload(user, pageName));
+      } catch (error) {
+        console.error("Erro ao atualizar presence realtime no chat:", error);
+      }
+    }
+
+    function stopPresenceHeartbeat() {
+      if (presenceHeartbeat) {
+        clearInterval(presenceHeartbeat);
+        presenceHeartbeat = null;
+      }
+      if (presenceDisconnectHandle) {
+        try { presenceDisconnectHandle.cancel(); } catch (error) { console.error(error); }
+        presenceDisconnectHandle = null;
+      }
+      currentPresenceConnectionRef = null;
+      latestPresenceWriteAt = 0;
+    }
+
+    function startPresenceHeartbeatForUser(user, pageName = "chat") {
+      stopPresenceHeartbeat();
+      if (!user?.uid) return;
+
+      lastPresenceUser = user;
+      currentPresencePage = pageName;
+
+      writeRealtimePresence(user, pageName, true);
+      presenceHeartbeat = setInterval(() => {
+        writeRealtimePresence(user, pageName);
+      }, PRESENCE_HEARTBEAT_MS);
+    }
+
+    function syncChatPresenceFromCurrentUser() {
+      const user = getChatUser();
+      if (user?.uid) {
+        startPresenceHeartbeatForUser(user, "chat");
+      } else {
+        stopPresenceHeartbeat();
+      }
+    }
+
     function startChatData() {
       if (chatReady) return;
       chatReady = true;
       bootChat();
       bootNotifications();
+      syncChatPresenceFromCurrentUser();
     }
 
     document.addEventListener("wmt:chat-auth-ok", () => {
@@ -2437,6 +2619,29 @@ body{
     if (window.__wmtChatAuthorized) {
       startChatData();
     }
+
+    document.addEventListener("wmt:chat-auth-ok", () => {
+      syncChatPresenceFromCurrentUser();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && lastPresenceUser?.uid) {
+        writeRealtimePresence(lastPresenceUser, currentPresencePage || "chat", true);
+      }
+    });
+
+    window.addEventListener("focus", () => {
+      if (lastPresenceUser?.uid) {
+        writeRealtimePresence(lastPresenceUser, currentPresencePage || "chat", true);
+      }
+    });
+
+    window.addEventListener("beforeunload", () => {
+      stopPresenceHeartbeat();
+    });
+
+    window.startChatPresenceHeartbeatForUser = startPresenceHeartbeatForUser;
+    window.stopChatPresenceHeartbeat = stopPresenceHeartbeat;
 
     sendBtn.addEventListener("click", sendMessage);
     messageInput.addEventListener("keydown", (event) => {
@@ -2497,20 +2702,25 @@ body{
     }
 
     function getCurrentUserName() {
-      const liveProfile = getCurrentUserLiveProfile();
-      const liveNickname = sanitizeDisplayName(liveProfile?.nickname || "");
-      if (liveNickname) return liveNickname;
+  const user = getChatUser();
+  const liveProfile = getCurrentUserLiveProfile();
+  const liveNickname = sanitizeDisplayName(liveProfile?.nickname || "");
+  if (liveNickname) return liveNickname;
 
-      const storedNickname = sanitizeDisplayName(getStoredNickname());
-      if (storedNickname) return storedNickname;
+  const storedNickname = sanitizeDisplayName(getStoredNickname());
+  if (storedNickname) return storedNickname;
 
-      const email = getUserEmail(getChatUser());
-      return String(
-        getChatUser()?.displayName ||
-        email.split("@")[0] ||
-        "Usuário"
-      ).trim();
-    }
+  if (user?.isAnonymous) {
+    return "Conta temporária";
+  }
+
+  const email = getUserEmail(user);
+  return String(
+    user?.displayName ||
+    email.split("@")[0] ||
+    "Usuário"
+  ).trim();
+}
 
     function getCurrentUserPhoto() {
       const liveProfile = getCurrentUserLiveProfile();
@@ -2538,8 +2748,8 @@ body{
   ? `<span class="admin-name-wrap"><span class="admin-name-text">${escapeHtml(name)}</span><span class="verify-badge admin-verify" aria-hidden="true"></span>${roleHtml}</span>`
   : `<span>${escapeHtml(name)}</span>${roleHtml}`;
       profileSub.textContent = isAdmin
-        ? "Conta administrativa verificada."
-        : (email || "Defina nickname e foto em Configurações.");
+  ? "Conta administrativa verificada."
+  : (user?.isAnonymous ? "Conta temporária ativa." : (email || "Defina nickname e foto em Configurações."));
 
       window.syncChatHeaderProfile?.();
     }
