@@ -3058,10 +3058,26 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       const prefix = streamer === "WMT" ? "WMT" : "PIUS";
       const code = `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      const { ownerUserId, ownerEmail, ownerName, ownerPhoto } = getCurrentOfferOwner();
+      let { ownerUserId, ownerEmail, ownerName, ownerPhoto } = getCurrentOfferOwner();
 
       if (!ownerUserId) {
-        showStatus(`<strong>Sessão inválida.</strong> Faça login novamente antes de enviar sua oferta.`, "error");
+        const anonymousUser = (typeof window.ensureSendPageAnonymousSession === "function")
+          ? await window.ensureSendPageAnonymousSession()
+          : null;
+
+        if (anonymousUser && typeof window.applySendPageAuthenticatedState === "function") {
+          window.applySendPageAuthenticatedState(anonymousUser);
+        }
+
+        if (typeof loadCurrentUserProfile === "function") {
+          await loadCurrentUserProfile();
+        }
+
+        ({ ownerUserId, ownerEmail, ownerName, ownerPhoto } = getCurrentOfferOwner());
+      }
+
+      if (!ownerUserId) {
+        showStatus(`<strong>Sessão indisponível.</strong> Não foi possível iniciar uma sessão temporária para enviar sua oferta.`, "error");
         return;
       }
 
@@ -3304,16 +3320,12 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       document.dispatchEvent(new Event("wmt:send-auth-ok"));
     }
 
+    window.ensureSendPageAnonymousSession = ensureAnonymousSession;
+    window.applySendPageAuthenticatedState = applyAuthenticatedState;
+
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         applyAuthenticatedState(user);
-        return;
-      }
-
-      const anonymousUser = await ensureAnonymousSession();
-
-      if (anonymousUser) {
-        applyAuthenticatedState(anonymousUser);
         return;
       }
 
@@ -3321,7 +3333,6 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       syncSendHeader(null);
       authDecisionDone = true;
       revealSendPage();
-      showStatus(`<strong>Sessão temporária indisponível.</strong> Não foi possível criar um usuário temporário agora. Tente recarregar a página.`, "error");
     });
 
     logoutBtn?.addEventListener("click", async () => {
