@@ -2308,12 +2308,13 @@ body{
       lastPresenceUser = user;
       try {
         await setDoc(doc(db, "presence", user.uid), {
-          uid: user.uid,
-          nickname: getPresenceDisplayName(user),
-          isAnonymous: !!user.isAnonymous,
-          page: pageName,
-          lastSeen: serverTimestamp()
-        }, { merge: true });
+  uid: user.uid,
+  nickname: getPresenceDisplayName(user),
+  isAnonymous: !!user.isAnonymous,
+  page: pageName,
+  lastSeen: serverTimestamp(),
+  lastSeenMs: Date.now()
+}, { merge: true });
       } catch (error) {
         console.error("Erro ao atualizar presence:", error);
       }
@@ -2351,10 +2352,18 @@ body{
       presenceUnsub = onSnapshot(collection(db, "presence"), (snapshot) => {
         const now = Date.now();
         const total = snapshot.docs.filter((docSnap) => {
-          const data = docSnap.data();
-          const ts = data?.lastSeen?.toDate ? data.lastSeen.toDate().getTime() : 0;
-          return ts && (now - ts) <= PRESENCE_ONLINE_WINDOW_MS;
-        }).length;
+  const data = docSnap.data() || {};
+
+  let ts = 0;
+
+  if (typeof data.lastSeenMs === "number" && Number.isFinite(data.lastSeenMs)) {
+    ts = data.lastSeenMs;
+  } else if (data?.lastSeen?.toDate) {
+    ts = data.lastSeen.toDate().getTime();
+  }
+
+  return ts && (now - ts) <= PRESENCE_ONLINE_WINDOW_MS;
+}).length;
         onlineCounter.textContent = `${total} online`;
       }, (error) => {
         console.error("Erro no contador online:", error);
