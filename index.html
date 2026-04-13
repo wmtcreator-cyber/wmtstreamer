@@ -2282,8 +2282,8 @@ body{
       });
     }
 
-    const PRESENCE_HEARTBEAT_MS = 25000;
-    const PRESENCE_ONLINE_WINDOW_MS = 60000;
+    const PRESENCE_HEARTBEAT_MS = 15000;
+    const PRESENCE_ONLINE_WINDOW_MS = 5 * 60 * 1000;
     let presenceHeartbeat = null;
     let presenceUnsub = null;
     let lastPresenceUser = null;
