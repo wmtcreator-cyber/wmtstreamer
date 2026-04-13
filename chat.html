@@ -2921,18 +2921,25 @@ body{
       const currentEmail = getUserEmail(getChatUser());
       const currentId = getCurrentUserId();
 
-      if (
+      const adminUserId = String(chat.adminUserId || "").trim();
+      const adminEmail = normalizeEmail(chat.adminEmail || "");
+      const ownerUserId = String(chat.ownerUserId || "").trim();
+      const ownerEmail = normalizeEmail(chat.ownerEmail || "");
+
+      const matchesAdmin =
         isAdminUser(getChatUser()) ||
-        currentId === String(chat.adminUserId || "").trim() ||
-        currentEmail === normalizeEmail(chat.adminEmail || "")
-      ) {
+        (currentId && adminUserId && currentId === adminUserId) ||
+        (currentEmail && adminEmail && currentEmail === adminEmail);
+
+      if (matchesAdmin) {
         return "admin";
       }
 
-      if (
-        currentId === String(chat.ownerUserId || "").trim() ||
-        currentEmail === normalizeEmail(chat.ownerEmail || "")
-      ) {
+      const matchesOwner =
+        (currentId && ownerUserId && currentId === ownerUserId) ||
+        (currentEmail && ownerEmail && currentEmail === ownerEmail);
+
+      if (matchesOwner) {
         return "owner";
       }
 
