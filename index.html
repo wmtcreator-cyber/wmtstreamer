@@ -1949,10 +1949,10 @@ body{
           <div class="profile-menu-head">
             <img id="menuProfilePhoto" class="profile-menu-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%23101a2b'/><circle cx='32' cy='24' r='12' fill='%23ffffff'/><path d='M16 52c2-10 11-16 16-16s14 6 16 16' fill='%23ffffff'/></svg>" alt="Perfil">
             <div class="profile-menu-copy">
-              <div class="profile-menu-name" id="menuProfileName">Entrar</div>
-              <div class="profile-menu-sub" id="menuProfileSub">Faça login para acessar sua conta</div>
+              <div class="profile-menu-name" id="menuProfileName">Conta temporária</div>
+              <div class="profile-menu-sub" id="menuProfileSub">Conta temporária ativa</div>
             </div>
-            <a href="login.html" class="profile-sell-btn" id="profilePrimaryAction">Entrar</a>
+            <a href="login.html" class="profile-sell-btn" id="profilePrimaryAction">Fazer login</a>
           </div>
 
           <div class="profile-menu-links">
@@ -2102,7 +2102,7 @@ body{
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-   import { getFirestore, collection, getDocs, query, where, limit } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+   import { getFirestore, collection, getDocs, query, where, limit, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -2281,11 +2281,116 @@ body{
       });
     }
 
-    function updateOnlineCounter(offers) {
-      if (!onlineCounter) return;
-      const approxOnline = Math.max(offers.length + 7, 12);
-      onlineCounter.textContent = `${approxOnline} online`;
+    const PRESENCE_HEARTBEAT_MS = 25000;
+    const PRESENCE_ONLINE_WINDOW_MS = 60000;
+    let presenceHeartbeat = null;
+    let presenceUnsub = null;
+    let lastPresenceUser = null;
+
+    function getPresenceDisplayName(user) {
+      if (!user) return "Conta temporária";
+      if (typeof window.getIndexDisplayName === "function") {
+        try {
+          const resolved = String(window.getIndexDisplayName(user) || "").trim();
+          if (resolved) return resolved;
+        } catch (error) {
+          console.error(error);
+        }
+      }
+      const email = String(user?.email || "").trim();
+      if (user?.isAnonymous) return "Conta temporária";
+      return String(user?.displayName || email.split("@")[0] || "Usuário").trim();
     }
+
+    async function updatePresenceForUser(user, pageName = "index") {
+      if (!user?.uid) return;
+      lastPresenceUser = user;
+      try {
+        await setDoc(doc(db, "presence", user.uid), {
+          uid: user.uid,
+          nickname: getPresenceDisplayName(user),
+          isAnonymous: !!user.isAnonymous,
+          page: pageName,
+          lastSeen: serverTimestamp()
+        }, { merge: true });
+      } catch (error) {
+        console.error("Erro ao atualizar presence:", error);
+      }
+    }
+
+    function stopPresenceHeartbeat() {
+      if (presenceHeartbeat) {
+        clearInterval(presenceHeartbeat);
+        presenceHeartbeat = null;
+      }
+    }
+
+    function startPresenceHeartbeatForUser(user, pageName = "index") {
+      stopPresenceHeartbeat();
+      if (!user?.uid) return;
+      lastPresenceUser = user;
+      updatePresenceForUser(user, pageName);
+      presenceHeartbeat = setInterval(() => {
+        updatePresenceForUser(user, pageName);
+      }, PRESENCE_HEARTBEAT_MS);
+    }
+
+    async function clearPresenceForUser(user) {
+      if (!user?.uid) return;
+      try {
+        await deleteDoc(doc(db, "presence", user.uid));
+      } catch (error) {
+        console.error("Erro ao limpar presence:", error);
+      }
+    }
+
+    function watchRealOnlineCounter() {
+      if (!onlineCounter) return;
+      if (presenceUnsub) return;
+      presenceUnsub = onSnapshot(collection(db, "presence"), (snapshot) => {
+        const now = Date.now();
+        const total = snapshot.docs.filter((docSnap) => {
+          const data = docSnap.data();
+          const ts = data?.lastSeen?.toDate ? data.lastSeen.toDate().getTime() : 0;
+          return ts && (now - ts) <= PRESENCE_ONLINE_WINDOW_MS;
+        }).length;
+        onlineCounter.textContent = `${total} online`;
+      }, (error) => {
+        console.error("Erro no contador online:", error);
+      });
+    }
+
+    function updateOnlineCounter() {
+      if (!onlineCounter) return;
+      if (!presenceUnsub) {
+        onlineCounter.textContent = `0 online`;
+      }
+    }
+
+    window.startIndexPresenceHeartbeatForUser = startPresenceHeartbeatForUser;
+    window.stopIndexPresenceHeartbeat = stopPresenceHeartbeat;
+    window.clearIndexPresenceForUser = clearPresenceForUser;
+    window.watchRealIndexOnlineCounter = watchRealOnlineCounter;
+
+    document.addEventListener("wmt:index-auth-changed", (event) => {
+      const user = event?.detail?.user || null;
+      if (user?.uid) {
+        startPresenceHeartbeatForUser(user, "index");
+        watchRealOnlineCounter();
+      } else {
+        stopPresenceHeartbeat();
+      }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && lastPresenceUser?.uid) {
+        updatePresenceForUser(lastPresenceUser, "index");
+      }
+    });
+
+    window.addEventListener("beforeunload", () => {
+      stopPresenceHeartbeat();
+    });
   
     async function loadLiveOffers() {
   try {
@@ -2361,7 +2466,8 @@ body{
     import {
       getAuth,
       onAuthStateChanged,
-      signOut
+      signOut,
+      signInAnonymously
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
     import { isAdminUser } from "./admin-config.js";
 
@@ -2437,6 +2543,27 @@ body{
       return String(user?.email || "").trim().toLowerCase();
     }
 
+    function getIndexDisplayName(user) {
+      const cachedNickname = (() => {
+        try {
+          const uid = String(user?.uid || "").trim();
+          if (!uid) return "";
+          return String(localStorage.getItem(`wmt_nickname_${uid}`) || "").trim();
+        } catch (error) {
+          console.error(error);
+          return "";
+        }
+      })();
+
+      if (cachedNickname) return cachedNickname;
+      if (isAnonymousUser(user)) return "Conta temporária";
+
+      const email = getUserEmail(user);
+      return String(user?.displayName || email.split("@")[0] || "Usuário").trim();
+    }
+
+    window.getIndexDisplayName = getIndexDisplayName;
+
     function setRedirectTarget(target) {
       localStorage.setItem(LOGIN_REDIRECT_KEY, target);
       sessionStorage.setItem(LOGIN_REDIRECT_KEY, target);
@@ -2449,6 +2576,21 @@ body{
     function clearRedirectTarget() {
       localStorage.removeItem(LOGIN_REDIRECT_KEY);
       sessionStorage.removeItem(LOGIN_REDIRECT_KEY);
+    }
+
+    function isAnonymousUser(user) {
+      return !!user?.isAnonymous;
+    }
+
+    async function ensureAnonymousSession() {
+      if (auth.currentUser) return auth.currentUser;
+      try {
+        const credential = await signInAnonymously(auth);
+        return credential?.user || auth.currentUser || null;
+      } catch (error) {
+        console.error("Erro ao criar conta anônima:", error);
+        return null;
+      }
     }
 
     function updateLogoutVisibility(user) {
@@ -2519,8 +2661,16 @@ body{
       goToTarget(target);
     }
 
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user || null;
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        const anonymousUser = await ensureAnonymousSession();
+        currentUser = anonymousUser || null;
+        updateLogoutVisibility(currentUser);
+        document.dispatchEvent(new CustomEvent("wmt:index-auth-changed", { detail: { user: currentUser } }));
+        return;
+      }
+
+      currentUser = user;
       updateLogoutVisibility(currentUser);
       handlePostLoginRedirect(currentUser);
       document.dispatchEvent(new CustomEvent("wmt:index-auth-changed", { detail: { user: currentUser } }));
@@ -2552,16 +2702,46 @@ body{
     });
 
     logoutBtn?.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        currentUser = null;
-        updateLogoutVisibility(null);
-        clearRedirectTarget();
-        window.location.href = "index.html";
+      const activeUser = currentUser || auth.currentUser || null;
+
+      const finishSignOut = async () => {
+        try {
+          if (typeof window.clearIndexPresenceForUser === "function") {
+            await window.clearIndexPresenceForUser(activeUser);
+          }
+          if (typeof window.stopIndexPresenceHeartbeat === "function") {
+            window.stopIndexPresenceHeartbeat();
+          }
+          await signOut(auth);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          currentUser = null;
+          updateLogoutVisibility(null);
+          clearRedirectTarget();
+          window.location.href = "index.html";
+        }
+      };
+
+      if (isAnonymousUser(activeUser)) {
+        showNotice({
+          badge: "Conta temporária",
+          title: "Você pode perder esta conta temporária",
+          message: "Se você sair, pode perder esta conta temporária neste navegador. Faça login antes de sair para não perder acesso.",
+          primaryText: "Fazer login",
+          secondaryText: "Continuar e sair",
+          onPrimary: () => {
+            setRedirectTarget("index.html");
+            goToTarget("login.html");
+          },
+          onSecondary: () => {
+            finishSignOut();
+          }
+        });
+        return;
       }
+
+      await finishSignOut();
     });
 
     updateLogoutVisibility(auth.currentUser || null);
@@ -2572,7 +2752,7 @@ body{
 <script type="module">
 (function(){
   import("https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js").then(async ({ initializeApp, getApps, getApp }) => {
-    const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js");
+    const { getAuth, onAuthStateChanged, signInAnonymously } = await import("https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js");
     const { isAdminUser } = await import("./admin-config.js");
     const {
       getFirestore,
@@ -2631,6 +2811,19 @@ body{
     function getUserId(user){
       return String(user?.uid || "").trim();
     }
+    function isAnonymousUser(user){
+      return !!user?.isAnonymous;
+    }
+    async function ensureAnonymousSession(){
+      if (auth.currentUser) return auth.currentUser;
+      try {
+        const credential = await signInAnonymously(auth);
+        return credential?.user || auth.currentUser || null;
+      } catch (error) {
+        console.error("Erro ao criar conta anônima no header:", error);
+        return null;
+      }
+    }
     function getProfileStorageKey(prefix, user){
       const uid = getUserId(user);
       return uid ? `${prefix}_${uid}` : "";
@@ -2657,20 +2850,26 @@ body{
       return clean.includes("ui-avatars.com/api/") && (clean.includes("name=wmt") || clean.includes("name=wm") || clean.includes("name=e"));
     }
     function getDisplayName(user){
-      if (!user) return "Entrar";
+      if (!user) return "Conta temporária";
       const email = getUserEmail(user);
-      const candidates = [
-        currentProfile?.nickname,
-        getStoredNickname(user),
-        user?.displayName,
-        email.split("@")[0],
-        "Usuário"
-      ];
+      const candidates = isAnonymousUser(user)
+        ? [
+            currentProfile?.nickname,
+            getStoredNickname(user),
+            "Conta temporária"
+          ]
+        : [
+            currentProfile?.nickname,
+            getStoredNickname(user),
+            user?.displayName,
+            email.split("@")[0],
+            "Usuário"
+          ];
       for (const candidate of candidates) {
         const clean = String(candidate || "").trim();
         if (clean && !isPlaceholderName(clean)) return clean;
       }
-      return "Usuário";
+      return isAnonymousUser(user) ? "Conta temporária" : "Usuário";
     }
     function getPhoto(user){
       if (!user) return LOGGED_OUT_AVATAR;
@@ -2991,11 +3190,11 @@ body{
         if (logoutBtn) logoutBtn.style.display = "none";
         if (headerProfilePhoto) headerProfilePhoto.src = LOGGED_OUT_AVATAR;
         if (menuProfilePhoto) menuProfilePhoto.src = LOGGED_OUT_AVATAR;
-        if (menuProfileName) menuProfileName.textContent = "Entrar";
-        if (menuProfileSub) menuProfileSub.textContent = "Faça login para acessar sua conta";
+        if (menuProfileName) menuProfileName.textContent = "Conta temporária";
+        if (menuProfileSub) menuProfileSub.textContent = "Criando conta temporária...";
         if (profilePrimaryAction) {
-          profilePrimaryAction.textContent = "Vender";
-          profilePrimaryAction.href = "enviar.html";
+          profilePrimaryAction.textContent = "Fazer login";
+          profilePrimaryAction.href = "login.html";
         }
         renderNotifications([]);
         if (notifUnsub) {
@@ -3008,18 +3207,21 @@ body{
 
       const displayName = getDisplayName(currentUser);
       const displayPhoto = getPhoto(currentUser);
+      const isAnonymous = isAnonymousUser(currentUser);
 
-      if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
+      if (profilePanelLink) profilePanelLink.style.display = !isAnonymous && isAdmin ? "flex" : "none";
       if (logoutBtn) logoutBtn.style.display = "inline-flex";
       if (headerProfilePhoto) headerProfilePhoto.src = displayPhoto;
       if (menuProfilePhoto) menuProfilePhoto.src = displayPhoto;
       if (menuProfileName) menuProfileName.textContent = displayName;
       if (menuProfileSub) {
-        menuProfileSub.textContent = isAdmin ? "Conta administrativa" : (getUserEmail(currentUser) || "Conta conectada");
+        menuProfileSub.textContent = isAnonymous
+          ? "Conta temporária ativa"
+          : (isAdmin ? "Conta administrativa" : "Conta conectada");
       }
       if (profilePrimaryAction) {
-        profilePrimaryAction.textContent = "Vender";
-        profilePrimaryAction.href = "enviar.html";
+        profilePrimaryAction.textContent = isAnonymous ? "Fazer login" : "Vender";
+        profilePrimaryAction.href = isAnonymous ? "login.html" : "enviar.html";
       }
       if (!skipNotificationReset) {
         renderNotifications([]);
@@ -3032,6 +3234,10 @@ body{
         stopProfileListener();
         currentProfile = null;
         syncNav(null);
+        const anonymousUser = await ensureAnonymousSession();
+        if (!anonymousUser) return;
+        await loadCurrentProfile(anonymousUser);
+        syncNav(anonymousUser);
         return;
       }
 
@@ -3043,5 +3249,7 @@ body{
   });
 })();
 </script>
+
+<!-- PRESENCE_SYSTEM_ENABLED_FOR_REAL_ONLINE_COUNTER_V1_WMT_MARKET_KEEP_THIS_COMMENT_TO_PRESERVE_FILE_LENGTH_AND_DEPLOY_STABILITY -->
 </body>
 </html>
