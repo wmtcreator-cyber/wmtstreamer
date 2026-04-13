@@ -2076,10 +2076,10 @@ body{
                     </div>
 
                     <div class="upload-actions">
-                      <button type="button" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</button>
+                      <label for="photoPickerInput" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</label>
                       <button type="button" class="small-btn danger" id="clearPhotosBtn">Limpar tudo</button>
                     </div>
-                    <input id="photoPickerInput" type="file" accept="image/*" multiple hidden>
+                    <input id="photoPickerInput" type="file" accept="image/*" multiple style="display:none;">
                   </div>
 
                   <div id="previewGrid" class="preview-grid"></div>
@@ -2928,9 +2928,6 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       renderPreviews();
     }
 
-    addPhotosBtn.addEventListener("click", () => {
-      photoPickerInput?.click();
-    });
 
     photoPickerInput?.addEventListener("change", (event) => {
       handlePickedPhotos(event.target.files || []);
