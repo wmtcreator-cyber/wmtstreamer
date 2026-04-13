@@ -1134,17 +1134,27 @@
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      padding:8px 12px;
+      gap:8px;
+      padding:8px 11px;
       border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.05);
-      color:#eef5ff;
-      font-size:11px;
+      font-size:10px;
       font-weight:800;
       letter-spacing:.04em;
       text-transform:uppercase;
+      color:#eafff2;
+      border:1px solid rgba(88,215,145,.16);
+      background:rgba(88,215,145,.08);
       white-space:nowrap;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .live-counter::before{
+      content:"";
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:#47ff92;
+      box-shadow:0 0 12px rgba(71,255,146,.70);
+      flex:none;
     }
 
     .live-item{
@@ -1991,17 +2001,17 @@ body{
 
       <div class="profile-menu-shell">
         <button class="top-icon-btn profile-trigger" id="profileTrigger" type="button" aria-label="Abrir menu da conta" aria-expanded="false" aria-controls="profileMenu">
-          <img id="headerProfilePhoto" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+          <img id="headerProfilePhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%231b2434'/><circle cx='32' cy='24' r='11' fill='%23dce6f8'/><path d='M14 52c3-9 11-15 18-15s15 6 18 15' fill='%23dce6f8'/></svg>" alt="Perfil">
         </button>
 
         <div class="profile-menu" id="profileMenu">
           <div class="profile-menu-head">
-            <img id="menuProfilePhoto" class="profile-menu-avatar" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+            <img id="menuProfilePhoto" class="profile-menu-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%231b2434'/><circle cx='32' cy='24' r='11' fill='%23dce6f8'/><path d='M14 52c3-9 11-15 18-15s15 6 18 15' fill='%23dce6f8'/></svg>" alt="Perfil">
             <div class="profile-menu-copy">
-              <div class="profile-menu-name" id="menuProfileName">wmt</div>
-              <div class="profile-menu-sub" id="menuProfileSub">Conta WMT Market</div>
+              <div class="profile-menu-name" id="menuProfileName">Conta temporária</div>
+              <div class="profile-menu-sub" id="menuProfileSub">Conta temporária ativa</div>
             </div>
-            <a href="enviar.html" class="profile-sell-btn">Vender</a>
+            <a href="login.html" class="profile-sell-btn" id="profilePrimaryAction">Fazer login</a>
           </div>
 
           <div class="profile-menu-links">
@@ -2224,6 +2234,7 @@ body{
       <p id="noticeMessage">Texto da mensagem.</p>
       <div class="notice-actions">
         <button class="notice-btn secondary" id="noticeSecondaryBtn" style="display:none;">Cancelar</button>
+        <button class="notice-btn secondary" id="noticeTertiaryBtn" style="display:none;">Cancelar</button>
         <button class="notice-btn primary" id="noticePrimaryBtn">Fechar</button>
       </div>
     </div>
@@ -2232,6 +2243,7 @@ body{
   <script type="module">
     import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, getDoc, orderBy, query, limit, where, onSnapshot, updateDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+    import { getDatabase, ref as rtdbRef, onValue as onRtdbValue, set as rtdbSet, onDisconnect, remove as rtdbRemove, push } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -2245,6 +2257,7 @@ body{
 
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const rtdb = getDatabase(app);
 
     const CLOUD_NAME = "drgkvipsd";
     const UPLOAD_PRESET = "wmt_upload";
@@ -2519,14 +2532,194 @@ body{
       });
     }
 
-    function getLiveOnlineCount(offers) {
-      const uniqueUsers = new Set(
-        (offers || []).map(offer => String(offer.ownerUserId || offer.nickname || "").trim()).filter(Boolean)
-      );
-      return uniqueUsers.size;
+    const PRESENCE_HEARTBEAT_MS = 15000;
+    const PRESENCE_ONLINE_WINDOW_MS = 5 * 60 * 1000;
+    let presenceHeartbeat = null;
+    let presenceUnsub = null;
+    let presenceConnectionUnsub = null;
+    let lastPresenceUser = null;
+    let currentPresencePage = "enviar";
+    let presenceDisconnectHandle = null;
+    let latestPresenceWriteAt = 0;
+    let currentPresenceConnectionRef = null;
+
+    function getPresenceDisplayName(user) {
+      if (!user) return "Conta temporária";
+
+      if (typeof window.getSendPageDisplayName === "function") {
+        try {
+          const resolved = String(window.getSendPageDisplayName(user) || "").trim();
+          if (resolved) return resolved;
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      const email = String(user?.email || "").trim();
+      if (user?.isAnonymous) return "Conta temporária";
+      return String(user?.displayName || email.split("@")[0] || "Usuário").trim();
     }
 
-    
+    function getPresenceConnectionsRef(user) {
+      return user?.uid ? rtdbRef(rtdb, `presence/${user.uid}/connections`) : null;
+    }
+
+    function getPresencePayload(user, pageName = "enviar") {
+      return {
+        uid: user.uid,
+        nickname: getPresenceDisplayName(user),
+        isAnonymous: !!user.isAnonymous,
+        page: pageName,
+        state: "online",
+        lastSeenMs: Date.now()
+      };
+    }
+
+    async function ensurePresenceConnection(user) {
+      const presenceRootRef = getPresenceConnectionsRef(user);
+      if (!presenceRootRef) return null;
+
+      if (!currentPresenceConnectionRef) {
+        currentPresenceConnectionRef = push(presenceRootRef);
+        presenceDisconnectHandle = onDisconnect(currentPresenceConnectionRef);
+        await presenceDisconnectHandle.remove();
+      }
+
+      return currentPresenceConnectionRef;
+    }
+
+    async function writeRealtimePresence(user, pageName = "enviar", force = false) {
+      if (!user?.uid) return;
+
+      const now = Date.now();
+      if (!force && now - latestPresenceWriteAt < 5000) return;
+
+      lastPresenceUser = user;
+      currentPresencePage = pageName;
+      latestPresenceWriteAt = now;
+
+      try {
+        const connectionRef = await ensurePresenceConnection(user);
+        if (!connectionRef) return;
+
+        await rtdbSet(connectionRef, getPresencePayload(user, pageName));
+      } catch (error) {
+        console.error("Erro ao atualizar presence realtime:", error);
+      }
+    }
+
+    function stopPresenceHeartbeat() {
+      if (presenceHeartbeat) {
+        clearInterval(presenceHeartbeat);
+        presenceHeartbeat = null;
+      }
+      if (presenceConnectionUnsub) {
+        try { presenceConnectionUnsub(); } catch (error) { console.error(error); }
+        presenceConnectionUnsub = null;
+      }
+      if (presenceDisconnectHandle) {
+        try { presenceDisconnectHandle.cancel(); } catch (error) { console.error(error); }
+        presenceDisconnectHandle = null;
+      }
+      currentPresenceConnectionRef = null;
+      latestPresenceWriteAt = 0;
+    }
+
+    function startPresenceHeartbeatForUser(user, pageName = "enviar") {
+      stopPresenceHeartbeat();
+      if (!user?.uid) return;
+
+      lastPresenceUser = user;
+      currentPresencePage = pageName;
+
+      const connectedRef = rtdbRef(rtdb, ".info/connected");
+
+      presenceConnectionUnsub = onRtdbValue(connectedRef, async (snap) => {
+        if (snap.val() !== true) return;
+
+        try {
+          await writeRealtimePresence(user, pageName, true);
+        } catch (error) {
+          console.error("Erro ao conectar presence realtime:", error);
+        }
+      }, (error) => {
+        console.error("Erro em .info/connected:", error);
+      });
+
+      writeRealtimePresence(user, pageName, true);
+
+      presenceHeartbeat = setInterval(() => {
+        writeRealtimePresence(user, currentPresencePage || pageName, false);
+      }, PRESENCE_HEARTBEAT_MS);
+    }
+
+    async function clearPresenceForUser(user) {
+      if (!user?.uid) return;
+
+      try {
+        if (presenceDisconnectHandle) {
+          try { await presenceDisconnectHandle.cancel(); } catch (error) { console.error(error); }
+          presenceDisconnectHandle = null;
+        }
+
+        if (currentPresenceConnectionRef) {
+          await rtdbRemove(currentPresenceConnectionRef);
+          currentPresenceConnectionRef = null;
+        }
+      } catch (error) {
+        console.error("Erro ao limpar presence realtime:", error);
+      }
+    }
+
+    function watchRealOnlineCounter() {
+      if (!liveCounter) return;
+      if (presenceUnsub) return;
+
+      const presenceRootRef = rtdbRef(rtdb, "presence");
+
+      presenceUnsub = onRtdbValue(presenceRootRef, (snapshot) => {
+        const now = Date.now();
+        let total = 0;
+
+        snapshot.forEach((userSnap) => {
+          const connectionsSnap = userSnap.child("connections");
+          if (!connectionsSnap.exists()) return;
+
+          let hasOnlineConnection = false;
+
+          connectionsSnap.forEach((connSnap) => {
+            const data = connSnap.val() || {};
+            let ts = 0;
+
+            if (typeof data.lastSeenMs === "number" && Number.isFinite(data.lastSeenMs)) {
+              ts = data.lastSeenMs;
+            } else if (typeof data.lastChanged === "number" && Number.isFinite(data.lastChanged)) {
+              ts = data.lastChanged;
+            }
+
+            const state = String(data.state || "online").toLowerCase();
+            if (state === "online" && ts && (now - ts) <= PRESENCE_ONLINE_WINDOW_MS) {
+              hasOnlineConnection = true;
+            }
+          });
+
+          if (hasOnlineConnection) {
+            total += 1;
+          }
+        });
+
+        liveCounter.textContent = `${total} online`;
+      }, (error) => {
+        console.error("Erro no contador online realtime:", error);
+      });
+    }
+
+    window.startSendPresenceHeartbeatForUser = startPresenceHeartbeatForUser;
+    window.stopSendPresenceHeartbeat = stopPresenceHeartbeat;
+    window.clearSendPresenceForUser = clearPresenceForUser;
+    watchRealOnlineCounter();
+
+
     async function loadCurrentUserProfile() {
       const user = window.sendPageCurrentUser || null;
       const ownerUserId = typeof window.getSendPageUserId === "function" ? window.getSendPageUserId(user) : "";
@@ -2721,11 +2914,6 @@ body{
         return;
       }
 
-      if (liveCounter) {
-        const onlineCount = getLiveOnlineCount(liveTickerOffersCache);
-        liveCounter.textContent = `${onlineCount} online`;
-      }
-
       resetLiveTicker();
       liveTrack.innerHTML = buildTickerCards(liveTickerOffersCache);
       liveTrack.style.transform = "translate3d(0,0,0)";
@@ -2848,6 +3036,11 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       await loadCurrentUserProfile();
       syncHeaderMenu();
       listenNotifications();
+
+      const activeUser = window.sendPageCurrentUser || null;
+      if (activeUser?.uid && typeof window.startSendPresenceHeartbeatForUser === "function") {
+        window.startSendPresenceHeartbeatForUser(activeUser, "enviar");
+      }
     });
 
     window.addEventListener("resize", () => {
@@ -3203,6 +3396,15 @@ document.addEventListener("wmt:send-auth-ok", async () => {
     const menuProfileSub = document.getElementById("menuProfileSub");
     const profilePanelLink = document.getElementById("profilePanelLink");
     const logoutBtn = document.getElementById("logoutBtn");
+    const profilePrimaryAction = document.getElementById("profilePrimaryAction");
+
+    const noticeModal = document.getElementById("noticeModal");
+    const noticeBadge = document.getElementById("noticeBadge");
+    const noticeTitle = document.getElementById("noticeTitle");
+    const noticeMessage = document.getElementById("noticeMessage");
+    const noticePrimaryBtn = document.getElementById("noticePrimaryBtn");
+    const noticeSecondaryBtn = document.getElementById("noticeSecondaryBtn");
+    const noticeTertiaryBtn = document.getElementById("noticeTertiaryBtn");
 
     let sendPageCurrentUser = null;
     let authDecisionDone = false;
@@ -3217,6 +3419,10 @@ document.addEventListener("wmt:send-auth-ok", async () => {
 
     function getUserId(user) {
       return String(user?.uid || "").trim();
+    }
+
+    function isAnonymousUser(user = sendPageCurrentUser) {
+      return !!user?.isAnonymous;
     }
 
     function getProfileStorageKey(prefix, user = sendPageCurrentUser) {
@@ -3238,58 +3444,61 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       return `https://ui-avatars.com/api/?name=${encodeURIComponent((name || "U").charAt(0).toUpperCase())}&background=1b2c45&color=ffffff&bold=true`;
     }
 
-    function getSendPageDisplayName(user = sendPageCurrentUser) {
-  if (!user) return "Entrar";
-
-  const remoteProfile = window.sendPageCurrentProfile || null;
-  const email = getUserEmail(user);
-
-  return String(
-    remoteProfile?.nickname ||
-    getStoredNickname(user) ||
-    user?.displayName ||
-    email.split("@")[0] ||
-    "Usuário"
-  ).trim();
-}
-
     function getLoggedOutAvatar() {
-  return `data:image/svg+xml;utf8,
+      return `data:image/svg+xml;utf8,
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="32" fill="%231b2434"/>
   <circle cx="32" cy="24" r="11" fill="%23dce6f8"/>
   <path d="M14 52c3-9 11-15 18-15s15 6 18 15" fill="%23dce6f8"/>
 </svg>`;
-}
+    }
 
-function syncSendHeader(user = sendPageCurrentUser) {
-  const isAdmin = isAdminUser(user);
+    function getSendPageDisplayName(user = sendPageCurrentUser) {
+      const remoteProfile = window.sendPageCurrentProfile || null;
+      const email = getUserEmail(user);
 
-  if (!user) {
-    const guestAvatar = getLoggedOutAvatar();
+      if (!user) {
+        return String(remoteProfile?.nickname || "Conta temporária").trim();
+      }
 
-    if (headerProfilePhoto) headerProfilePhoto.src = guestAvatar;
-    if (menuProfilePhoto) menuProfilePhoto.src = guestAvatar;
-    if (menuProfileName) menuProfileName.textContent = "Entrar";
-    if (menuProfileSub) menuProfileSub.textContent = "Faça login para acessar sua conta";
-    if (profilePanelLink) profilePanelLink.style.display = "none";
-    if (logoutBtn) logoutBtn.style.display = "none";
-    return;
-  }
+      const candidates = isAnonymousUser(user)
+        ? [
+            remoteProfile?.nickname,
+            getStoredNickname(user),
+            "Conta temporária"
+          ]
+        : [
+            remoteProfile?.nickname,
+            getStoredNickname(user),
+            user?.displayName,
+            email.split("@")[0],
+            "Usuário"
+          ];
 
-  const displayName = getSendPageDisplayName(user);
-  const displayPhoto = getSendPageDisplayPhoto(user);
-  const userEmail = getUserEmail(user);
+      for (const candidate of candidates) {
+        const clean = String(candidate || "").trim();
+        if (clean) return clean;
+      }
 
-  if (headerProfilePhoto) headerProfilePhoto.src = displayPhoto;
-  if (menuProfilePhoto) menuProfilePhoto.src = displayPhoto;
-  if (menuProfileName) menuProfileName.textContent = displayName || "Conta";
-  if (menuProfileSub) menuProfileSub.textContent = isAdmin
-    ? "Conta administrativa WMT"
-    : (userEmail || "Conta conectada");
-  if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
-  if (logoutBtn) logoutBtn.style.display = "inline-flex";
-}
+      return isAnonymousUser(user) ? "Conta temporária" : "Usuário";
+    }
+
+    function getSendPageDisplayPhoto(user = sendPageCurrentUser) {
+      const remoteProfile = window.sendPageCurrentProfile || null;
+
+      if (!user) {
+        return getLoggedOutAvatar();
+      }
+
+      const storedPhoto = getStoredPhoto(user);
+      const remotePhoto = String(remoteProfile?.photo || "").trim();
+      const authPhoto = String(user?.photoURL || "").trim();
+
+      const resolved = remotePhoto || storedPhoto || authPhoto;
+      if (resolved) return resolved;
+
+      return getAvatarFallback(getSendPageDisplayName(user));
+    }
 
     function revealSendPage() {
       document.body.style.display = "block";
@@ -3298,6 +3507,106 @@ function syncSendHeader(user = sendPageCurrentUser) {
     function setRedirectTarget(target) {
       localStorage.setItem(REDIRECT_KEY, target);
       sessionStorage.setItem(REDIRECT_KEY, target);
+    }
+
+    function goToLogin(target = "enviar.html") {
+      setRedirectTarget(target);
+      window.location.href = "login.html";
+    }
+
+    function closeNotice() {
+      if (noticeModal) noticeModal.style.display = "none";
+      if (noticePrimaryBtn) noticePrimaryBtn.onclick = null;
+      if (noticeSecondaryBtn) noticeSecondaryBtn.onclick = null;
+      if (noticeTertiaryBtn) noticeTertiaryBtn.onclick = null;
+    }
+
+    function showNotice({
+      badge = "Aviso",
+      title = "Mensagem",
+      message = "",
+      primaryText = "Fechar",
+      secondaryText = "",
+      tertiaryText = "",
+      onPrimary = null,
+      onSecondary = null,
+      onTertiary = null
+    }) {
+      if (!noticeModal) return;
+
+      if (noticeBadge) noticeBadge.textContent = badge;
+      if (noticeTitle) noticeTitle.textContent = title;
+      if (noticeMessage) noticeMessage.textContent = message;
+
+      if (noticePrimaryBtn) {
+        noticePrimaryBtn.textContent = primaryText || "Fechar";
+        noticePrimaryBtn.onclick = () => {
+          closeNotice();
+          if (typeof onPrimary === "function") onPrimary();
+        };
+      }
+
+      if (noticeSecondaryBtn) {
+        noticeSecondaryBtn.textContent = secondaryText || "Cancelar";
+        noticeSecondaryBtn.style.display = secondaryText ? "inline-flex" : "none";
+        noticeSecondaryBtn.onclick = () => {
+          closeNotice();
+          if (typeof onSecondary === "function") onSecondary();
+        };
+      }
+
+      if (noticeTertiaryBtn) {
+        noticeTertiaryBtn.textContent = tertiaryText || "Cancelar";
+        noticeTertiaryBtn.style.display = tertiaryText ? "inline-flex" : "none";
+        noticeTertiaryBtn.onclick = () => {
+          closeNotice();
+          if (typeof onTertiary === "function") onTertiary();
+        };
+      }
+
+      noticeModal.style.display = "flex";
+    }
+
+    noticeModal?.addEventListener("click", (event) => {
+      if (event.target === noticeModal) closeNotice();
+    });
+
+    function syncSendHeader(user = sendPageCurrentUser) {
+      const displayName = getSendPageDisplayName(user);
+      const displayPhoto = getSendPageDisplayPhoto(user);
+      const isAdmin = !!user && !isAnonymousUser(user) && isAdminUser(user);
+
+      if (headerProfilePhoto) headerProfilePhoto.src = displayPhoto;
+      if (menuProfilePhoto) menuProfilePhoto.src = displayPhoto;
+      if (menuProfileName) menuProfileName.textContent = displayName || "Conta temporária";
+
+      if (menuProfileSub) {
+        if (!user || isAnonymousUser(user)) {
+          menuProfileSub.textContent = "Conta temporária ativa";
+        } else if (isAdmin) {
+          menuProfileSub.textContent = "Conta conectada • administrador";
+        } else {
+          menuProfileSub.textContent = "Conta conectada";
+        }
+      }
+
+      if (profilePanelLink) {
+        profilePanelLink.style.display = isAdmin ? "flex" : "none";
+      }
+
+      if (logoutBtn) {
+        logoutBtn.style.display = user ? "inline-flex" : "none";
+      }
+
+      if (profilePrimaryAction) {
+        if (!user || isAnonymousUser(user)) {
+          profilePrimaryAction.textContent = "Fazer login";
+          profilePrimaryAction.href = "login.html";
+        } else {
+          profilePrimaryAction.textContent = "Vender";
+          profilePrimaryAction.href = "enviar.html";
+        }
+      }
     }
 
     async function ensureAnonymousSession() {
@@ -3334,12 +3643,45 @@ function syncSendHeader(user = sendPageCurrentUser) {
       document.dispatchEvent(new Event("wmt:send-auth-ok"));
     }
 
+    async function continueAndLogout() {
+      const activeUser = sendPageCurrentUser || auth.currentUser || null;
+
+      try {
+        if (typeof window.clearSendPresenceForUser === "function") {
+          await window.clearSendPresenceForUser(activeUser);
+        }
+        if (typeof window.stopSendPresenceHeartbeat === "function") {
+          window.stopSendPresenceHeartbeat();
+        }
+        await signOut(auth);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        window.location.href = "index.html";
+      }
+    }
+
     window.ensureSendPageAnonymousSession = ensureAnonymousSession;
     window.applySendPageAuthenticatedState = applyAuthenticatedState;
+
+    profilePrimaryAction?.addEventListener("click", (event) => {
+      const user = sendPageCurrentUser || auth.currentUser || null;
+      if (!user || isAnonymousUser(user)) {
+        event.preventDefault();
+        goToLogin("enviar.html");
+      }
+    });
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         applyAuthenticatedState(user);
+        return;
+      }
+
+      const anonymousUser = await ensureAnonymousSession();
+
+      if (anonymousUser) {
+        applyAuthenticatedState(anonymousUser);
         return;
       }
 
@@ -3350,16 +3692,32 @@ function syncSendHeader(user = sendPageCurrentUser) {
     });
 
     logoutBtn?.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        window.location.href = "index.html";
+      const user = sendPageCurrentUser || auth.currentUser || null;
+
+      if (user && isAnonymousUser(user)) {
+        showNotice({
+          badge: "Conta temporária",
+          title: "Você pode perder esta conta temporária",
+          message: "Se você sair, pode perder esta conta temporária neste navegador. Faça login antes de sair para não perder acesso.",
+          primaryText: "Fazer login",
+          secondaryText: "Continuar e sair",
+          tertiaryText: "Cancelar",
+          onPrimary: () => goToLogin("enviar.html"),
+          onSecondary: () => continueAndLogout()
+        });
+        return;
       }
+
+      await continueAndLogout();
     });
 
     syncSendHeader(auth.currentUser || null);
+
+    window.addEventListener("beforeunload", () => {
+      if (typeof window.stopSendPresenceHeartbeat === "function") {
+        window.stopSendPresenceHeartbeat();
+      }
+    });
   </script>
 
 </body>
