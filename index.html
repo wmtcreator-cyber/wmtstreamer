@@ -2103,7 +2103,7 @@ body{
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
    import { getFirestore, collection, getDocs, query, where, limit, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-    import { getDatabase, ref as rtdbRef, set as rtdbSet, onValue, onDisconnect, remove as rtdbRemove, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+    import { getDatabase, ref as rtdbRef, onValue, set, onDisconnect, remove, push } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -2309,9 +2309,9 @@ body{
       return String(user?.displayName || email.split("@")[0] || "Usuário").trim();
     }
 
-    function getPresenceRefForUser(user) {
-      return user?.uid ? rtdbRef(rtdb, `presence/${user.uid}`) : null;
-    }
+    function getPresenceRef(user) {
+  return user?.uid ? rtdbRef(rtdb, `presence/${user.uid}/connections`) : null;
+}
 
     async function writeRealtimePresence(user, pageName = "index", force = false) {
       if (!user?.uid) return;
@@ -2322,19 +2322,20 @@ body{
       currentPresencePage = pageName;
       latestPresenceWriteAt = now;
 
-      const presenceRef = getPresenceRefForUser(user);
-      if (!presenceRef) return;
+      const presenceRootRef = getPresenceRef(user);
+if (!presenceRootRef) return;
 
-      try {
-        await rtdbSet(presenceRef, {
-          uid: user.uid,
-          nickname: getPresenceDisplayName(user),
-          isAnonymous: !!user.isAnonymous,
-          page: pageName,
-          state: "online",
-          lastChanged: rtdbServerTimestamp(),
-          lastSeenMs: now
-        });
+const connectionRef = push(presenceRootRef);
+
+await onDisconnect(connectionRef).remove();
+
+await set(connectionRef, {
+  uid: user.uid,
+  nickname: getPresenceDisplayName(user),
+  isAnonymous: !!user.isAnonymous,
+  page: "index",
+  lastSeenMs: Date.now()
+});
       } catch (error) {
         console.error("Erro ao atualizar presence realtime:", error);
       }
