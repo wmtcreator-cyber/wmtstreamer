@@ -3242,40 +3242,57 @@ document.addEventListener("wmt:send-auth-ok", async () => {
     }
 
     function getSendPageDisplayName(user = sendPageCurrentUser) {
-      if (!user) return "Visitante";
+  if (!user) return "Entrar";
 
-      const remoteProfile = window.sendPageCurrentProfile || null;
-      const email = getUserEmail(user);
-      return String(
-        remoteProfile?.nickname ||
-        getStoredNickname(user) ||
-        user?.displayName ||
-        email.split("@")[0] ||
-        "Usuário"
-      ).trim();
-    }
+  const remoteProfile = window.sendPageCurrentProfile || null;
+  const email = getUserEmail(user);
 
-    function getSendPageDisplayPhoto(user = sendPageCurrentUser) {
-      const remoteProfile = window.sendPageCurrentProfile || null;
-      const saved = String(remoteProfile?.photo || getStoredPhoto(user) || "").trim();
-      if (saved) return saved;
-      return getAvatarFallback(getSendPageDisplayName(user));
-    }
+  return String(
+    remoteProfile?.nickname ||
+    getStoredNickname(user) ||
+    user?.displayName ||
+    email.split("@")[0] ||
+    "Usuário"
+  ).trim();
+}
 
-    function syncSendHeader(user = sendPageCurrentUser) {
-      const displayName = getSendPageDisplayName(user);
-      const displayPhoto = getSendPageDisplayPhoto(user);
-      const isAdmin = isAdminUser(user);
+    function getLoggedOutAvatar() {
+  return `data:image/svg+xml;utf8,
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="32" fill="%231b2434"/>
+  <circle cx="32" cy="24" r="11" fill="%23dce6f8"/>
+  <path d="M14 52c3-9 11-15 18-15s15 6 18 15" fill="%23dce6f8"/>
+</svg>`;
+}
 
-      if (headerProfilePhoto) headerProfilePhoto.src = displayPhoto;
-      if (menuProfilePhoto) menuProfilePhoto.src = displayPhoto;
-      if (menuProfileName) menuProfileName.textContent = displayName;
-      if (menuProfileSub) menuProfileSub.textContent = user
-        ? (isAdmin ? "Conta administrativa WMT" : (getUserEmail(user) || "Conta conectada"))
-        : "Sessão temporária pronta para enviar oferta";
-      if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
-      if (logoutBtn) logoutBtn.style.display = user ? "inline-flex" : "none";
-    }
+function syncSendHeader(user = sendPageCurrentUser) {
+  const isAdmin = isAdminUser(user);
+
+  if (!user) {
+    const guestAvatar = getLoggedOutAvatar();
+
+    if (headerProfilePhoto) headerProfilePhoto.src = guestAvatar;
+    if (menuProfilePhoto) menuProfilePhoto.src = guestAvatar;
+    if (menuProfileName) menuProfileName.textContent = "Entrar";
+    if (menuProfileSub) menuProfileSub.textContent = "Faça login para acessar sua conta";
+    if (profilePanelLink) profilePanelLink.style.display = "none";
+    if (logoutBtn) logoutBtn.style.display = "none";
+    return;
+  }
+
+  const displayName = getSendPageDisplayName(user);
+  const displayPhoto = getSendPageDisplayPhoto(user);
+  const userEmail = getUserEmail(user);
+
+  if (headerProfilePhoto) headerProfilePhoto.src = displayPhoto;
+  if (menuProfilePhoto) menuProfilePhoto.src = displayPhoto;
+  if (menuProfileName) menuProfileName.textContent = displayName || "Conta";
+  if (menuProfileSub) menuProfileSub.textContent = isAdmin
+    ? "Conta administrativa WMT"
+    : (userEmail || "Conta conectada");
+  if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
+  if (logoutBtn) logoutBtn.style.display = "inline-flex";
+}
 
     function revealSendPage() {
       document.body.style.display = "block";
