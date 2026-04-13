@@ -2079,6 +2079,7 @@ body{
                       <button type="button" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</button>
                       <button type="button" class="small-btn danger" id="clearPhotosBtn">Limpar tudo</button>
                     </div>
+                    <input id="photoPickerInput" type="file" accept="image/*" multiple hidden>
                   </div>
 
                   <div id="previewGrid" class="preview-grid"></div>
@@ -2252,6 +2253,7 @@ body{
     const liveTrack = document.getElementById("liveTrack");
     const addPhotosBtn = document.getElementById("addPhotosBtn");
     const clearPhotosBtn = document.getElementById("clearPhotosBtn");
+    const photoPickerInput = document.getElementById("photoPickerInput");
     const previewGrid = document.getElementById("previewGrid");
     const uploadEmptyState = document.getElementById("uploadEmptyState");
     const offerForm = document.getElementById("offerForm");
@@ -2905,34 +2907,34 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       });
     });
 
+    function handlePickedPhotos(fileList) {
+      const newFiles = Array.from(fileList || []).filter(file => file.type.startsWith("image/"));
+      if (!newFiles.length) return;
+
+      const availableSlots = 10 - selectedFiles.length;
+      if (availableSlots <= 0) {
+        showStatus(`<strong>Limite atingido.</strong> Você já adicionou o máximo de 10 fotos.`, "error");
+        return;
+      }
+
+      selectedFiles = selectedFiles.concat(newFiles.slice(0, availableSlots));
+
+      if (newFiles.length > availableSlots) {
+        showStatus(`<strong>Quantidade ajustada.</strong> Só foi possível adicionar fotos até completar o limite de 10.`, "error");
+      } else {
+        statusBox.style.display = "none";
+      }
+
+      renderPreviews();
+    }
+
     addPhotosBtn.addEventListener("click", () => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.multiple = true;
+      photoPickerInput?.click();
+    });
 
-      input.onchange = (event) => {
-        const newFiles = Array.from(event.target.files || []).filter(file => file.type.startsWith("image/"));
-        if (!newFiles.length) return;
-
-        const availableSlots = 10 - selectedFiles.length;
-        if (availableSlots <= 0) {
-          showStatus(`<strong>Limite atingido.</strong> Você já adicionou o máximo de 10 fotos.`, "error");
-          return;
-        }
-
-        selectedFiles = selectedFiles.concat(newFiles.slice(0, availableSlots));
-
-        if (newFiles.length > availableSlots) {
-          showStatus(`<strong>Quantidade ajustada.</strong> Só foi possível adicionar fotos até completar o limite de 10.`, "error");
-        } else {
-          statusBox.style.display = "none";
-        }
-
-        renderPreviews();
-      };
-
-      input.click();
+    photoPickerInput?.addEventListener("change", (event) => {
+      handlePickedPhotos(event.target.files || []);
+      event.target.value = "";
     });
 
     clearPhotosBtn.addEventListener("click", () => {
