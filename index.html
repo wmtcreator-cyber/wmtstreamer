@@ -2873,11 +2873,15 @@ body{
       return isAnonymousUser(user) ? "Conta temporária" : "Usuário";
     }
     function getPhoto(user){
-      if (!user) return LOGGED_OUT_AVATAR;
-      const saved = String(currentProfile?.photo || getStoredPhoto(user) || "").trim();
-      if (saved && !isPlaceholderPhoto(saved)) return saved;
-      return getAvatarFallback(getDisplayName(user));
-    }
+  if (!user) return LOGGED_OUT_AVATAR;
+
+  const saved = String(currentProfile?.photo || getStoredPhoto(user) || "").trim();
+  if (saved && !isPlaceholderPhoto(saved)) return saved;
+
+  if (isAnonymousUser(user)) return LOGGED_OUT_AVATAR;
+
+  return getAvatarFallback(getDisplayName(user));
+}
 
     function stopProfileListener(){
       if (profileUnsub) {
