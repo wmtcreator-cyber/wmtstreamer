@@ -2293,6 +2293,7 @@ body{
     let currentPresencePage = "index";
     let presenceDisconnectHandle = null;
     let latestPresenceWriteAt = 0;
+    let currentPresenceConnectionRef = null;
 
     function getPresenceDisplayName(user) {
       if (!user) return "Conta temporária";
@@ -2309,12 +2310,37 @@ body{
       return String(user?.displayName || email.split("@")[0] || "Usuário").trim();
     }
 
-    function getPresenceRef(user) {
-  return user?.uid ? rtdbRef(rtdb, `presence/${user.uid}/connections`) : null;
-}
+    function getPresenceConnectionsRef(user) {
+      return user?.uid ? rtdbRef(rtdb, `presence/${user.uid}/connections`) : null;
+    }
+
+    function getPresencePayload(user, pageName = "index") {
+      return {
+        uid: user.uid,
+        nickname: getPresenceDisplayName(user),
+        isAnonymous: !!user.isAnonymous,
+        page: pageName,
+        state: "online",
+        lastSeenMs: Date.now()
+      };
+    }
+
+    async function ensurePresenceConnection(user) {
+      const presenceRootRef = getPresenceConnectionsRef(user);
+      if (!presenceRootRef) return null;
+
+      if (!currentPresenceConnectionRef) {
+        currentPresenceConnectionRef = push(presenceRootRef);
+        presenceDisconnectHandle = onDisconnect(currentPresenceConnectionRef);
+        await presenceDisconnectHandle.remove();
+      }
+
+      return currentPresenceConnectionRef;
+    }
 
     async function writeRealtimePresence(user, pageName = "index", force = false) {
       if (!user?.uid) return;
+
       const now = Date.now();
       if (!force && now - latestPresenceWriteAt < 5000) return;
 
@@ -2322,20 +2348,11 @@ body{
       currentPresencePage = pageName;
       latestPresenceWriteAt = now;
 
-      const presenceRootRef = getPresenceRef(user);
-if (!presenceRootRef) return;
+      try {
+        const connectionRef = await ensurePresenceConnection(user);
+        if (!connectionRef) return;
 
-const connectionRef = push(presenceRootRef);
-
-await onDisconnect(connectionRef).remove();
-
-await set(connectionRef, {
-  uid: user.uid,
-  nickname: getPresenceDisplayName(user),
-  isAnonymous: !!user.isAnonymous,
-  page: "index",
-  lastSeenMs: Date.now()
-});
+        await set(connectionRef, getPresencePayload(user, pageName));
       } catch (error) {
         console.error("Erro ao atualizar presence realtime:", error);
       }
@@ -2350,7 +2367,11 @@ await set(connectionRef, {
         try { presenceConnectionUnsub(); } catch (error) { console.error(error); }
         presenceConnectionUnsub = null;
       }
-      presenceDisconnectHandle = null;
+      if (presenceDisconnectHandle) {
+        try { presenceDisconnectHandle.cancel(); } catch (error) { console.error(error); }
+        presenceDisconnectHandle = null;
+      }
+      currentPresenceConnectionRef = null;
       latestPresenceWriteAt = 0;
     }
 
@@ -2361,16 +2382,12 @@ await set(connectionRef, {
       lastPresenceUser = user;
       currentPresencePage = pageName;
 
-      const presenceRef = getPresenceRefForUser(user);
       const connectedRef = rtdbRef(rtdb, ".info/connected");
-      if (!presenceRef) return;
 
       presenceConnectionUnsub = onValue(connectedRef, async (snap) => {
         if (snap.val() !== true) return;
 
         try {
-          presenceDisconnectHandle = onDisconnect(presenceRef);
-          await presenceDisconnectHandle.remove();
           await writeRealtimePresence(user, pageName, true);
         } catch (error) {
           console.error("Erro ao conectar presence realtime:", error);
@@ -2388,14 +2405,17 @@ await set(connectionRef, {
 
     async function clearPresenceForUser(user) {
       if (!user?.uid) return;
-      const presenceRef = getPresenceRefForUser(user);
-      if (!presenceRef) return;
 
       try {
         if (presenceDisconnectHandle) {
           try { await presenceDisconnectHandle.cancel(); } catch (error) { console.error(error); }
+          presenceDisconnectHandle = null;
         }
-        await rtdbRemove(presenceRef);
+
+        if (currentPresenceConnectionRef) {
+          await remove(currentPresenceConnectionRef);
+          currentPresenceConnectionRef = null;
+        }
       } catch (error) {
         console.error("Erro ao limpar presence realtime:", error);
       }
@@ -2411,18 +2431,29 @@ await set(connectionRef, {
         const now = Date.now();
         let total = 0;
 
-        snapshot.forEach((childSnap) => {
-          const data = childSnap.val() || {};
-          let ts = 0;
+        snapshot.forEach((userSnap) => {
+          const connectionsSnap = userSnap.child("connections");
+          if (!connectionsSnap.exists()) return;
 
-          if (typeof data.lastSeenMs === "number" && Number.isFinite(data.lastSeenMs)) {
-            ts = data.lastSeenMs;
-          } else if (typeof data.lastChanged === "number" && Number.isFinite(data.lastChanged)) {
-            ts = data.lastChanged;
-          }
+          let hasOnlineConnection = false;
 
-          const isOnlineState = String(data.state || "").toLowerCase() === "online";
-          if (isOnlineState && ts && (now - ts) <= PRESENCE_ONLINE_WINDOW_MS) {
+          connectionsSnap.forEach((connSnap) => {
+            const data = connSnap.val() || {};
+            let ts = 0;
+
+            if (typeof data.lastSeenMs === "number" && Number.isFinite(data.lastSeenMs)) {
+              ts = data.lastSeenMs;
+            } else if (typeof data.lastChanged === "number" && Number.isFinite(data.lastChanged)) {
+              ts = data.lastChanged;
+            }
+
+            const state = String(data.state || "online").toLowerCase();
+            if (state === "online" && ts && (now - ts) <= PRESENCE_ONLINE_WINDOW_MS) {
+              hasOnlineConnection = true;
+            }
+          });
+
+          if (hasOnlineConnection) {
             total += 1;
           }
         });
