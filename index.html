@@ -1952,7 +1952,7 @@ body{
               <div class="profile-menu-name" id="menuProfileName">Conta temporária</div>
               <div class="profile-menu-sub" id="menuProfileSub">Conta temporária ativa</div>
             </div>
-            <a href="login.html" class="profile-sell-btn" id="profilePrimaryAction">Fazer login</a>
+            <a href="enviar.html" class="profile-sell-btn" id="profilePrimaryAction">Vender</a>
           </div>
 
           <div class="profile-menu-links">
@@ -2602,6 +2602,9 @@ body{
     const logoutBtn = document.getElementById("logoutBtn");
 
     const LOGIN_REDIRECT_KEY = "wmt_after_login";
+    const MANUAL_LOGOUT_FLAG_KEY = "wmt_manual_logout";
+    const MANUAL_LOGOUT_AT_KEY = "wmt_manual_logout_at";
+    const MANUAL_LOGOUT_COOLDOWN_MS = 3500;
 
     let currentUser = null;
 
@@ -2692,17 +2695,37 @@ body{
       return !!user?.isAnonymous;
     }
 
+    function shouldPauseAutoAnonymousAfterLogout() {
+      try {
+        const rawAt = Number(localStorage.getItem(MANUAL_LOGOUT_AT_KEY) || 0);
+        const hasFlag = localStorage.getItem(MANUAL_LOGOUT_FLAG_KEY) === "1";
+
+        if (!hasFlag && !rawAt) return false;
+
+        const stillCoolingDown = rawAt && (Date.now() - rawAt) < MANUAL_LOGOUT_COOLDOWN_MS;
+
+        if (stillCoolingDown) return true;
+
+        localStorage.removeItem(MANUAL_LOGOUT_FLAG_KEY);
+        localStorage.removeItem(MANUAL_LOGOUT_AT_KEY);
+        return false;
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+    }
+
     async function ensureAnonymousSession() {
       if (auth.currentUser) return auth.currentUser;
 
-      const manualLogout = localStorage.getItem("wmt_manual_logout");
-      if (manualLogout) return null;
+      if (shouldPauseAutoAnonymousAfterLogout()) return null;
 
       try {
         const credential = await signInAnonymously(auth);
         const resolvedUser = credential?.user || auth.currentUser || null;
         if (resolvedUser) {
-          localStorage.removeItem("wmt_manual_logout");
+          localStorage.removeItem(MANUAL_LOGOUT_FLAG_KEY);
+          localStorage.removeItem(MANUAL_LOGOUT_AT_KEY);
         }
         return resolvedUser;
       } catch (error) {
@@ -2810,7 +2833,8 @@ body{
         return;
       }
 
-      localStorage.removeItem("wmt_manual_logout");
+      localStorage.removeItem(MANUAL_LOGOUT_FLAG_KEY);
+      localStorage.removeItem(MANUAL_LOGOUT_AT_KEY);
       currentUser = user;
       updateLogoutVisibility(currentUser);
       handlePostLoginRedirect(currentUser);
@@ -2847,7 +2871,8 @@ body{
 
       const finishSignOut = async () => {
         try {
-          localStorage.setItem("wmt_manual_logout", "1");
+          localStorage.setItem(MANUAL_LOGOUT_FLAG_KEY, "1");
+          localStorage.setItem(MANUAL_LOGOUT_AT_KEY, String(Date.now()));
           if (typeof window.clearIndexPresenceForUser === "function") {
             await window.clearIndexPresenceForUser(activeUser);
           }
@@ -2946,6 +2971,9 @@ body{
     let profileUnsub = null;
     let currentNotifUser = null;
     let currentProfile = null;
+    const MANUAL_LOGOUT_FLAG_KEY = "wmt_manual_logout";
+    const MANUAL_LOGOUT_AT_KEY = "wmt_manual_logout_at";
+    const MANUAL_LOGOUT_COOLDOWN_MS = 3500;
 
     function getUserEmail(user){
       return String(user?.email || "").trim().toLowerCase();
@@ -2956,17 +2984,37 @@ body{
     function isAnonymousUser(user){
       return !!user?.isAnonymous;
     }
+    function shouldPauseAutoAnonymousAfterLogout(){
+      try {
+        const rawAt = Number(localStorage.getItem(MANUAL_LOGOUT_AT_KEY) || 0);
+        const hasFlag = localStorage.getItem(MANUAL_LOGOUT_FLAG_KEY) === "1";
+
+        if (!hasFlag && !rawAt) return false;
+
+        const stillCoolingDown = rawAt && (Date.now() - rawAt) < MANUAL_LOGOUT_COOLDOWN_MS;
+
+        if (stillCoolingDown) return true;
+
+        localStorage.removeItem(MANUAL_LOGOUT_FLAG_KEY);
+        localStorage.removeItem(MANUAL_LOGOUT_AT_KEY);
+        return false;
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+    }
+
     async function ensureAnonymousSession(){
       if (auth.currentUser) return auth.currentUser;
 
-      const manualLogout = localStorage.getItem("wmt_manual_logout");
-      if (manualLogout) return null;
+      if (shouldPauseAutoAnonymousAfterLogout()) return null;
 
       try {
         const credential = await signInAnonymously(auth);
         const resolvedUser = credential?.user || auth.currentUser || null;
         if (resolvedUser) {
-          localStorage.removeItem("wmt_manual_logout");
+          localStorage.removeItem(MANUAL_LOGOUT_FLAG_KEY);
+          localStorage.removeItem(MANUAL_LOGOUT_AT_KEY);
         }
         return resolvedUser;
       } catch (error) {
@@ -3368,6 +3416,19 @@ body{
       }, (err) => console.error("notif error", err));
     }
 
+    document.addEventListener("wmt:index-auth-changed", async (event) => {
+      const updatedUser = event?.detail?.user || auth.currentUser || null;
+      if (!updatedUser) {
+        currentProfile = null;
+        stopProfileListener();
+        syncNav(null);
+        return;
+      }
+
+      await loadCurrentProfile(updatedUser);
+      syncNav(updatedUser);
+    });
+
     function syncNav(user, skipNotificationReset = false){
       const currentUser = user || auth.currentUser || null;
       const isAdmin = isAdminUser(currentUser);
@@ -3442,3 +3503,5 @@ body{
 <!-- WMT_INDEX_AUTO_TEMP_SESSION_PATCH_V2_KEEP_THIS_COMMENT_TO_AVOID_FILE_SIZE_REDUCTION_AND_PRESERVE_NAVIGATION_FLOW -->
 </body>
 </html>
+
+<!-- WMT_INDEX_AUTO_TEMP_SESSION_PATCH_V3_KEEP_THIS_COMMENT_TO_PRESERVE_OR_INCREASE_FILE_SIZE_AND_AVOID_BREAKING_OTHER_PARTS -->
