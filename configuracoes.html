@@ -1839,6 +1839,7 @@ function getAvatarFallback(name) {
 
     async function continueAndLogout() {
       try {
+        localStorage.setItem("wmt_manual_logout", "1");
         await stopPresence();
         await signOut(auth);
       } catch (error) {
@@ -2424,6 +2425,15 @@ if (!profileSnap.exists()) {
     async function finalizeProtectedAccess() {
       if (authDecisionDone) return;
 
+      const manualLogout = localStorage.getItem("wmt_manual_logout");
+      if (manualLogout) {
+        authDecisionDone = true;
+        revealPage();
+        currentUser = null;
+        syncHeader(null);
+        return;
+      }
+
       try {
         const cred = await signInAnonymously(auth);
         applyAuthenticatedState(cred.user);
@@ -2442,6 +2452,7 @@ if (!profileSnap.exists()) {
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        localStorage.removeItem("wmt_manual_logout");
         applyAuthenticatedState(user);
         return;
       }
