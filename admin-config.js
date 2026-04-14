@@ -3,7 +3,8 @@
 export const ADMIN_EMAILS = [
   "wmtcreator@gmail.com",
   "italokauan4444@gmail.com",
-  "william.teles3000@gmail.com" 
+  "william.teles3000@gmail.com",
+  "EMAIL_DA_OUTRA_CONTA_AQUI"
 ];
 
 export function normalizeEmail(value) {
