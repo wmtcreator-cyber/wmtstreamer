@@ -2727,16 +2727,16 @@ body{
   const storedNickname = sanitizeDisplayName(getStoredNickname());
   if (storedNickname) return storedNickname;
 
-  if (user?.isAnonymous) {
-    return "Conta temporária";
-  }
-
+  const isAdmin = isAdminUser(user) || String(currentRole || "").trim().toLowerCase() === "admin";
   const email = getUserEmail(user);
-  return String(
-    user?.displayName ||
-    email.split("@")[0] ||
-    "Usuário"
-  ).trim();
+  const displayName = sanitizeDisplayName(user?.displayName || "");
+
+  if (displayName) return displayName;
+  if (email) return String(email.split("@")[0] || "").trim() || (isAdmin ? "WMT" : "Usuário");
+  if (isAdmin) return "WMT";
+  if (user?.isAnonymous) return "Conta temporária";
+
+  return "Usuário";
 }
 
     function getCurrentUserPhoto() {
@@ -2750,13 +2750,15 @@ body{
 
     function updateProfileCard() {
       const user = getChatUser();
-      const isAdmin = isAdminUser(user);
+      const isAdmin = isAdminUser(user) || String(currentRole || "").trim().toLowerCase() === "admin";
       const name = getCurrentUserName();
       const photo = getCurrentUserPhoto();
       const email = getUserEmail(user);
       const liveProfile = getCurrentUserLiveProfile();
       const activeRole = getProfileActiveRole(liveProfile);
-      const roleHtml = activeRole ? renderSpecialRoleBadge(activeRole, "profile-role-badge") : "";
+      const fallbackRole = isAdmin ? "STREAMER" : "";
+      const resolvedRole = activeRole || fallbackRole;
+      const roleHtml = resolvedRole ? renderSpecialRoleBadge(resolvedRole, "profile-role-badge") : "";
 
       profilePhoto.src = getAvatarUrl(name, photo);
       profileRole.textContent = "Seu perfil";
@@ -2966,17 +2968,20 @@ body{
     }
 
     function resolveSenderNameData(message, role) {
+  const normalizedRole = String(role || "").trim().toLowerCase();
   const liveProfile = getResolvedSenderProfile(message);
   const liveName = sanitizeDisplayName(liveProfile?.nickname || "");
   const rawName = sanitizeDisplayName(message?.senderName || "");
   const isMyMessage = String(message?.senderId || "").trim() === getCurrentUserId();
   const currentName = sanitizeDisplayName(getCurrentUserName() || "");
+  const fallbackAdminName = sanitizeDisplayName(currentChat?.adminName || "") || "WMT";
+  const fallbackOwnerName = sanitizeDisplayName(currentChat?.ownerName || "") || "Usuário";
 
   const finalName =
     (isMyMessage && currentName) ||
     liveName ||
     rawName ||
-    (role === "admin" ? "WMT" : (currentChat?.ownerName || "Usuário"));
+    (normalizedRole === "admin" ? fallbackAdminName : fallbackOwnerName);
 
   return { finalName, liveProfile };
 }
@@ -3001,19 +3006,19 @@ body{
       }
 
       const renderedMessages = liveMessages.map(message => {
-  const rawSenderRole = String(message.senderRole || "").trim().toUpperCase();
-  const senderRole = rawSenderRole || "OWNER";
-
-  const isMine = String(message.senderId || "").trim() === getCurrentUserId();
-  const sideClass = isMine ? "admin" : "owner";
+  const senderRole = String(message?.senderRole || "").trim().toLowerCase() === "admin" ? "admin" : "owner";
+  const isMine = String(message?.senderId || "").trim() === getCurrentUserId();
+  const sideClass = senderRole === "admin" ? "admin" : "owner";
+  const showAvatarLeft = sideClass !== "admin";
+  const showAvatarRight = sideClass === "admin";
 
   const dateText = formatDate(message.createdAt);
   const avatar = resolveSenderPhoto(message, senderRole);
   const senderName = renderSenderName(message, senderRole);
 
   return `
-          <div class="msg-row ${sideClass}">
-            ${!isMine ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
+          <div class="msg-row ${sideClass}" data-is-mine="${isMine ? "1" : "0"}">
+            ${showAvatarLeft ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
 
             <div class="msg ${sideClass}">
               <div class="msg-top">
@@ -3023,7 +3028,7 @@ body{
               <div class="msg-text">${escapeHtml(message.text || "")}</div>
             </div>
 
-            ${isMine ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
+            ${showAvatarRight ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
           </div>
         `;
       }).join("");
@@ -3194,19 +3199,17 @@ body{
     }
 
     function renderSenderName(message, role) {
-  const { finalName, liveProfile } = resolveSenderNameData(message, role);
+  const normalizedRole = String(role || "").trim().toLowerCase();
+  const { finalName, liveProfile } = resolveSenderNameData(message, normalizedRole);
 
-  const messageRole = String(message?.senderRole || "").trim().toUpperCase();
   const profileRole = getProfileActiveRole(liveProfile);
-  const resolvedRole = messageRole || profileRole || "";
+  const resolvedRole = profileRole || (normalizedRole === "admin" ? "STREAMER" : "");
 
   const roleHtml = resolvedRole
     ? renderSpecialRoleBadge(resolvedRole, "msg-role-badge")
     : "";
 
-  const isAdminLike = String(role || "").trim().toLowerCase() === "admin";
-
-  if (isAdminLike) {
+  if (normalizedRole === "admin") {
     return `<span class="admin-name-wrap"><span class="admin-name-text">${escapeHtml(finalName)}</span><span class="verify-badge admin-verify" aria-hidden="true"></span>${roleHtml}</span>`;
   }
 
