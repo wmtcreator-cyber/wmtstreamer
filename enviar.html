@@ -3275,26 +3275,26 @@ document.addEventListener("wmt:send-auth-ok", async () => {
 
       let { ownerUserId, ownerEmail, ownerName, ownerPhoto } = getCurrentOfferOwner();
 
-      if (!ownerUserId) {
-        const anonymousUser = (typeof window.ensureSendPageAnonymousSession === "function")
-          ? await window.ensureSendPageAnonymousSession()
-          : null;
+if (!ownerUserId && !ownerEmail) {
+  const anonymousUser = (typeof window.ensureSendPageAnonymousSession === "function")
+    ? await window.ensureSendPageAnonymousSession()
+    : null;
 
-        if (anonymousUser && typeof window.applySendPageAuthenticatedState === "function") {
-          window.applySendPageAuthenticatedState(anonymousUser);
-        }
+  if (anonymousUser && typeof window.applySendPageAuthenticatedState === "function") {
+    window.applySendPageAuthenticatedState(anonymousUser);
+  }
 
-        if (typeof loadCurrentUserProfile === "function") {
-          await loadCurrentUserProfile();
-        }
+  if (typeof loadCurrentUserProfile === "function") {
+    await loadCurrentUserProfile();
+  }
 
-        ({ ownerUserId, ownerEmail, ownerName, ownerPhoto } = getCurrentOfferOwner());
-      }
+  ({ ownerUserId, ownerEmail, ownerName, ownerPhoto } = getCurrentOfferOwner());
+}
 
-      if (!ownerUserId) {
-        showStatus(`<strong>Sessão indisponível.</strong> Não foi possível iniciar uma sessão temporária para enviar sua oferta.`, "error");
-        return;
-      }
+if (!ownerUserId && !ownerEmail) {
+  showStatus(`<strong>Sessão indisponível.</strong> Não foi possível identificar sua conta para enviar sua oferta.`, "error");
+  return;
+}
 
       try {
         submitBtn.disabled = true;
@@ -3620,8 +3620,8 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       }
 
       if (logoutBtn) {
-        logoutBtn.style.display = user ? "inline-flex" : "none";
-      }
+  logoutBtn.style.display = (user || auth.currentUser || sendPageCurrentUser) ? "inline-flex" : "none";
+}
 
       if (profilePrimaryAction) {
         if (!user || isAnonymousUser(user)) {
@@ -3673,6 +3673,12 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       revealSendPage();
       document.dispatchEvent(new Event("wmt:send-auth-ok"));
     }
+ 
+      const activeUser = user || sendPageCurrentUser || auth.currentUser || null;
+
+if (logoutBtn) {
+  logoutBtn.style.display = activeUser ? "inline-flex" : "none";
+}
 
     async function continueAndLogout() {
       const activeUser = sendPageCurrentUser || auth.currentUser || null;
