@@ -3441,7 +3441,7 @@ document.addEventListener("wmt:send-auth-ok", async () => {
     }
 
     function getAvatarFallback(name) {
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent((name || "U").charAt(0).toUpperCase())}&background=1b2c45&color=ffffff&bold=true`;
+      return getLoggedOutAvatar();
     }
 
     function getLoggedOutAvatar() {
@@ -3615,7 +3615,13 @@ document.addEventListener("wmt:send-auth-ok", async () => {
           return auth.currentUser;
         }
 
+        const manualLogout = localStorage.getItem("wmt_manual_logout");
+        if (manualLogout) {
+          return null;
+        }
+
         const credential = await signInAnonymously(auth);
+        localStorage.removeItem("wmt_manual_logout");
         return credential.user || auth.currentUser || null;
       } catch (error) {
         console.error("Erro ao criar sessão anônima:", error);
@@ -3647,6 +3653,7 @@ document.addEventListener("wmt:send-auth-ok", async () => {
       const activeUser = sendPageCurrentUser || auth.currentUser || null;
 
       try {
+        localStorage.setItem("wmt_manual_logout", "1");
         if (typeof window.clearSendPresenceForUser === "function") {
           await window.clearSendPresenceForUser(activeUser);
         }
@@ -3674,6 +3681,7 @@ document.addEventListener("wmt:send-auth-ok", async () => {
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        localStorage.removeItem("wmt_manual_logout");
         applyAuthenticatedState(user);
         return;
       }
