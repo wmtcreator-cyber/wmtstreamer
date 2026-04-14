@@ -3001,15 +3001,17 @@ body{
       }
 
       const renderedMessages = liveMessages.map(message => {
-        const senderRole = message.senderRole === "admin" ? "admin" : "owner";
-        const isMine = String(message.senderId || "").trim() === getCurrentUserId();
-        const sideClass = isMine ? "admin" : "owner";
+  const rawSenderRole = String(message.senderRole || "").trim().toUpperCase();
+  const senderRole = rawSenderRole || "OWNER";
 
-        const dateText = formatDate(message.createdAt);
-        const avatar = resolveSenderPhoto(message, senderRole);
-        const senderName = renderSenderName(message, senderRole);
+  const isMine = String(message.senderId || "").trim() === getCurrentUserId();
+  const sideClass = isMine ? "admin" : "owner";
 
-        return `
+  const dateText = formatDate(message.createdAt);
+  const avatar = resolveSenderPhoto(message, senderRole);
+  const senderName = renderSenderName(message, senderRole);
+
+  return `
           <div class="msg-row ${sideClass}">
             ${!isMine ? `<img class="msg-avatar" src="${avatar}" alt="Avatar" loading="lazy" decoding="async">` : ""}
 
@@ -3194,16 +3196,17 @@ body{
     function renderSenderName(message, role) {
   const { finalName, liveProfile } = resolveSenderNameData(message, role);
 
-  let roleHtml = "";
+  const messageRole = String(message?.senderRole || "").trim().toUpperCase();
+  const profileRole = getProfileActiveRole(liveProfile);
+  const resolvedRole = messageRole || profileRole || "";
 
-  if (role === "admin") {
-    roleHtml = renderSpecialRoleBadge("STREAMER", "msg-role-badge");
-  } else {
-    const activeRole = getProfileActiveRole(liveProfile);
-    roleHtml = activeRole ? renderSpecialRoleBadge(activeRole, "msg-role-badge") : "";
-  }
+  const roleHtml = resolvedRole
+    ? renderSpecialRoleBadge(resolvedRole, "msg-role-badge")
+    : "";
 
-  if (role === "admin") {
+  const isAdminLike = String(role || "").trim().toLowerCase() === "admin";
+
+  if (isAdminLike) {
     return `<span class="admin-name-wrap"><span class="admin-name-text">${escapeHtml(finalName)}</span><span class="verify-badge admin-verify" aria-hidden="true"></span>${roleHtml}</span>`;
   }
 
