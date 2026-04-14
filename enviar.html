@@ -2086,10 +2086,10 @@ body{
                     </div>
 
                     <div class="upload-actions">
-                      <label for="photoPickerInput" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</label>
+                      <button type="button" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</button>
                       <button type="button" class="small-btn danger" id="clearPhotosBtn">Limpar tudo</button>
                     </div>
-                    <input id="photoPickerInput" type="file" accept="image/*" multiple style="display:none;">
+                    <input id="photoPickerInput" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;pointer-events:none;">
                   </div>
 
                   <div id="previewGrid" class="preview-grid"></div>
@@ -2268,6 +2268,15 @@ body{
     const clearPhotosBtn = document.getElementById("clearPhotosBtn");
     const photoPickerInput = document.getElementById("photoPickerInput");
     const previewGrid = document.getElementById("previewGrid");
+
+    addPhotosBtn?.addEventListener("click", () => {
+      photoPickerInput?.click();
+    });
+
+    addPhotosBtn?.addEventListener("touchend", (event) => {
+      event.preventDefault();
+      photoPickerInput?.click();
+    });
     const uploadEmptyState = document.getElementById("uploadEmptyState");
     const offerForm = document.getElementById("offerForm");
     const statusBox = document.getElementById("statusBox");
