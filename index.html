@@ -2970,27 +2970,43 @@ body{
       return clean.includes("ui-avatars.com/api/") && (clean.includes("name=wmt") || clean.includes("name=wm") || clean.includes("name=e"));
     }
     function getDisplayName(user){
-      if (!user) return "Conta temporária";
-      const email = getUserEmail(user);
-      const candidates = isAnonymousUser(user)
-        ? [
-            currentProfile?.nickname,
-            getStoredNickname(user),
-            "Conta temporária"
-          ]
-        : [
-            currentProfile?.nickname,
-            getStoredNickname(user),
-            user?.displayName,
-            email.split("@")[0],
-            "Usuário"
-          ];
-      for (const candidate of candidates) {
-        const clean = String(candidate || "").trim();
-        if (clean && !isPlaceholderName(clean)) return clean;
-      }
-      return isAnonymousUser(user) ? "Conta temporária" : "Usuário";
-    }
+  if (!user) return "Conta temporária";
+
+  const email = getUserEmail(user);
+  const liveNickname = String(
+    currentProfile?.nickname ||
+    currentProfile?.displayName ||
+    currentProfile?.name ||
+    ""
+  ).trim();
+
+  const storedNickname = String(getStoredNickname(user) || "").trim();
+  const isAdmin = typeof isAdminUser === "function" ? isAdminUser(user) : false;
+  const displayName = String(user?.displayName || "").trim();
+
+  const candidates = isAnonymousUser(user)
+    ? [
+        liveNickname,
+        storedNickname,
+        "Conta temporária"
+      ]
+    : [
+        liveNickname,
+        storedNickname,
+        (isAdmin && displayName.toLowerCase() === "wmtcreator") ? "" : displayName,
+        email.split("@")[0],
+        isAdmin ? "WMT" : "Usuário"
+      ];
+
+  for (const candidate of candidates) {
+    const clean = String(candidate || "").trim();
+    if (clean && !isPlaceholderName(clean)) return clean;
+  }
+
+  return isAnonymousUser(user)
+    ? "Conta temporária"
+    : (isAdmin ? "WMT" : "Usuário");
+}
     function getPhoto(user){
   if (!user) return LOGGED_OUT_AVATAR;
 
