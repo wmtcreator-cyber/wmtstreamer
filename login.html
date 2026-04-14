@@ -125,7 +125,7 @@ body{
     <div class="logo">WMT</div>
     <div class="badge">Acesso</div>
     <h1>Entrando...</h1>
-    <p id="desc">Clique no botão abaixo para entrar com sua conta Google e continuar.</p>
+    <p id="desc">Clique no botão abaixo para entrar com sua conta Google e continuar. Se você já estiver em conta temporária, o site vai tentar conectar essa mesma conta ao Google.</p>
     <p id="envHint" style="display:none; margin-top:12px; color:#ffd9a8; line-height:1.7; font-size:13px; font-weight:700;"></p>
     <div class="status" id="statusBox"></div>
     <div class="actions">
@@ -143,11 +143,20 @@ body{
       GoogleAuthProvider,
       onAuthStateChanged,
       signInWithPopup,
+      linkWithPopup,
       signOut,
       signInAnonymously,
       setPersistence,
       browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      set,
+      onDisconnect,
+      remove
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCXW-LYCPDX5-y-nL4EgcOUdoO6hzPPkJg",
@@ -163,11 +172,14 @@ body{
 
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const rtdb = getDatabase(app);
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
 
     let redirectHandled = false;
     let isSigningIn = false;
+    let currentPresenceConnectionRef = null;
+    let presenceHeartbeatTimer = null;
 
     const statusBox = document.getElementById("statusBox");
     const backBtn = document.getElementById("backBtn");
@@ -252,7 +264,15 @@ body{
 
       try {
         await setPersistence(auth, browserLocalPersistence);
-        await signInWithPopup(auth, provider);
+
+        const current = auth.currentUser;
+
+        if (current?.isAnonymous) {
+          await linkWithPopup(current, provider);
+          showStatus("<strong>Conta conectada.</strong><br>Sua conta temporária foi conectada ao Google sem perder o vínculo atual.", "success");
+        } else {
+          await signInWithPopup(auth, provider);
+        }
       } catch (err) {
         console.error(err);
 
@@ -262,6 +282,8 @@ body{
           showStatus("<strong>Popup bloqueado.</strong><br>Permita popups para este site e tente novamente.", "error");
         } else if (err?.code === "auth/unauthorized-domain") {
           showStatus("<strong>Domínio não autorizado.</strong><br>Adicione seu domínio atual em Firebase Authentication → Settings → Authorized domains.", "error");
+        } else if (err?.code === "auth/credential-already-in-use" || err?.code === "auth/email-already-in-use" || err?.code === "auth/account-exists-with-different-credential") {
+          showStatus("<strong>Esta conta Google já está vinculada a outra conta.</strong><br>Entre direto com essa conta Google para recuperar o acesso, em vez de conectar por cima da conta temporária atual.", "error");
         } else if (looksLikeGoogleUserAgentError(err)) {
           showStatus("<strong>Google bloqueou este login neste navegador.</strong><br>Abra o site no Chrome ou Safari, ou toque em <strong>Continuar sem login</strong> para seguir com sessão temporária.", "error");
         } else {
@@ -300,7 +322,79 @@ body{
       }
     }
 
+
+    function getPresenceRef(user){
+      return user?.uid ? ref(rtdb, `presence/${user.uid}/connections`) : null;
+    }
+
+    async function writePresenceHeartbeat(user){
+      if(!user?.uid || !currentPresenceConnectionRef) return;
+      try{
+        await set(currentPresenceConnectionRef, {
+          uid:user.uid,
+          page:"login",
+          lastSeenMs:Date.now()
+        });
+      }catch(error){
+        console.warn("Erro ao atualizar presence no login:", error);
+      }
+    }
+
+    async function startPresence(user){
+      if(!user?.uid) return;
+      if(currentPresenceConnectionRef) return;
+
+      const rootRef = getPresenceRef(user);
+      if(!rootRef) return;
+
+      const connectionRef = push(rootRef);
+      currentPresenceConnectionRef = connectionRef;
+
+      await onDisconnect(connectionRef).remove();
+      await writePresenceHeartbeat(user);
+
+      if(presenceHeartbeatTimer) clearInterval(presenceHeartbeatTimer);
+      presenceHeartbeatTimer = setInterval(() => {
+        writePresenceHeartbeat(auth.currentUser);
+      }, 15000);
+    }
+
+    function stopPresence(){
+      try{
+        if(presenceHeartbeatTimer){
+          clearInterval(presenceHeartbeatTimer);
+          presenceHeartbeatTimer = null;
+        }
+        if(currentPresenceConnectionRef){
+          remove(currentPresenceConnectionRef);
+          currentPresenceConnectionRef = null;
+        }
+      }catch(e){
+        console.warn("Erro ao remover presence:", e);
+      }
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if(document.visibilityState === "visible" && auth.currentUser){
+        writePresenceHeartbeat(auth.currentUser);
+      }
+    });
+
+    window.addEventListener("focus", () => {
+      if(auth.currentUser){
+        writePresenceHeartbeat(auth.currentUser);
+      }
+    });
+
+    window.addEventListener("beforeunload", stopPresence);
+
     onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        startPresence(user);
+      } else {
+        stopPresence();
+      }
+
       if (user && !user.isAnonymous) {
         processRedirect(user);
       }
@@ -322,6 +416,7 @@ body{
       clearRedirectTarget();
       try {
         if (auth.currentUser) {
+          stopPresence();
           await signOut(auth);
         }
       } catch (error) {
