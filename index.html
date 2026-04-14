@@ -3204,20 +3204,13 @@ body{
     profilePrimaryAction?.addEventListener("click", async (event) => {
   const user = auth.currentUser || null;
 
-  if (!user) {
-    event.preventDefault();
-    window.location.href = "login.html";
-    return;
-  }
+  // 👉 NÃO LOGADO → deixa o link funcionar normal (login.html)
+  if (!user) return;
 
+  // 👉 LOGADO → aí sim intercepta
   event.preventDefault();
 
-  try {
-    window.location.href = "enviar.html";
-  } catch (error) {
-    console.error("Erro ao abrir ação principal do perfil:", error);
-    window.location.href = "enviar.html";
-  }
+  window.location.href = "enviar.html";
 });
 
 
