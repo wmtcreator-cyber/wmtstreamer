@@ -2353,22 +2353,30 @@ body{
     window.sendPageCurrentProfile = null;
 
     function syncHeaderMenu() {
-      const user = window.sendPageCurrentUser || null;
-      const isAdmin = typeof window.isWmtAdminUser === "function" ? window.isWmtAdminUser(user) : false;
-      const displayName = typeof window.getSendPageDisplayName === "function" ? window.getSendPageDisplayName(user) : "wmt";
+      const authUser = window.sendPageCurrentUser || null;
+      const activeUser = authUser || (typeof auth !== "undefined" ? (auth.currentUser || null) : null);
+      const isAdmin = typeof window.isWmtAdminUser === "function" ? window.isWmtAdminUser(activeUser) : false;
+      const displayName = typeof window.getSendPageDisplayName === "function" ? window.getSendPageDisplayName(activeUser) : "wmt";
       const displayPhoto = typeof window.getSendPageDisplayPhoto === "function"
-        ? window.getSendPageDisplayPhoto(user)
+        ? window.getSendPageDisplayPhoto(activeUser)
         : "https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true";
-      const userEmail = typeof window.getSendPageUserEmail === "function" ? window.getSendPageUserEmail(user) : "";
+      const userEmail = typeof window.getSendPageUserEmail === "function" ? window.getSendPageUserEmail(activeUser) : "";
+      const isAnonymous = !!activeUser?.isAnonymous;
 
       if (headerProfilePhoto) headerProfilePhoto.src = displayPhoto;
       if (menuProfilePhoto) menuProfilePhoto.src = displayPhoto;
       if (menuProfileName) menuProfileName.textContent = displayName;
-      if (menuProfileSub) menuProfileSub.textContent = user
-        ? (isAdmin ? "Conta administrativa WMT" : (userEmail || "Conta conectada"))
-        : "Sessão temporária pronta para enviar oferta";
-      if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
-      if (logoutBtn) logoutBtn.style.display = user ? "inline-flex" : "none";
+      if (menuProfileSub) {
+        menuProfileSub.textContent = activeUser
+          ? (isAnonymous ? "Conta temporária ativa" : (isAdmin ? "Conta administrativa WMT" : (userEmail || "Conta conectada")))
+          : "Sessão temporária pronta para enviar oferta";
+      }
+      if (profilePanelLink) profilePanelLink.style.display = !isAnonymous && isAdmin ? "flex" : "none";
+      if (logoutBtn) logoutBtn.style.display = activeUser ? "inline-flex" : "none";
+      if (profilePrimaryAction) {
+        profilePrimaryAction.textContent = activeUser && !isAnonymous ? "Vender" : "Fazer login";
+        profilePrimaryAction.href = activeUser && !isAnonymous ? "enviar.html" : "login.html";
+      }
     }
 
     function formatNotifTime(value) {
