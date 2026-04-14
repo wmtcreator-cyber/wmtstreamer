@@ -2897,10 +2897,24 @@ body{
           message: "Se você sair, pode perder esta conta temporária neste navegador. Faça login antes de sair para não perder acesso.",
           primaryText: "Fazer login",
           secondaryText: "Continuar e sair",
-          onPrimary: () => {
-            setRedirectTarget("index.html");
-            goToTarget("login.html");
-          },
+          onPrimary: async () => {
+  try {
+    if (typeof window.clearIndexPresenceForUser === "function") {
+      await window.clearIndexPresenceForUser(activeUser);
+    }
+    if (typeof window.stopIndexPresenceHeartbeat === "function") {
+      window.stopIndexPresenceHeartbeat();
+    }
+    await signOut(auth);
+  } catch (error) {
+    console.error("Erro ao sair da conta temporária antes do login:", error);
+  } finally {
+    currentUser = null;
+    updateLogoutVisibility(null);
+    setRedirectTarget("index.html");
+    goToTarget("login.html");
+  }
+},
           onSecondary: () => {
             finishSignOut();
           }
