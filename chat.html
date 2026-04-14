@@ -2721,22 +2721,35 @@ body{
     function getCurrentUserName() {
   const user = getChatUser();
   const liveProfile = getCurrentUserLiveProfile();
-  const liveNickname = sanitizeDisplayName(liveProfile?.nickname || "");
+
+  const liveNickname = sanitizeDisplayName(
+    liveProfile?.nickname ||
+    liveProfile?.displayName ||
+    liveProfile?.name ||
+    ""
+  );
   if (liveNickname) return liveNickname;
 
   const storedNickname = sanitizeDisplayName(getStoredNickname());
   if (storedNickname) return storedNickname;
 
-  const isAdmin = isAdminUser(user) || String(currentRole || "").trim().toLowerCase() === "admin";
-  const email = getUserEmail(user);
+  const currentIsAdmin = isAdminUser(user) || String(currentRole || "").trim().toLowerCase() === "admin";
+
   const displayName = sanitizeDisplayName(user?.displayName || "");
+  if (displayName && (!currentIsAdmin || displayName.toLowerCase() !== "wmtcreator")) {
+    return displayName;
+  }
 
-  if (displayName) return displayName;
-  if (email) return String(email.split("@")[0] || "").trim() || (isAdmin ? "WMT" : "Usuário");
-  if (isAdmin) return "WMT";
-  if (user?.isAnonymous) return "Conta temporária";
+  if (user?.isAnonymous && !currentIsAdmin) {
+    return "Conta temporária";
+  }
 
-  return "Usuário";
+  const email = getUserEmail(user);
+  return String(
+    (currentIsAdmin ? "WMT" : "") ||
+    email.split("@")[0] ||
+    "Usuário"
+  ).trim();
 }
 
     function getCurrentUserPhoto() {
