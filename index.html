@@ -3202,19 +3202,20 @@ body{
     });
 
     profilePrimaryAction?.addEventListener("click", async (event) => {
+  const user = auth.currentUser || null;
+
+  if (!user) {
+    event.preventDefault();
+    window.location.href = "login.html";
+    return;
+  }
+
   event.preventDefault();
 
   try {
-    const user = auth.currentUser || null;
-    let finalUser = user;
-
-    if (!finalUser) {
-      finalUser = await ensureAnonymousSession();
-    }
-
     window.location.href = "enviar.html";
   } catch (error) {
-    console.error("Erro ao abrir enviar pelo menu de perfil:", error);
+    console.error("Erro ao abrir ação principal do perfil:", error);
     window.location.href = "enviar.html";
   }
 });
