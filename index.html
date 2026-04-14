@@ -2985,18 +2985,18 @@ body{
   const displayName = String(user?.displayName || "").trim();
 
   const candidates = isAnonymousUser(user)
-    ? [
-        liveNickname,
-        storedNickname,
-        "Conta temporária"
-      ]
-    : [
-        liveNickname,
-        storedNickname,
-        (isAdmin && displayName.toLowerCase() === "wmtcreator") ? "" : displayName,
-        email.split("@")[0],
-        isAdmin ? "WMT" : "Usuário"
-      ];
+  ? [
+      liveNickname,
+      storedNickname,
+      "Conta temporária"
+    ]
+  : [
+      liveNickname,
+      storedNickname,
+      (isAdmin && displayName.toLowerCase() === "wmtcreator") ? "" : displayName,
+      isAdmin ? "" : email.split("@")[0],
+      isAdmin ? "WMT" : "Usuário"
+    ];
 
   for (const candidate of candidates) {
     const clean = String(candidate || "").trim();
