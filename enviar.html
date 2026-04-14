@@ -756,6 +756,29 @@
       background:linear-gradient(180deg, rgba(255,107,131,.22), rgba(255,107,131,.14));
     }
 
+    .file-picker-wrap{
+      position:relative;
+      width:100%;
+    }
+
+    .file-picker-wrap .small-btn{
+      width:100%;
+      position:relative;
+      z-index:1;
+      pointer-events:none;
+    }
+
+    .file-picker-overlay{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      opacity:0;
+      cursor:pointer;
+      z-index:2;
+      font-size:0;
+    }
+
     .upload-empty{
       margin-top:16px;
       border:1px dashed rgba(255,255,255,.10);
@@ -2086,10 +2109,12 @@ body{
                     </div>
 
                     <div class="upload-actions">
-                      <button type="button" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</button>
+                      <div class="file-picker-wrap">
+                        <button type="button" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</button>
+                        <input id="photoPickerInput" class="file-picker-overlay" type="file" accept="image/*" multiple>
+                      </div>
                       <button type="button" class="small-btn danger" id="clearPhotosBtn">Limpar tudo</button>
                     </div>
-                    <input id="photoPickerInput" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;pointer-events:none;">
                   </div>
 
                   <div id="previewGrid" class="preview-grid"></div>
@@ -2268,15 +2293,6 @@ body{
     const clearPhotosBtn = document.getElementById("clearPhotosBtn");
     const photoPickerInput = document.getElementById("photoPickerInput");
     const previewGrid = document.getElementById("previewGrid");
-
-    addPhotosBtn?.addEventListener("click", () => {
-      photoPickerInput?.click();
-    });
-
-    addPhotosBtn?.addEventListener("touchend", (event) => {
-      event.preventDefault();
-      photoPickerInput?.click();
-    });
     const uploadEmptyState = document.getElementById("uploadEmptyState");
     const offerForm = document.getElementById("offerForm");
     const statusBox = document.getElementById("statusBox");
