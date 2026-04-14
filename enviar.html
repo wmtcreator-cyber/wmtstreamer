@@ -3671,13 +3671,29 @@ document.addEventListener("wmt:send-auth-ok", async () => {
     window.ensureSendPageAnonymousSession = ensureAnonymousSession;
     window.applySendPageAuthenticatedState = applyAuthenticatedState;
 
-    profilePrimaryAction?.addEventListener("click", (event) => {
-      const user = sendPageCurrentUser || auth.currentUser || null;
-      if (!user || isAnonymousUser(user)) {
-        event.preventDefault();
-        goToLogin("enviar.html");
+    profilePrimaryAction?.addEventListener("click", async (event) => {
+  const user = sendPageCurrentUser || auth.currentUser || null;
+
+  if (!user || isAnonymousUser(user)) {
+    event.preventDefault();
+
+    try {
+      if (typeof window.clearSendPresenceForUser === "function") {
+        await window.clearSendPresenceForUser(user);
       }
-    });
+      if (typeof window.stopSendPresenceHeartbeat === "function") {
+        window.stopSendPresenceHeartbeat();
+      }
+      if (auth.currentUser) {
+        await signOut(auth);
+      }
+    } catch (error) {
+      console.error("Erro ao sair da conta temporária antes do login:", error);
+    } finally {
+      goToLogin("enviar.html");
+    }
+  }
+});
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
