@@ -897,17 +897,17 @@ body{
 
         <div class="profile-menu-shell">
           <button class="top-icon-btn profile-trigger" id="profileTrigger" type="button" aria-label="Abrir menu da conta" aria-expanded="false" aria-controls="profileMenu">
-            <img id="headerProfilePhoto" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+            <img id="headerProfilePhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%231b2434'/><circle cx='32' cy='24' r='11' fill='%23dce6f8'/><path d='M14 52c3-9 11-15 18-15s15 6 18 15' fill='%23dce6f8'/></svg>" alt="Perfil">
           </button>
 
           <div class="profile-menu" id="profileMenu">
             <div class="profile-menu-head">
-              <img id="menuProfilePhoto" class="profile-menu-avatar" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+              <img id="menuProfilePhoto" class="profile-menu-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%231b2434'/><circle cx='32' cy='24' r='11' fill='%23dce6f8'/><path d='M14 52c3-9 11-15 18-15s15 6 18 15' fill='%23dce6f8'/></svg>" alt="Perfil">
               <div class="profile-menu-copy">
-                <div class="profile-menu-name" id="menuProfileName">wmt</div>
-                <div class="profile-menu-sub" id="menuProfileSub">Conta WMT Market</div>
+                <div class="profile-menu-name" id="menuProfileName">Conta temporária</div>
+                <div class="profile-menu-sub" id="menuProfileSub">Conta temporária ativa</div>
               </div>
-              <a href="enviar.html" class="profile-sell-btn">Vender</a>
+              <a href="login.html" class="profile-sell-btn" id="profilePrimaryAction">Fazer login</a>
             </div>
 
             <div class="profile-menu-links">
@@ -980,6 +980,7 @@ body{
       <p id="noticeMessage">Texto da mensagem.</p>
       <div class="notice-actions">
         <button class="notice-btn secondary" id="noticeSecondaryBtn" style="display:none;">Cancelar</button>
+        <button class="notice-btn secondary" id="noticeTertiaryBtn" style="display:none;">Cancelar</button>
         <button class="notice-btn primary" id="noticePrimaryBtn">Fechar</button>
       </div>
     </div>
@@ -993,6 +994,7 @@ body{
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-database-compat.js"></script>
 
   <script>
     const REDIRECT_KEY = "wmt_after_login";
@@ -1008,6 +1010,7 @@ body{
     const noticeMessage = document.getElementById("noticeMessage");
     const noticePrimaryBtn = document.getElementById("noticePrimaryBtn");
     const noticeSecondaryBtn = document.getElementById("noticeSecondaryBtn");
+    const noticeTertiaryBtn = document.getElementById("noticeTertiaryBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const profileTrigger = document.getElementById("profileTrigger");
     const profileMenu = document.getElementById("profileMenu");
@@ -1016,6 +1019,7 @@ body{
     const menuProfilePhoto = document.getElementById("menuProfilePhoto");
     const menuProfileName = document.getElementById("menuProfileName");
     const menuProfileSub = document.getElementById("menuProfileSub");
+    const profilePrimaryAction = document.getElementById("profilePrimaryAction");
     const notifTrigger = document.getElementById("notifTrigger");
     const notifMenu = document.getElementById("notifMenu");
     const notifBadge = document.getElementById("notifBadge");
@@ -1039,20 +1043,86 @@ body{
     const app = firebase.apps?.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const rtdb = firebase.database();
 
-    function showNotice({ badge = "Aviso", title = "Mensagem", message = "", primaryText = "Fechar", secondaryText = "", onPrimary = null, onSecondary = null }) {
+    let currentPresenceConnectionRef = null;
+
+    function getPresenceRef(user) {
+      return user?.uid ? rtdb.ref(`presence/${user.uid}/connections`) : null;
+    }
+
+    async function startPresence(user) {
+      if (!user?.uid) return;
+
+      const rootRef = getPresenceRef(user);
+      if (!rootRef) return;
+
+      if (!currentPresenceConnectionRef) {
+        const connectionRef = rootRef.push();
+        currentPresenceConnectionRef = connectionRef;
+        connectionRef.onDisconnect().remove();
+      }
+
+      await currentPresenceConnectionRef.set({
+        uid: user.uid,
+        page: "minhas-ofertas",
+        lastSeenMs: Date.now()
+      });
+    }
+
+    function stopPresence() {
+      try {
+        if (currentPresenceConnectionRef) {
+          currentPresenceConnectionRef.remove();
+          currentPresenceConnectionRef = null;
+        }
+      } catch (e) {
+        console.warn("Erro ao remover presence:", e);
+      }
+    }
+
+    let presenceHeartbeat = null;
+
+    function ensurePresenceHeartbeat(user) {
+      if (!user?.uid) return;
+      if (presenceHeartbeat) clearInterval(presenceHeartbeat);
+      startPresence(user);
+      presenceHeartbeat = setInterval(() => {
+        startPresence(user);
+      }, 15000);
+    }
+
+    function stopPresenceHeartbeat() {
+      if (presenceHeartbeat) {
+        clearInterval(presenceHeartbeat);
+        presenceHeartbeat = null;
+      }
+      stopPresence();
+    }
+
+    function showNotice({ badge = "Aviso", title = "Mensagem", message = "", primaryText = "Fechar", secondaryText = "", tertiaryText = "", onPrimary = null, onSecondary = null, onTertiary = null }) {
       noticeBadge.textContent = badge;
       noticeTitle.textContent = title;
       noticeMessage.textContent = message;
       noticePrimaryBtn.textContent = primaryText;
       noticeSecondaryBtn.textContent = secondaryText || "Cancelar";
+      noticeTertiaryBtn.textContent = tertiaryText || "Cancelar";
       noticeSecondaryBtn.style.display = secondaryText ? "inline-flex" : "none";
+      noticeTertiaryBtn.style.display = tertiaryText ? "inline-flex" : "none";
       noticePrimaryBtn.onclick = () => { closeNotice(); if (typeof onPrimary === "function") onPrimary(); };
       noticeSecondaryBtn.onclick = () => { closeNotice(); if (typeof onSecondary === "function") onSecondary(); };
+      noticeTertiaryBtn.onclick = () => { closeNotice(); if (typeof onTertiary === "function") onTertiary(); };
       noticeModal.style.display = "flex";
     }
 
-    function closeNotice() { noticeModal.style.display = "none"; }
+    function closeNotice() {
+      noticeModal.style.display = "none";
+      noticePrimaryBtn.onclick = null;
+      noticeSecondaryBtn.onclick = null;
+      noticeTertiaryBtn.onclick = null;
+      noticeSecondaryBtn.style.display = "none";
+      noticeTertiaryBtn.style.display = "none";
+    }
     noticeModal.addEventListener("click", (e) => { if (e.target === noticeModal) closeNotice(); });
     profileTrigger?.addEventListener("click", (e) => {
       const mobile = window.matchMedia("(hover: none), (pointer: coarse)").matches;
@@ -1095,12 +1165,35 @@ body{
     });
 
 
+    profilePrimaryAction?.addEventListener("click", (event) => {
+      const user = currentUser || auth.currentUser || null;
+      if (!user || isAnonymousUser(user)) {
+        event.preventDefault();
+        goToLogin("minhas-ofertas.html");
+      }
+    });
+
     function normalizeEmail(value) { return String(value || "").trim().toLowerCase(); }
     function getUserEmail(user) {
       return normalizeEmail(user?.email || "");
     }
     function getUserId(user) {
       return String(user?.uid || "").trim();
+    }
+    function setRedirectTarget(target) {
+      try {
+        localStorage.setItem(REDIRECT_KEY, target);
+        sessionStorage.setItem(REDIRECT_KEY, target);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    function goToLogin(target = "minhas-ofertas.html") {
+      setRedirectTarget(target);
+      window.location.href = "login.html";
+    }
+    function isAnonymousUser(user) {
+      return !!user?.isAnonymous;
     }
     function getOfferOwnerUserId(offer) {
       return String(offer?.ownerUserId || "").trim();
@@ -1130,20 +1223,30 @@ body{
       return key ? String(localStorage.getItem(key) || "").trim() : "";
     }
     function getDisplayName(user) {
-      if (!user) return "wmt";
-            const email = getUserEmail(user);
+      if (!user) return "Conta temporária";
+      const email = getUserEmail(user);
+      if (isAnonymousUser(user)) {
+        return getStoredNickname(user) || "Conta temporária";
+      }
       return getStoredNickname(user) ||
         user?.displayName ||
         email.split("@")[0] ||
-        "usuário";
+        "Usuário";
     }
-    function getPhoto(user) {
-      const customPhoto = getStoredPhoto(user);
-      if (customPhoto) return customPhoto;
-      const label = (getDisplayName(user) || "U").charAt(0).toUpperCase();
-      const bg = "1b2c45";
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(label)}&background=${bg}&color=ffffff&bold=true`;
-    }
+    function getLoggedOutAvatar() {
+  return `data:image/svg+xml;utf8,
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="32" fill="%231b2434"/>
+  <circle cx="32" cy="24" r="11" fill="%23dce6f8"/>
+  <path d="M14 52c3-9 11-15 18-15s15 6 18 15" fill="%23dce6f8"/>
+</svg>`;
+}
+
+function getPhoto(user) {
+  const customPhoto = getStoredPhoto(user);
+  if (customPhoto) return customPhoto;
+  return getLoggedOutAvatar();
+}
     function formatNotifTime(value) {
       if (!value) return "Agora";
       let d = value;
@@ -1178,16 +1281,30 @@ body{
     function updateHeaderProfile(user) {
       const photo = getPhoto(user);
       const name = getDisplayName(user);
+      const isAdmin = !!user && !isAnonymousUser(user) && window.isAdminUser(user);
       if (headerProfilePhoto) headerProfilePhoto.src = photo;
       if (menuProfilePhoto) menuProfilePhoto.src = photo;
       if (menuProfileName) menuProfileName.textContent = name;
       if (menuProfileSub) {
-        menuProfileSub.textContent = window.isAdminUser(user)
-          ? "Conta administrativa WMT"
-          : (getUserEmail(user) || "Conta WMT Market");
+        if (!user || isAnonymousUser(user)) {
+          menuProfileSub.textContent = "Conta temporária ativa";
+        } else if (isAdmin) {
+          menuProfileSub.textContent = "Conta conectada • administrador";
+        } else {
+          menuProfileSub.textContent = "Conta conectada";
+        }
       }
       if (logoutBtn) logoutBtn.style.display = user ? "flex" : "none";
-      if (profilePanelLink) profilePanelLink.style.display = window.isAdminUser(user) ? "flex" : "none";
+      if (profilePanelLink) profilePanelLink.style.display = isAdmin ? "flex" : "none";
+      if (profilePrimaryAction) {
+        if (!user || isAnonymousUser(user)) {
+          profilePrimaryAction.textContent = "Fazer login";
+          profilePrimaryAction.href = "login.html";
+        } else {
+          profilePrimaryAction.textContent = "Vender";
+          profilePrimaryAction.href = "enviar.html";
+        }
+      }
     }
     let notificationsUnsub = null;
     function getFallbackInitial(name) {
@@ -1583,6 +1700,7 @@ async function loadOffers() {
     auth.onAuthStateChanged((user) => {
       if (user) {
         applyAuthenticatedState(user);
+        ensurePresenceHeartbeat(user);
         return;
       }
 
@@ -1596,8 +1714,9 @@ async function loadOffers() {
       }
     });
 
-    logoutBtn?.addEventListener("click", async () => {
+    async function continueAndLogout() {
       try {
+        stopPresenceHeartbeat();
         await auth.signOut();
       } catch (error) {
         console.error(error);
@@ -1606,6 +1725,36 @@ async function loadOffers() {
         if (notificationsUnsub) { notificationsUnsub(); notificationsUnsub = null; }
         window.location.href = "index.html";
       }
+    }
+
+    window.addEventListener("beforeunload", () => {
+      stopPresenceHeartbeat();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      const user = currentUser || auth.currentUser || null;
+      if (!user?.uid) return;
+      if (document.visibilityState === "visible") {
+        startPresence(user);
+      }
+    });
+
+    logoutBtn?.addEventListener("click", async () => {
+      const user = currentUser || auth.currentUser || null;
+      if (user && isAnonymousUser(user)) {
+        showNotice({
+          badge: "Conta temporária",
+          title: "Você pode perder esta conta temporária",
+          message: "Se você sair, pode perder esta conta temporária neste navegador. Faça login antes de sair para não perder acesso.",
+          primaryText: "Fazer login",
+          secondaryText: "Continuar e sair",
+          tertiaryText: "Cancelar",
+          onPrimary: () => goToLogin("minhas-ofertas.html"),
+          onSecondary: () => continueAndLogout()
+        });
+        return;
+      }
+      await continueAndLogout();
     });
   </script>
 </body>
