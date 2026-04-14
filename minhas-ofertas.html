@@ -1436,6 +1436,10 @@ function getPhoto(user) {
     function revealPage() { document.body.style.display = "block"; }
     async function ensureAnonymousSession() {
       if (auth.currentUser) return auth.currentUser;
+
+      const manualLogout = localStorage.getItem("wmt_manual_logout");
+      if (manualLogout) return null;
+
       try {
         const cred = await auth.signInAnonymously();
         return cred.user;
@@ -1699,6 +1703,7 @@ async function loadOffers() {
 
     auth.onAuthStateChanged((user) => {
       if (user) {
+        localStorage.removeItem("wmt_manual_logout");
         applyAuthenticatedState(user);
         ensurePresenceHeartbeat(user);
         return;
@@ -1716,6 +1721,7 @@ async function loadOffers() {
 
     async function continueAndLogout() {
       try {
+        localStorage.setItem("wmt_manual_logout", "1");
         stopPresenceHeartbeat();
         await auth.signOut();
       } catch (error) {
