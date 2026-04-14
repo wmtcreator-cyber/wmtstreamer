@@ -3619,9 +3619,11 @@ if (!ownerUserId && !ownerEmail) {
         profilePanelLink.style.display = isAdmin ? "flex" : "none";
       }
 
+      const activeUser = user || sendPageCurrentUser || auth.currentUser || null;
+
       if (logoutBtn) {
-  logoutBtn.style.display = (user || auth.currentUser || sendPageCurrentUser) ? "inline-flex" : "none";
-}
+        logoutBtn.style.display = activeUser ? "inline-flex" : "none";
+      }
 
       if (profilePrimaryAction) {
         if (!user || isAnonymousUser(user)) {
@@ -3674,13 +3676,7 @@ if (!ownerUserId && !ownerEmail) {
       document.dispatchEvent(new Event("wmt:send-auth-ok"));
     }
  
-      const activeUser = user || sendPageCurrentUser || auth.currentUser || null;
-
-if (logoutBtn) {
-  logoutBtn.style.display = activeUser ? "inline-flex" : "none";
-}
-
-    async function continueAndLogout() {
+          async function continueAndLogout() {
       const activeUser = sendPageCurrentUser || auth.currentUser || null;
 
       try {
