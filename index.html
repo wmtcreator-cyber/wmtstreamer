@@ -3139,6 +3139,24 @@ body{
       closeProfileMenu();
     });
 
+    profilePrimaryAction?.addEventListener("click", async (event) => {
+  event.preventDefault();
+
+  try {
+    const user = auth.currentUser || null;
+    let finalUser = user;
+
+    if (!finalUser) {
+      finalUser = await ensureAnonymousSession();
+    }
+
+    window.location.href = "enviar.html";
+  } catch (error) {
+    console.error("Erro ao abrir enviar pelo menu de perfil:", error);
+    window.location.href = "enviar.html";
+  }
+});
+
 
     document.addEventListener("click", (e) => {
       if (mobileMode() && profileMenu && profileTrigger && !profileMenu.contains(e.target) && !profileTrigger.contains(e.target)) {
@@ -3355,25 +3373,25 @@ body{
       const isAdmin = isAdminUser(currentUser);
 
       if (!currentUser) {
-        currentProfile = null;
-        if (profilePanelLink) profilePanelLink.style.display = "none";
-        if (logoutBtn) logoutBtn.style.display = "none";
-        if (headerProfilePhoto) headerProfilePhoto.src = LOGGED_OUT_AVATAR;
-        if (menuProfilePhoto) menuProfilePhoto.src = LOGGED_OUT_AVATAR;
-        if (menuProfileName) menuProfileName.textContent = "Conta temporária";
-        if (menuProfileSub) menuProfileSub.textContent = "Criando conta temporária...";
-        if (profilePrimaryAction) {
-          profilePrimaryAction.textContent = "Fazer login";
-          profilePrimaryAction.href = "login.html";
-        }
-        renderNotifications([]);
-        if (notifUnsub) {
-          try { notifUnsub(); } catch(e) {}
-          notifUnsub = null;
-          currentNotifUser = null;
-        }
-        return;
-      }
+  currentProfile = null;
+  if (profilePanelLink) profilePanelLink.style.display = "none";
+  if (logoutBtn) logoutBtn.style.display = "none";
+  if (headerProfilePhoto) headerProfilePhoto.src = LOGGED_OUT_AVATAR;
+  if (menuProfilePhoto) menuProfilePhoto.src = LOGGED_OUT_AVATAR;
+  if (menuProfileName) menuProfileName.textContent = "Conta temporária";
+  if (menuProfileSub) menuProfileSub.textContent = "Preparando conta temporária...";
+  if (profilePrimaryAction) {
+  profilePrimaryAction.textContent = "Vender";
+  profilePrimaryAction.href = "enviar.html";
+}
+  renderNotifications([]);
+  if (notifUnsub) {
+    try { notifUnsub(); } catch(e) {}
+    notifUnsub = null;
+    currentNotifUser = null;
+  }
+  return;
+}
 
       const displayName = getDisplayName(currentUser);
       const displayPhoto = getPhoto(currentUser);
