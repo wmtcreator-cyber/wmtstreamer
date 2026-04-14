@@ -1938,6 +1938,14 @@ body{
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      set,
+      onDisconnect,
+      remove
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
     import { isAdminUser } from "./admin-config.js";
 
     const firebaseConfig = {
@@ -1952,11 +1960,79 @@ body{
 
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const rtdb = getDatabase(app);
 
     const REDIRECT_KEY = "wmt_after_login";
 
     let currentUser = null;
     let panelAuthResolved = false;
+    let currentPresenceConnectionRef = null;
+    let currentPresenceHeartbeat = null;
+
+    function getPresenceRef(user) {
+      return user?.uid ? ref(rtdb, `presence/${user.uid}/connections`) : null;
+    }
+
+    async function writePresenceHeartbeat() {
+      try {
+        if (!currentPresenceConnectionRef || !currentUser?.uid) return;
+        await set(currentPresenceConnectionRef, {
+          uid: currentUser.uid,
+          page: "painel",
+          lastSeenMs: Date.now()
+        });
+      } catch (error) {
+        console.warn("Erro ao atualizar presence do painel:", error);
+      }
+    }
+
+    async function startPresence(user) {
+      if (!user?.uid) return;
+      if (currentPresenceHeartbeat) {
+        clearInterval(currentPresenceHeartbeat);
+        currentPresenceHeartbeat = null;
+      }
+      try {
+        if (currentPresenceConnectionRef) {
+          await remove(currentPresenceConnectionRef);
+        }
+      } catch (error) {
+        console.warn("Erro ao limpar conexão anterior do painel:", error);
+      }
+
+      const rootRef = getPresenceRef(user);
+      if (!rootRef) return;
+
+      const connectionRef = push(rootRef);
+      currentPresenceConnectionRef = connectionRef;
+
+      await onDisconnect(connectionRef).remove();
+      await set(connectionRef, {
+        uid: user.uid,
+        page: "painel",
+        lastSeenMs: Date.now()
+      });
+
+      currentPresenceHeartbeat = window.setInterval(() => {
+        writePresenceHeartbeat();
+      }, 15000);
+    }
+
+    async function stopPresence() {
+      try {
+        if (currentPresenceHeartbeat) {
+          clearInterval(currentPresenceHeartbeat);
+          currentPresenceHeartbeat = null;
+        }
+        if (currentPresenceConnectionRef) {
+          await remove(currentPresenceConnectionRef);
+          currentPresenceConnectionRef = null;
+        }
+      } catch (error) {
+        console.warn("Erro ao remover presence do painel:", error);
+      }
+    }
+
 
     const noticeModal = document.getElementById("noticeModal");
     const noticeBadge = document.getElementById("noticeBadge");
@@ -2151,6 +2227,7 @@ body{
       panelAuthResolved = true;
       window.__wmtPanelAuthorized = true;
       syncHeaderProfile(currentUser);
+      startPresence(currentUser);
       revealPanel();
       document.dispatchEvent(new Event("wmt:panel-authorized"));
     }
@@ -2211,6 +2288,7 @@ body{
 
     document.getElementById("logoutBtn")?.addEventListener("click", async () => {
       try {
+        await stopPresence();
         await signOut(auth);
       } catch (error) {
         console.error(error);
@@ -2222,6 +2300,18 @@ body{
         panelAuthResolved = true;
         window.location.href = "index.html";
       }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") writePresenceHeartbeat();
+    });
+
+    window.addEventListener("focus", () => {
+      writePresenceHeartbeat();
+    });
+
+    window.addEventListener("beforeunload", () => {
+      stopPresence();
     });
   </script>
 
