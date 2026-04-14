@@ -1143,20 +1143,26 @@ body{
       const userId = getUserId(currentUser);
       if (!userId) return;
       try {
-        const snap = await db.collection("notifications").where("userId", "==", userId).get();
-        await Promise.all(snap.docs.filter((doc) => !doc.data()?.read).map((doc) => doc.ref.set({ read: true, readAt: new Date().toISOString() }, { merge: true })));
+        const notificationsQuery = db.collection("notifications").where("userId", "==", userId);
+        const snap = await notificationsQuery.get();
+        await Promise.all(
+          snap.docs
+            .filter((doc) => !doc.data()?.read)
+            .map((doc) => doc.ref.set({ read: true, readAt: new Date().toISOString() }, { merge: true }))
+        );
       } catch (error) {
-        console.error(error);
+        console.error("Erro ao marcar notificações como lidas:", error);
       }
     });
     clearAllNotifBtn?.addEventListener("click", async () => {
       const userId = getUserId(currentUser);
       if (!userId) return;
       try {
-        const snap = await db.collection("notifications").where("userId", "==", userId).get();
+        const notificationsQuery = db.collection("notifications").where("userId", "==", userId);
+        const snap = await notificationsQuery.get();
         await Promise.all(snap.docs.map((doc) => doc.ref.delete()));
       } catch (error) {
-        console.error(error);
+        console.error("Erro ao limpar notificações:", error);
       }
     });
     document.addEventListener("click", (e) => {
@@ -1421,16 +1427,17 @@ function getPhoto(user) {
         notificationsUnsub = db.collection("notifications")
           .where("userId", "==", userId)
           .onSnapshot((snapshot) => {
-            const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+            const items = snapshot.docs
+              .map((doc) => ({ id: doc.id, ...doc.data() }))
               .sort((a, b) => new Date(b.createdAt || b.timestamp || b.updatedAt || 0) - new Date(a.createdAt || a.timestamp || a.updatedAt || 0))
               .slice(0, 20);
             renderNotifications(items);
           }, (error) => {
-            console.error(error);
+            console.error("Erro ao ouvir notificações:", error);
             renderNotifications([]);
           });
       } catch (error) {
-        console.error(error);
+        console.error("Erro ao iniciar notificações:", error);
       }
     }
     function revealPage() { document.body.style.display = "block"; }
@@ -1570,18 +1577,25 @@ async function loadOffers() {
     const requests = [];
 
     if (userId) {
-      requests.push(db.collection("offers").where("ownerUserId", "==", userId).get());
+      requests.push({ key: "ownerUserId", promise: db.collection("offers").where("ownerUserId", "==", userId).get() });
     }
 
     if (userEmail) {
-      requests.push(db.collection("offers").where("ownerEmail", "==", userEmail).get());
+      requests.push({ key: "ownerEmail", promise: db.collection("offers").where("ownerEmail", "==", userEmail).get() });
     }
 
-    const snapshots = await Promise.all(requests);
+    const snapshots = await Promise.allSettled(requests.map((entry) => entry.promise));
     const deduped = new Map();
 
-    snapshots.forEach((snapshot) => {
-      snapshot.docs.forEach((doc) => {
+    snapshots.forEach((result, index) => {
+      const queryKey = requests[index]?.key || `query_${index}`;
+
+      if (result.status !== "fulfilled") {
+        console.error(`Falha ao carregar ofertas por ${queryKey}:`, result.reason);
+        return;
+      }
+
+      result.value.docs.forEach((doc) => {
         deduped.set(doc.id, { id: doc.id, ...doc.data() });
       });
     });
@@ -1590,7 +1604,7 @@ async function loadOffers() {
     offersCache.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     renderOffers();
   } catch (error) {
-    console.error(error);
+    console.error("Erro ao carregar ofertas:", error);
     offersContainer.innerHTML = `<div class="empty">Erro ao carregar suas ofertas.</div>`;
   }
 }
