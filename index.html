@@ -3408,9 +3408,9 @@ body{
           : (isAdmin ? "Conta administrativa" : "Conta conectada");
       }
       if (profilePrimaryAction) {
-        profilePrimaryAction.textContent = isAnonymous ? "Fazer login" : "Vender";
-        profilePrimaryAction.href = isAnonymous ? "login.html" : "enviar.html";
-      }
+  profilePrimaryAction.textContent = "Vender";
+  profilePrimaryAction.href = "enviar.html";
+}
       if (!skipNotificationReset) {
         renderNotifications([]);
         if (currentUser) listenNotifications(currentUser);
