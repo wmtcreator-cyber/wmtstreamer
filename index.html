@@ -2694,6 +2694,10 @@ body{
 
     async function ensureAnonymousSession() {
       if (auth.currentUser) return auth.currentUser;
+
+      const manualLogout = localStorage.getItem("wmt_manual_logout");
+      if (manualLogout) return null;
+
       try {
         const credential = await signInAnonymously(auth);
         return credential?.user || auth.currentUser || null;
@@ -2780,6 +2784,7 @@ body{
         return;
       }
 
+      localStorage.removeItem("wmt_manual_logout");
       currentUser = user;
       updateLogoutVisibility(currentUser);
       handlePostLoginRedirect(currentUser);
@@ -2816,6 +2821,7 @@ body{
 
       const finishSignOut = async () => {
         try {
+          localStorage.setItem("wmt_manual_logout", "1");
           if (typeof window.clearIndexPresenceForUser === "function") {
             await window.clearIndexPresenceForUser(activeUser);
           }
@@ -2926,6 +2932,10 @@ body{
     }
     async function ensureAnonymousSession(){
       if (auth.currentUser) return auth.currentUser;
+
+      const manualLogout = localStorage.getItem("wmt_manual_logout");
+      if (manualLogout) return null;
+
       try {
         const credential = await signInAnonymously(auth);
         return credential?.user || auth.currentUser || null;
