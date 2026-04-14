@@ -2635,16 +2635,40 @@ body{
       }
     }
 
+    function getNotificationTargets(user = getPanelUser()) {
+      const userId = getUserId(user);
+      const userEmail = normalizeEmail(user?.email || "");
+      return [...new Set([userId, userEmail].filter(Boolean))];
+    }
+
+    function buildNotificationsQuery(targets = getNotificationTargets()) {
+      if (!targets.length) return null;
+      if (targets.length === 1) {
+        return query(collection(db, "notifications"), where("userId", "==", targets[0]));
+      }
+      return query(collection(db, "notifications"), where("userId", "in", targets));
+    }
+
+    function sortNotifications(items) {
+      return [...items].sort((a, b) => {
+        const left = new Date(b.createdAt || b.updatedAt || b.lastMessageAt || 0).getTime();
+        const right = new Date(a.createdAt || a.updatedAt || a.lastMessageAt || 0).getTime();
+        return left - right;
+      });
+    }
+
     async function clearAllNotifications() {
-      const userId = getUserId(getPanelUser());
-      if (!userId) return;
+      const targets = getNotificationTargets();
+      if (!targets.length) return;
       try {
-        const snap = await getDocs(query(collection(db, "notifications"), where("userId", "==", userId)));
+        const notificationsQuery = buildNotificationsQuery(targets);
+        if (!notificationsQuery) return;
+        const snap = await getDocs(notificationsQuery);
         const batch = writeBatch(db);
         snap.forEach(docSnap => batch.delete(docSnap.ref));
         await batch.commit();
       } catch (error) {
-        console.error(error);
+        console.error("Erro ao limpar notificações do painel:", error);
       }
     }
 
@@ -2707,29 +2731,40 @@ body{
     }
 
     function startNotifications() {
-      const userId = getUserId(getPanelUser());
-      if (!userId || !notifList) return;
+      const targets = getNotificationTargets();
+      if (!targets.length || !notifList) return;
       if (notificationsUnsub) notificationsUnsub();
-      const notifQuery = query(collection(db, "notifications"), where("userId", "==", userId), orderBy("createdAt", "desc"), limit(20));
+      const notifQuery = buildNotificationsQuery(targets);
+      if (!notifQuery) return;
       notificationsUnsub = onSnapshot(notifQuery, (snapshot) => {
-        const items = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        const items = sortNotifications(
+          snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+        ).slice(0, 20);
         renderNotifications(items);
       }, (error) => {
-        console.error(error);
+        console.error("Erro ao ouvir notificações do painel:", error);
+        renderNotifications([]);
       });
     }
 
     refreshBtn.addEventListener("click", loadOffers);
     markAllReadBtn?.addEventListener("click", async () => {
-      const userId = getUserId(getPanelUser());
-      if (!userId) return;
+      const targets = getNotificationTargets();
+      if (!targets.length) return;
       try {
-        const snap = await getDocs(query(collection(db, "notifications"), where("userId", "==", userId), where("read", "==", false)));
+        const notificationsQuery = buildNotificationsQuery(targets);
+        if (!notificationsQuery) return;
+        const snap = await getDocs(notificationsQuery);
+        const unreadDocs = [];
+        snap.forEach((docSnap) => {
+          if (!docSnap.data()?.read) unreadDocs.push(docSnap);
+        });
+        if (!unreadDocs.length) return;
         const batch = writeBatch(db);
-        snap.forEach(docSnap => batch.update(docSnap.ref, { read: true }));
+        unreadDocs.forEach(docSnap => batch.update(docSnap.ref, { read: true }));
         await batch.commit();
       } catch (error) {
-        console.error(error);
+        console.error("Erro ao marcar notificações do painel como lidas:", error);
       }
     });
     clearAllNotifBtn?.addEventListener("click", async () => {
@@ -2813,7 +2848,7 @@ body{
         updateStats();
         renderOffers();
       } catch (error) {
-        console.error(error);
+        console.error("Erro ao carregar ofertas do painel:", error);
         offersContainer.innerHTML = `<div class="empty">Erro ao carregar ofertas.</div>`;
       }
     }
