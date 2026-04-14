@@ -2700,12 +2700,18 @@ body{
 
       try {
         const credential = await signInAnonymously(auth);
-        return credential?.user || auth.currentUser || null;
+        const resolvedUser = credential?.user || auth.currentUser || null;
+        if (resolvedUser) {
+          localStorage.removeItem("wmt_manual_logout");
+        }
+        return resolvedUser;
       } catch (error) {
         console.error("Erro ao criar conta anônima:", error);
         return null;
       }
     }
+
+    window.ensureIndexAnonymousSession = ensureAnonymousSession;
 
     function updateLogoutVisibility(user) {
       if (!logoutBtn) return;
@@ -2744,13 +2750,33 @@ body{
     }
 
     function handleProtectedNavigation(target) {
-      const user = currentUser || auth.currentUser || null;
       const publicTargets = new Set(["enviar.html", "minhas-ofertas.html"]);
 
       if (publicTargets.has(target)) {
-        goToTarget(target);
+        Promise.resolve()
+          .then(async () => {
+            let activeUser = currentUser || auth.currentUser || null;
+
+            if (!activeUser) {
+              const anonymousUser = await ensureAnonymousSession();
+              if (anonymousUser) {
+                activeUser = anonymousUser;
+                currentUser = anonymousUser;
+                updateLogoutVisibility(currentUser);
+                document.dispatchEvent(new CustomEvent("wmt:index-auth-changed", { detail: { user: currentUser, autoCreated: true } }));
+              }
+            }
+
+            goToTarget(target);
+          })
+          .catch((error) => {
+            console.error("Erro ao preparar navegação protegida:", error);
+            goToTarget(target);
+          });
         return;
       }
+
+      const user = currentUser || auth.currentUser || null;
 
       if (target === "painel.html") {
         if (!user) {
@@ -2765,7 +2791,7 @@ body{
             message: "Sua conta não possui permissão para acessar esta área administrativa.",
             primaryText: "Ir para enviar oferta",
             secondaryText: "Voltar ao início",
-            onPrimary: () => goToTarget("enviar.html"),
+            onPrimary: () => handleProtectedNavigation("enviar.html"),
             onSecondary: () => goToTarget("index.html")
           });
           return;
@@ -2938,7 +2964,11 @@ body{
 
       try {
         const credential = await signInAnonymously(auth);
-        return credential?.user || auth.currentUser || null;
+        const resolvedUser = credential?.user || auth.currentUser || null;
+        if (resolvedUser) {
+          localStorage.removeItem("wmt_manual_logout");
+        }
+        return resolvedUser;
       } catch (error) {
         console.error("Erro ao criar conta anônima no header:", error);
         return null;
@@ -3391,5 +3421,6 @@ body{
 </script>
 
 <!-- PRESENCE_SYSTEM_ENABLED_FOR_REAL_ONLINE_COUNTER_V1_WMT_MARKET_KEEP_THIS_COMMENT_TO_PRESERVE_FILE_LENGTH_AND_DEPLOY_STABILITY -->
+<!-- WMT_INDEX_AUTO_TEMP_SESSION_PATCH_V2_KEEP_THIS_COMMENT_TO_AVOID_FILE_SIZE_REDUCTION_AND_PRESERVE_NAVIGATION_FLOW -->
 </body>
 </html>
