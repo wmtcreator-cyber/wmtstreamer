@@ -3201,19 +3201,7 @@ body{
       closeProfileMenu();
     });
 
-    profilePrimaryAction?.addEventListener("click", async (event) => {
-  const user = auth.currentUser || null;
-
-  // 👉 NÃO LOGADO → deixa o link funcionar normal (login.html)
-  if (!user) return;
-
-  // 👉 LOGADO → aí sim intercepta
-  event.preventDefault();
-
-  window.location.href = "enviar.html";
-});
-
-
+   
     document.addEventListener("click", (e) => {
       if (mobileMode() && profileMenu && profileTrigger && !profileMenu.contains(e.target) && !profileTrigger.contains(e.target)) {
         closeProfileMenu();
@@ -3449,9 +3437,6 @@ body{
   if (menuProfilePhoto) menuProfilePhoto.src = LOGGED_OUT_AVATAR;
   if (menuProfileName) menuProfileName.textContent = "Conta temporária";
   if (menuProfileSub) menuProfileSub.textContent = "Preparando conta temporária...";
-  if (profilePrimaryAction) {
-  profilePrimaryAction.textContent = "Fazer login";
-  profilePrimaryAction.href = "login.html";
 }
   renderNotifications([]);
   if (notifUnsub) {
@@ -3476,10 +3461,7 @@ body{
           ? "Conta temporária ativa"
           : (isAdmin ? "Conta administrativa" : "Conta conectada");
       }
-      if (profilePrimaryAction) {
-  profilePrimaryAction.textContent = "Vender";
-  profilePrimaryAction.href = "enviar.html";
-}
+      
       if (!skipNotificationReset) {
         renderNotifications([]);
         if (currentUser) listenNotifications(currentUser);
