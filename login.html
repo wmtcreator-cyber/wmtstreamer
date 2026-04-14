@@ -264,15 +264,29 @@ body{
 
       try {
         await setPersistence(auth, browserLocalPersistence);
+        localStorage.removeItem("wmt_manual_logout");
 
         const current = auth.currentUser;
 
         if (current?.isAnonymous) {
-          await linkWithPopup(current, provider);
-          showStatus("<strong>Conta conectada.</strong><br>Sua conta temporária foi conectada ao Google sem perder o vínculo atual.", "success");
-        } else {
-          await signInWithPopup(auth, provider);
-        }
+  try {
+    await linkWithPopup(current, provider);
+    showStatus("<strong>Conta conectada.</strong><br>Sua conta temporária foi conectada ao Google sem perder o vínculo atual.", "success");
+  } catch (err) {
+    if (
+      err?.code === "auth/credential-already-in-use" ||
+      err?.code === "auth/email-already-in-use" ||
+      err?.code === "auth/account-exists-with-different-credential"
+    ) {
+      await signOut(auth);
+      await signInWithPopup(auth, provider);
+    } else {
+      throw err;
+    }
+  }
+} else {
+  await signInWithPopup(auth, provider);
+}
       } catch (err) {
         console.error(err);
 
@@ -305,9 +319,10 @@ body{
 
       try {
         await setPersistence(auth, browserLocalPersistence);
-        if (!auth.currentUser) {
-          await signInAnonymously(auth);
-        }
+localStorage.removeItem("wmt_manual_logout");
+if (!auth.currentUser) {
+  await signInAnonymously(auth);
+}
         const target = getRedirectTarget();
         clearRedirectTarget();
         showStatus("<strong>Sessão temporária criada.</strong><br>Redirecionando...", "success");
@@ -413,18 +428,18 @@ body{
     });
 
     backBtn.addEventListener("click", async () => {
-      clearRedirectTarget();
-      try {
-        if (auth.currentUser) {
-          stopPresence();
-          await signOut(auth);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        goToTarget("index.html");
-      }
-    });
+  clearRedirectTarget();
+  try {
+    localStorage.setItem("wmt_manual_logout", "1");
+    if (auth.currentUser) {
+      await signOut(auth);
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    goToTarget("index.html");
+  }
+});
 
     // Se já estiver logado com conta real, entra direto
     if (auth.currentUser && !auth.currentUser.isAnonymous) {
@@ -433,5 +448,7 @@ body{
 
     updateLoginEnvironmentUI();
   </script>
+
+    <!-- fix: manual logout + google conflict fallback preserved -->
 </body>
 </html>
