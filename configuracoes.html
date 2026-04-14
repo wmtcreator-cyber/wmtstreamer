@@ -31,7 +31,7 @@
 
   --green:#58d791;
 
-  --danger:#ff667d;c
+  --danger:#ff667d;
   --danger-soft:rgba(255,102,125,.10);
 
   --shadow-xs:0 8px 18px rgba(0,0,0,.12);
@@ -1296,17 +1296,17 @@ body{
 
         <div class="profile-menu-shell">
           <button class="top-icon-btn profile-trigger" id="profileTrigger" type="button" aria-label="Abrir menu da conta">
-            <img id="headerProfilePhoto" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+            <img id="headerProfilePhoto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%23101a2b'/><circle cx='32' cy='24' r='12' fill='%23ffffff'/><path d='M16 52c2-10 11-16 16-16s14 6 16 16' fill='%23ffffff'/></svg>" alt="Perfil">
           </button>
 
           <div class="profile-menu" id="profileMenu">
             <div class="profile-menu-head">
-              <img id="menuProfilePhoto" class="profile-menu-avatar" src="https://ui-avatars.com/api/?name=WMT&background=4f8dff&color=ffffff&bold=true" alt="Perfil">
+              <img id="menuProfilePhoto" class="profile-menu-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%23101a2b'/><circle cx='32' cy='24' r='12' fill='%23ffffff'/><path d='M16 52c2-10 11-15 16-15s14 5 16 15' fill='%23ffffff'/></svg>" alt="Perfil">
               <div class="profile-menu-copy">
-                <div class="profile-menu-name" id="menuProfileName">wmt</div>
-                <div class="profile-menu-sub" id="menuProfileSub">Conta WMT Market</div>
+                <div class="profile-menu-name" id="menuProfileName">Conta temporária</div>
+                <div class="profile-menu-sub" id="menuProfileSub">Conta temporária ativa</div>
               </div>
-              <a href="enviar.html" class="profile-sell-btn">Vender</a>
+              <a href="login.html" class="profile-sell-btn" id="profilePrimaryAction">Fazer login</a>
             </div>
 
             <div class="profile-menu-links">
@@ -1349,10 +1349,10 @@ body{
           <div class="settings-grid">
             <section class="preview-card">
               <div class="preview-photo-wrap">
-                <img id="profilePreviewPhoto" class="preview-photo" src="https://ui-avatars.com/api/?name=W&background=4f8dff&color=ffffff&bold=true" alt="Prévia do perfil">
+                <img id="profilePreviewPhoto" class="preview-photo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='32' fill='%23101a2b'/><circle cx='32' cy='24' r='12' fill='%23ffffff'/><path d='M16 52c2-10 11-16 16-16s14 6 16 16' fill='%23ffffff'/></svg>" alt="Prévia do perfil">
               </div>
 
-              <div class="preview-name" id="profilePreviewName">WMT</div>
+              <div class="preview-name" id="profilePreviewName">Conta temporária</div>
               <div class="preview-role" id="profilePreviewRole"></div>
               <div class="preview-sub" id="profilePreviewSub">Sua foto e seu nome aparecem assim no sistema.</div>
 
@@ -1414,6 +1414,8 @@ body{
       <h3 id="noticeTitle">Mensagem</h3>
       <p id="noticeMessage">Texto da mensagem.</p>
       <div class="notice-actions">
+        <button class="notice-btn" id="noticeSecondaryBtn" style="display:none;background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));color:var(--text);border:1px solid rgba(255,255,255,.10);">Cancelar</button>
+        <button class="notice-btn" id="noticeTertiaryBtn" style="display:none;background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));color:var(--text);border:1px solid rgba(255,255,255,.10);">Cancelar</button>
         <button class="notice-btn primary" id="noticePrimaryBtn">Fechar</button>
       </div>
     </div>
@@ -1442,6 +1444,14 @@ body{
       limit,
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+    import {
+      getDatabase,
+      ref as rtdbRef,
+      set as rtdbSet,
+      remove as rtdbRemove,
+      onDisconnect,
+      push
+    } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
     import { isAdminUser } from "./admin-config.js";
 
     const firebaseConfig = {
@@ -1461,11 +1471,13 @@ body{
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const rtdb = getDatabase(app);
 
     const profileTrigger = document.getElementById("profileTrigger");
     const profileMenu = document.getElementById("profileMenu");
     const profilePanelLink = document.getElementById("profilePanelLink");
     const logoutBtn = document.getElementById("logoutBtn");
+    const profilePrimaryAction = document.getElementById("profilePrimaryAction");
     const headerProfilePhoto = document.getElementById("headerProfilePhoto");
     const menuProfilePhoto = document.getElementById("menuProfilePhoto");
     const menuProfileName = document.getElementById("menuProfileName");
@@ -1500,6 +1512,8 @@ body{
     const noticeTitle = document.getElementById("noticeTitle");
     const noticeMessage = document.getElementById("noticeMessage");
     const noticePrimaryBtn = document.getElementById("noticePrimaryBtn");
+    const noticeSecondaryBtn = document.getElementById("noticeSecondaryBtn");
+    const noticeTertiaryBtn = document.getElementById("noticeTertiaryBtn");
 
     let currentUser = null;
     let currentProfileDoc = null;
@@ -1512,17 +1526,60 @@ body{
     let authDecisionDone = false;
     let currentAllowedRoles = [];
     let currentActiveRole = "";
+    let currentPresenceConnectionRef = null;
+    let currentPresenceHeartbeat = null;
+    const PRESENCE_HEARTBEAT_MS = 15000;
     const AVAILABLE_PROFILE_ROLES = ["STREAMER", "VENDEDOR", "COMPRADOR"];
 
-    function showNotice({ badge = "Aviso", title = "Mensagem", message = "" }) {
+    function showNotice({
+      badge = "Aviso",
+      title = "Mensagem",
+      message = "",
+      primaryText = "Fechar",
+      secondaryText = "",
+      tertiaryText = "",
+      onPrimary = null,
+      onSecondary = null,
+      onTertiary = null
+    }) {
       noticeBadge.textContent = badge;
       noticeTitle.textContent = title;
       noticeMessage.textContent = message;
+
+      noticePrimaryBtn.textContent = primaryText || "Fechar";
+      noticePrimaryBtn.onclick = () => {
+        closeNotice();
+        if (typeof onPrimary === "function") onPrimary();
+      };
+
+      if (noticeSecondaryBtn) {
+        noticeSecondaryBtn.textContent = secondaryText || "Cancelar";
+        noticeSecondaryBtn.style.display = secondaryText ? "inline-flex" : "none";
+        noticeSecondaryBtn.onclick = () => {
+          closeNotice();
+          if (typeof onSecondary === "function") onSecondary();
+        };
+      }
+
+      if (noticeTertiaryBtn) {
+        noticeTertiaryBtn.textContent = tertiaryText || "Cancelar";
+        noticeTertiaryBtn.style.display = tertiaryText ? "inline-flex" : "none";
+        noticeTertiaryBtn.onclick = () => {
+          closeNotice();
+          if (typeof onTertiary === "function") onTertiary();
+        };
+      }
+
       noticeModal.style.display = "flex";
     }
 
     function closeNotice() {
       noticeModal.style.display = "none";
+      if (noticePrimaryBtn) noticePrimaryBtn.onclick = null;
+      if (noticeSecondaryBtn) noticeSecondaryBtn.onclick = null;
+      if (noticeTertiaryBtn) noticeTertiaryBtn.onclick = null;
+      if (noticeSecondaryBtn) noticeSecondaryBtn.style.display = "none";
+      if (noticeTertiaryBtn) noticeTertiaryBtn.style.display = "none";
     }
 
     noticePrimaryBtn.addEventListener("click", closeNotice);
@@ -1572,9 +1629,18 @@ body{
       return key ? String(localStorage.getItem(key) || "").trim() : "";
     }
 
-    function getAvatarFallback(name) {
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent((name || "U").charAt(0).toUpperCase())}&background=1b2c45&color=ffffff&bold=true`;
-    }
+    function getLoggedOutAvatar() {
+  return `data:image/svg+xml;utf8,
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="32" fill="%23101a2b"/>
+  <circle cx="32" cy="24" r="12" fill="%23ffffff"/>
+  <path d="M16 52c2-10 11-16 16-16s14 6 16 16" fill="%23ffffff"/>
+</svg>`;
+}
+
+function getAvatarFallback(name) {
+  return getLoggedOutAvatar();
+}
 
     function getDisplayName(user) {
       if (!user) return "Conta";
@@ -1585,18 +1651,23 @@ body{
         getStoredNickname() ||
         user?.displayName ||
         email.split("@")[0] ||
-        (user?.isAnonymous ? "Usuário temporário" : "Usuário")
+        (user?.isAnonymous ? "Conta temporária" : "Usuário")
       ).trim();
     }
 
     function getPhoto(user) {
-      const remotePhoto = String(currentProfileDoc?.photo || "").trim();
-      const cachedPhoto = String(getStoredPhoto() || "").trim();
-      const saved = remotePhoto || cachedPhoto;
+  const remotePhoto = String(currentProfileDoc?.photo || "").trim();
+  const cachedPhoto = String(getStoredPhoto() || "").trim();
+  const saved = remotePhoto || cachedPhoto;
 
-      if (saved) return saved;
-      return getAvatarFallback(getDisplayName(user));
-    }
+  if (saved) return saved;
+
+  if (!user || user?.isAnonymous) {
+    return getLoggedOutAvatar();
+  }
+
+  return getAvatarFallback(getDisplayName(user));
+}
 
     function writeProfileCache({ nickname = "", photo = "" } = {}) {
       const nicknameKey = getProfileStorageKey("wmt_nickname");
@@ -1616,21 +1687,32 @@ body{
     function syncHeader(user) {
       const displayName = getDisplayName(user);
       const displayPhoto = getPhoto(user);
-      const isAdmin = isAdminUser(user);
+      const isAdmin = !!user && !user?.isAnonymous && isAdminUser(user);
 
       headerProfilePhoto.src = displayPhoto;
       menuProfilePhoto.src = displayPhoto;
-      menuProfileName.textContent = displayName;
-      menuProfileSub.textContent = user
-        ? (isAdmin
-            ? "Conta administrativa WMT"
-            : (user?.isAnonymous
-                ? "Sessão temporária ativa"
-                : (getUserEmail(user) || "Conta conectada")))
-        : "Entre para gerenciar sua conta";
+      menuProfileName.textContent = displayName || "Conta temporária";
+
+      if (!user || user?.isAnonymous) {
+        menuProfileSub.textContent = "Conta temporária ativa";
+      } else if (isAdmin) {
+        menuProfileSub.textContent = "Conta conectada • administrador";
+      } else {
+        menuProfileSub.textContent = "Conta conectada";
+      }
 
       profilePanelLink.style.display = isAdmin ? "flex" : "none";
-      logoutBtn.style.display = user ? "flex" : "none";
+      logoutBtn.style.display = user ? "flex" : "flex";
+
+      if (profilePrimaryAction) {
+        if (!user || user?.isAnonymous) {
+          profilePrimaryAction.textContent = "Fazer login";
+          profilePrimaryAction.href = "login.html";
+        } else {
+          profilePrimaryAction.textContent = "Vender";
+          profilePrimaryAction.href = "enviar.html";
+        }
+      }
     }
 
     function openProfileMenu() {
@@ -1676,14 +1758,114 @@ body{
       }
     });
 
-    logoutBtn.addEventListener("click", async () => {
+    function getPresenceRootRef(user) {
+      return user?.uid ? rtdbRef(rtdb, `presence/${user.uid}/connections`) : null;
+    }
+
+    function getPresencePayload(user) {
+      return {
+        uid: String(user?.uid || "").trim(),
+        page: "configuracoes",
+        lastSeenMs: Date.now()
+      };
+    }
+
+    async function writePresenceHeartbeat(user) {
+      if (!user?.uid || !currentPresenceConnectionRef) return;
       try {
+        await rtdbSet(currentPresenceConnectionRef, getPresencePayload(user));
+      } catch (error) {
+        console.error("Erro ao atualizar presence nas configurações:", error);
+      }
+    }
+
+    async function startPresence(user) {
+      if (!user?.uid) return;
+
+      if (!currentPresenceConnectionRef) {
+        const rootRef = getPresenceRootRef(user);
+        if (!rootRef) return;
+        currentPresenceConnectionRef = push(rootRef);
+
+        try {
+          await onDisconnect(currentPresenceConnectionRef).remove();
+        } catch (error) {
+          console.error("Erro ao preparar onDisconnect do presence:", error);
+        }
+      }
+
+      await writePresenceHeartbeat(user);
+
+      if (currentPresenceHeartbeat) {
+        clearInterval(currentPresenceHeartbeat);
+      }
+
+      currentPresenceHeartbeat = setInterval(() => {
+        writePresenceHeartbeat(auth.currentUser || currentUser || user);
+      }, PRESENCE_HEARTBEAT_MS);
+    }
+
+    async function stopPresence() {
+      if (currentPresenceHeartbeat) {
+        clearInterval(currentPresenceHeartbeat);
+        currentPresenceHeartbeat = null;
+      }
+
+      if (currentPresenceConnectionRef) {
+        try {
+          await rtdbRemove(currentPresenceConnectionRef);
+        } catch (error) {
+          console.error("Erro ao remover presence das configurações:", error);
+        }
+        currentPresenceConnectionRef = null;
+      }
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        writePresenceHeartbeat(auth.currentUser || currentUser || null);
+      }
+    });
+
+    window.addEventListener("focus", () => {
+      writePresenceHeartbeat(auth.currentUser || currentUser || null);
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (currentPresenceConnectionRef) {
+        rtdbRemove(currentPresenceConnectionRef).catch(() => {});
+      }
+    });
+
+    async function continueAndLogout() {
+      try {
+        await stopPresence();
         await signOut(auth);
       } catch (error) {
         console.error(error);
       } finally {
         window.location.href = "index.html";
       }
+    }
+
+    logoutBtn.addEventListener("click", async () => {
+      const user = currentUser || auth.currentUser || null;
+
+      if (user && user.isAnonymous) {
+        showNotice({
+          badge: "Conta temporária",
+          title: "Você pode perder esta conta temporária",
+          message: "Se você sair, pode perder esta conta temporária neste navegador. Faça login antes de sair para não perder acesso.",
+          primaryText: "Fazer login",
+          secondaryText: "Continuar e sair",
+          tertiaryText: "Cancelar",
+          onPrimary: () => goToLogin("configuracoes.html"),
+          onSecondary: () => continueAndLogout()
+        });
+        return;
+      }
+
+      await continueAndLogout();
     });
 
     function showStatus(message, type = "info") {
@@ -2083,6 +2265,14 @@ body{
     }
 
 
+    profilePrimaryAction?.addEventListener("click", (event) => {
+      const user = currentUser || auth.currentUser || null;
+      if (!user || user?.isAnonymous) {
+        event.preventDefault();
+        goToLogin("configuracoes.html");
+      }
+    });
+
     rolesTrigger.addEventListener("click", () => {
       const willOpen = !rolesCard.classList.contains("open");
       rolesCard.classList.toggle("open", willOpen);
@@ -2259,6 +2449,9 @@ if (!profileSnap.exists()) {
       if (!authDecisionDone) {
         finalizeProtectedAccess();
       } else {
+        stopPresence().catch((error) => {
+          console.error("Erro ao parar presence nas configurações:", error);
+        });
         currentUser = null;
         currentProfileDoc = null;
         if (notifUnsub) {
