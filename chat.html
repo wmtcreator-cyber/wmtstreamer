@@ -2033,6 +2033,21 @@ body{
     async function finalizeProtectedAccess() {
       if (authDecisionDone) return;
 
+      const manualLogout = localStorage.getItem("wmt_manual_logout");
+      if (manualLogout) {
+        authDecisionDone = true;
+        currentUser = null;
+        window.__wmtChatCurrentUser = null;
+        window.__wmtChatAuthorized = false;
+        closeHeaderMenus();
+        if (window.__wmtChatLiveProfiles && typeof window.__wmtChatLiveProfiles.clear === "function") {
+          window.__wmtChatLiveProfiles.clear();
+        }
+        syncHeaderProfile();
+        revealPage();
+        return;
+      }
+
       try {
         const cred = await signInAnonymously(auth);
         applyAuthenticatedState(cred.user);
@@ -2054,6 +2069,7 @@ body{
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        localStorage.removeItem("wmt_manual_logout");
         applyAuthenticatedState(user);
         return;
       }
@@ -2076,6 +2092,7 @@ body{
 
     async function continueAndLogout() {
       try {
+        localStorage.setItem("wmt_manual_logout", "1");
         await signOut(auth);
       } catch (error) {
         console.error(error);
