@@ -2091,10 +2091,11 @@ body{
                     </div>
                     <input id="photoPickerInput" type="file" accept="image/*" multiple style="
   position:absolute;
+  left:-9999px;
+  top:auto;
   width:1px;
   height:1px;
-  opacity:0;
-  pointer-events:none;
+  opacity:0.001;
 ">
                   </div>
 
@@ -2271,7 +2272,7 @@ body{
     const liveMarquee = document.getElementById("liveMarquee");
     const liveTrack = document.getElementById("liveTrack");
     const addPhotosBtn = document.getElementById("addPhotosBtn");
-    const photoInput = document.getElementById("photoPickerInput");
+    const photoPickerInput = document.getElementById("photoPickerInput");
     const clearPhotosBtn = document.getElementById("clearPhotosBtn");
     const previewGrid = document.getElementById("previewGrid");
     const uploadEmptyState = document.getElementById("uploadEmptyState");
@@ -2300,9 +2301,33 @@ body{
     const streamerValue = document.getElementById("streamerValue");
     const streamerOptions = document.querySelectorAll(".streamer-option");
 
-    addPhotosBtn?.addEventListener("click", () => {
-  photoInput?.click();
+    addPhotosBtn?.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (!photoPickerInput) return;
+
+  try {
+    photoPickerInput.removeAttribute("disabled");
+    photoPickerInput.click();
+  } catch (error) {
+    console.error("Erro ao abrir seletor de fotos:", error);
+  }
 });
+
+addPhotosBtn?.addEventListener("touchend", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (!photoPickerInput) return;
+
+  try {
+    photoPickerInput.removeAttribute("disabled");
+    photoPickerInput.click();
+  } catch (error) {
+    console.error("Erro ao abrir seletor de fotos no touch:", error);
+  }
+}, { passive: false });
 
     let selectedFiles = [];
     let liveTickerStarted = false;
