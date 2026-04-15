@@ -2393,6 +2393,10 @@ body{
       return String(user?.email || "").trim().toLowerCase();
     }
 
+    function normalizeEmail(value) {
+               return String(value || "").trim().toLowerCase();
+          }
+
     function getUserId(user) {
       return String(user?.uid || "").trim();
     }
