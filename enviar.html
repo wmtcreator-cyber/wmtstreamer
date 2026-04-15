@@ -2089,7 +2089,13 @@ body{
                       <label for="photoPickerInput" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</label>
                       <button type="button" class="small-btn danger" id="clearPhotosBtn">Limpar tudo</button>
                     </div>
-                    <input id="photoPickerInput" type="file" accept="image/*" multiple style="display:none;">
+                    <input id="photoPickerInput" type="file" accept="image/*" multiple style="
+  position:absolute;
+  width:1px;
+  height:1px;
+  opacity:0;
+  pointer-events:none;
+">
                   </div>
 
                   <div id="previewGrid" class="preview-grid"></div>
