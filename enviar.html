@@ -2271,6 +2271,7 @@ body{
     const liveMarquee = document.getElementById("liveMarquee");
     const liveTrack = document.getElementById("liveTrack");
     const addPhotosBtn = document.getElementById("addPhotosBtn");
+    const photoInput = document.getElementById("photoPickerInput");
     const clearPhotosBtn = document.getElementById("clearPhotosBtn");
     const photoPickerInput = document.getElementById("photoPickerInput");
     const previewGrid = document.getElementById("previewGrid");
@@ -2299,6 +2300,10 @@ body{
     const streamerSelected = document.getElementById("streamerSelected");
     const streamerValue = document.getElementById("streamerValue");
     const streamerOptions = document.querySelectorAll(".streamer-option");
+
+    addPhotosBtn?.addEventListener("click", () => {
+  photoInput?.click();
+});
 
     let selectedFiles = [];
     let liveTickerStarted = false;
