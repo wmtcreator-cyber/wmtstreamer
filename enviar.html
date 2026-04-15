@@ -2086,16 +2086,20 @@ body{
                     </div>
 
                     <div class="upload-actions">
-                      <button type="button" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</button>
+                      <label for="photoPickerInput" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</label>
                       <button type="button" class="small-btn danger" id="clearPhotosBtn">Limpar tudo</button>
                     </div>
                     <input id="photoPickerInput" type="file" accept="image/*" multiple style="
   position:absolute;
-  left:-9999px;
-  top:auto;
   width:1px;
   height:1px;
-  opacity:0.001;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0, 0, 0, 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+  border:0;
 ">
                   </div>
 
@@ -2301,34 +2305,7 @@ body{
     const streamerValue = document.getElementById("streamerValue");
     const streamerOptions = document.querySelectorAll(".streamer-option");
 
-    addPhotosBtn?.addEventListener("click", (event) => {
-  event.preventDefault();
-  event.stopPropagation();
-
-  if (!photoPickerInput) return;
-
-  try {
-    photoPickerInput.removeAttribute("disabled");
-    photoPickerInput.click();
-  } catch (error) {
-    console.error("Erro ao abrir seletor de fotos:", error);
-  }
-});
-
-addPhotosBtn?.addEventListener("touchend", (event) => {
-  event.preventDefault();
-  event.stopPropagation();
-
-  if (!photoPickerInput) return;
-
-  try {
-    photoPickerInput.removeAttribute("disabled");
-    photoPickerInput.click();
-  } catch (error) {
-    console.error("Erro ao abrir seletor de fotos no touch:", error);
-  }
-}, { passive: false });
-
+    
     let selectedFiles = [];
     let liveTickerStarted = false;
     let liveTickerRaf = null;
