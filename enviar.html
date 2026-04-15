@@ -724,31 +724,6 @@
       width:100%;
     }
 
-    .file-picker-wrap{
-      position:relative;
-      width:100%;
-      min-width:0;
-    }
-
-    .file-picker-wrap .small-btn{
-      width:100%;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      pointer-events:none;
-      user-select:none;
-    }
-
-    .file-picker-real-input{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      opacity:0;
-      cursor:pointer;
-      z-index:2;
-    }
-
     .small-btn{
       border:1px solid rgba(122,168,255,.18);
       background:linear-gradient(180deg, rgba(77,141,255,.18), rgba(77,141,255,.10));
@@ -1415,19 +1390,6 @@
       .upload-actions{
         display:flex;
         width:auto;
-      }
-
-      .file-picker-wrap{
-        width:auto;
-      }
-
-      .file-picker-wrap .small-btn{
-        width:auto;
-        min-width:200px;
-      }
-
-      .file-picker-real-input{
-        min-width:200px;
       }
 
       .preview-grid{
@@ -2124,10 +2086,26 @@ body{
                     </div>
 
                     <div class="upload-actions">
-                      <div class="file-picker-wrap" id="addPhotosBtn">
-                        <span class="small-btn">+ Adicionar fotos</span>
-                        <input id="photoPickerInput" class="file-picker-real-input" type="file" accept="image/*" multiple>
-                      </div>
+                      <input
+                        id="photoPickerInput"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        style="
+                          width:100%;
+                          min-height:54px;
+                          border:1px solid rgba(122,168,255,.18);
+                          background:linear-gradient(180deg, rgba(77,141,255,.18), rgba(77,141,255,.10));
+                          color:#f6f9ff;
+                          border-radius:16px;
+                          padding:12px 14px;
+                          font-size:14px;
+                          font-weight:800;
+                          letter-spacing:.01em;
+                          cursor:pointer;
+                          box-shadow:0 14px 28px rgba(45,116,255,.12), inset 0 1px 0 rgba(255,255,255,.06);
+                        "
+                      >
                       <button type="button" class="small-btn danger" id="clearPhotosBtn">Limpar tudo</button>
                     </div>
                   </div>
@@ -2304,7 +2282,6 @@ body{
 
     const liveMarquee = document.getElementById("liveMarquee");
     const liveTrack = document.getElementById("liveTrack");
-    const addPhotosBtn = document.getElementById("addPhotosBtn");
     const photoPickerInput = document.getElementById("photoPickerInput");
     const clearPhotosBtn = document.getElementById("clearPhotosBtn");
     const previewGrid = document.getElementById("previewGrid");
