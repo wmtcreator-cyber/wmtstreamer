@@ -3448,25 +3448,29 @@ body{
 }
 
       const displayName = getDisplayName(currentUser);
-      const displayPhoto = getPhoto(currentUser);
-      const isAnonymous = isAnonymousUser(currentUser);
+const displayPhoto = getPhoto(currentUser);
+const isAnonymous = isAnonymousUser(currentUser);
 
-      if (profilePanelLink) profilePanelLink.style.display = !isAnonymous && isAdmin ? "flex" : "none";
-      if (logoutBtn) logoutBtn.style.display = "inline-flex";
-      if (headerProfilePhoto) headerProfilePhoto.src = displayPhoto;
-      if (menuProfilePhoto) menuProfilePhoto.src = displayPhoto;
-      if (menuProfileName) menuProfileName.textContent = displayName;
-      if (menuProfileSub) {
-        menuProfileSub.textContent = isAnonymous
-          ? "Conta temporária ativa"
-          : (isAdmin ? "Conta administrativa" : "Conta conectada");
-      }
-      
-      if (!skipNotificationReset) {
-        renderNotifications([]);
-        if (currentUser) listenNotifications(currentUser);
-      }
-    }
+if (profilePanelLink) profilePanelLink.style.display = !isAnonymous && isAdmin ? "flex" : "none";
+if (logoutBtn) logoutBtn.style.display = "inline-flex";
+if (headerProfilePhoto) headerProfilePhoto.src = displayPhoto;
+if (menuProfilePhoto) menuProfilePhoto.src = displayPhoto;
+if (menuProfileName) menuProfileName.textContent = displayName;
+if (menuProfileSub) {
+  menuProfileSub.textContent = isAnonymous
+    ? "Conta temporária ativa"
+    : (isAdmin ? "Conta administrativa" : "Conta conectada");
+}
+
+if (profilePrimaryAction) {
+  profilePrimaryAction.textContent = "Vender";
+  profilePrimaryAction.href = "enviar.html";
+}
+
+if (!skipNotificationReset) {
+  renderNotifications([]);
+  if (currentUser) listenNotifications(currentUser);
+}
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
