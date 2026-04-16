@@ -256,6 +256,15 @@
     const targetFromQuery = params.get("to");
     const defaultTarget = "https://wmtcreator-cyber.github.io/wmtstreamer/";
     const target = targetFromQuery && targetFromQuery.trim() ? targetFromQuery.trim() : defaultTarget;
+    const ua = navigator.userAgent || "";
+const isTikTokWebView =
+  /TikTok/i.test(ua) ||
+  /musical_ly/i.test(ua) ||
+  /bytelocale/i.test(ua);
+
+if (!isTikTokWebView) {
+  window.location.replace(target);
+}
 
     const siteLink = document.getElementById("siteLink");
     const copyBtn = document.getElementById("copyBtn");
