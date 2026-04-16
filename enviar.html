@@ -727,19 +727,16 @@
     .file-picker-wrap{
       position:relative;
       width:100%;
-      min-width:0;
     }
 
     .file-picker-wrap .small-btn{
       width:100%;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
+      position:relative;
+      z-index:1;
       pointer-events:none;
-      user-select:none;
     }
 
-    .file-picker-real-input{
+    .file-picker-overlay{
       position:absolute;
       inset:0;
       width:100%;
@@ -747,6 +744,7 @@
       opacity:0;
       cursor:pointer;
       z-index:2;
+      font-size:0;
     }
 
     .small-btn{
@@ -1426,7 +1424,7 @@
         min-width:200px;
       }
 
-      .file-picker-real-input{
+      .file-picker-overlay{
         min-width:200px;
       }
 
@@ -2124,9 +2122,9 @@ body{
                     </div>
 
                     <div class="upload-actions">
-                      <div class="file-picker-wrap" id="addPhotosBtn">
-                        <span class="small-btn">+ Adicionar fotos</span>
-                        <input id="photoPickerInput" class="file-picker-real-input" type="file" accept="image/*" multiple>
+                      <div class="file-picker-wrap">
+                        <button type="button" class="small-btn" id="addPhotosBtn">+ Adicionar fotos</button>
+                        <input id="photoPickerInput" class="file-picker-overlay" type="file" accept="image/*" multiple>
                       </div>
                       <button type="button" class="small-btn danger" id="clearPhotosBtn">Limpar tudo</button>
                     </div>
