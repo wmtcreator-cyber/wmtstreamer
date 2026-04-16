@@ -3,151 +3,291 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Abrindo WMT Market...</title>
+  <title>Abrir WMT Market no navegador</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0a0d12;
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      color: #f5f7fb;
-      padding: 24px;
+    :root{
+      --bg:#0a0d12;
+      --card:#141a22;
+      --line:rgba(255,255,255,.08);
+      --text:#f5f7fb;
+      --muted:#9aa7bb;
+      --blue:#4d8dff;
+      --blue-2:#2d74ff;
+      --yellow:#f7c74f;
+      --shadow:0 20px 55px rgba(0,0,0,.28);
     }
-    .card {
-      background: #141a22;
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 24px;
-      padding: 32px 24px;
-      max-width: 360px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 20px 55px rgba(0,0,0,.28);
+    body{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(77,141,255,.10), transparent 24%),
+        radial-gradient(circle at 92% 10%, rgba(242,201,76,.08), transparent 18%),
+        linear-gradient(rgba(10,13,18,.96), rgba(10,13,18,.98));
+      color:var(--text);
+      font-family:'Plus Jakarta Sans', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      padding:20px;
     }
-    .logo {
-      width: 56px;
-      height: 56px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, #6f98ff, #4d8dff);
-      display: grid;
-      place-items: center;
-      font-size: 14px;
-      font-weight: 800;
-      color: #fff;
-      margin: 0 auto 20px;
-      box-shadow: 0 12px 24px rgba(94,145,255,.22);
+    .card{
+      width:min(560px, 100%);
+      background:linear-gradient(180deg, rgba(20,26,34,.98), rgba(16,22,29,.96));
+      border:1px solid var(--line);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:28px 22px 24px;
     }
-    h1 {
-      font-size: 20px;
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: -.01em;
-      margin-bottom: 10px;
+    .logo{
+      width:60px;
+      height:60px;
+      border-radius:18px;
+      display:grid;
+      place-items:center;
+      margin:0 auto 18px;
+      color:#fff;
+      font-size:15px;
+      font-weight:800;
+      letter-spacing:.03em;
+      background:linear-gradient(135deg, var(--blue), #6f98ff);
+      box-shadow:0 12px 24px rgba(94,145,255,.22);
     }
-    p {
-      color: #9aa7bb;
-      font-size: 14px;
-      line-height: 1.7;
-      font-weight: 600;
-      margin-bottom: 24px;
+    .pill-wrap{display:flex; justify-content:center;}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      color:#eef5ff;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      margin:0 auto 16px;
     }
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 16px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #4d8dff, #2d74ff);
-      color: #fff;
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: .01em;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      box-shadow: 0 14px 28px rgba(45,116,255,.22);
-      transition: .2s ease;
+    h1{
+      text-align:center;
+      font-size:28px;
+      line-height:1.05;
+      letter-spacing:-.03em;
+      margin-bottom:12px;
     }
-    .btn:hover { opacity: .9; transform: translateY(-1px); }
-    .hint {
-      margin-top: 16px;
-      color: #748196;
-      font-size: 12px;
-      font-weight: 600;
-      line-height: 1.6;
+    .lead{
+      text-align:center;
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.7;
+      font-weight:600;
+      margin-bottom:22px;
     }
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 2.5px solid rgba(255,255,255,.15);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 8px;
+    .tutorial{
+      margin:8px 0 0;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      padding:18px 16px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .tutorial-title{
+      font-size:16px;
+      font-weight:800;
+      margin-bottom:14px;
+      text-align:center;
+    }
+    .phone{
+      position:relative;
+      width:220px;
+      height:360px;
+      margin:0 auto;
+      border-radius:30px;
+      background:linear-gradient(180deg, #171d26, #10161d);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 18px 32px rgba(0,0,0,.24);
+      overflow:hidden;
+    }
+    .phone-top{
+      height:52px;
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      padding:0 18px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .dots{
+      color:#fff;
+      font-size:28px;
+      line-height:1;
+      font-weight:900;
+      letter-spacing:2px;
+    }
+    .phone-body{
+      position:relative;
+      height:calc(100% - 52px);
+      padding:18px 14px;
+    }
+    .bubble{
+      position:absolute;
+      left:50%;
+      bottom:34px;
+      transform:translateX(-50%);
+      width:160px;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      background:rgba(77,141,255,.12);
+      padding:10px 12px;
+      font-weight:700;
+      color:#eef5ff;
+      text-align:center;
+      line-height:1.55;
+      font-size:12px;
+    }
+    .arrow-wrap{
+      position:absolute;
+      top:42px;
+      right:12px;
+      width:128px;
+      pointer-events:none;
+      z-index:3;
+    }
+    .arrow-text{
+      font-size:12px;
+      font-weight:800;
+      color:var(--yellow);
+      text-align:right;
+      line-height:1.3;
+      text-shadow:0 2px 8px rgba(0,0,0,.28);
+      margin-bottom:2px;
+    }
+    .arrow{
+      width:100%;
+      height:44px;
+      display:block;
+    }
+    .actions{
+      display:grid;
+      gap:10px;
+      margin-top:18px;
+    }
+    .btn{
+      width:100%;
+      border:none;
+      cursor:pointer;
+      border-radius:18px;
+      padding:16px 18px;
+      font-size:15px;
+      font-weight:800;
+      letter-spacing:.01em;
+      transition:.2s ease;
+      text-decoration:none;
+    }
+    .btn:hover{ transform:translateY(-1px); }
+    .btn-primary{
+      background:linear-gradient(135deg, var(--blue), var(--blue-2));
+      color:#fff;
+      box-shadow:0 14px 28px rgba(45,116,255,.22);
+    }
+    .btn-secondary{
+      background:rgba(255,255,255,.05);
+      color:#eef5ff;
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .url-box{
+      margin-top:14px;
+      border:1px dashed rgba(255,255,255,.14);
+      border-radius:16px;
+      padding:12px;
+      color:#d8e0ec;
+      background:rgba(255,255,255,.03);
+      font-size:12px;
+      line-height:1.6;
+      word-break:break-all;
+    }
+    .copied{
+      margin-top:10px;
+      text-align:center;
+      color:#9fe3b7;
+      font-size:13px;
+      font-weight:700;
+      display:none;
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <div class="logo">WMT</div>
-    <h1>Abrindo WMT Market</h1>
-    <p id="msg">Redirecionando automaticamente para o navegador...</p>
-    <a class="btn" id="openBtn" href="#">
-      <span class="spinner"></span>
-      Abrindo...
-    </a>
-    <div class="hint" id="hint"></div>
+
+    <div class="pill-wrap">
+      <div class="pill">TikTok bloqueia este acesso</div>
+    </div>
+
+    <h1>Abra no navegador para continuar</h1>
+    <p class="lead">
+      O TikTok pode bloquear o envio de fotos dentro deste navegador.
+      <br>
+      Clique nos 3 pontinhos e vá em <strong>abrir no navegador</strong>,
+      <br>
+      ou copie este link e cole no Google Chrome.
+    </p>
+
+    <div class="tutorial">
+      <div class="tutorial-title">Tutorial rápido</div>
+
+      <div class="phone">
+        <div class="phone-top">
+          <div class="dots">⋯</div>
+        </div>
+
+        <div class="phone-body">
+          <div class="arrow-wrap">
+            <div class="arrow-text">Clique aqui<br>e vá em<br>“abrir no navegador”</div>
+            <svg class="arrow" viewBox="0 0 130 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M8 40 C 34 40, 48 28, 82 20" fill="none" stroke="#f7c74f" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M76 12 L95 18 L82 30" fill="none" stroke="#f7c74f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="bubble">
+            Depois que abrir no navegador,
+            o envio de fotos funciona normal.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="copyBtn" type="button">Copiar link</button>
+    </div>
+
+    <div class="url-box" id="urlBox">https://wmtcreator-cyber.github.io/wmtstreamer/</div>
+    <div class="copied" id="copiedMsg">Link copiado. Agora cole no navegador.</div>
   </div>
 
   <script>
     const TARGET = "https://wmtcreator-cyber.github.io/wmtstreamer/";
+    const copyBtn = document.getElementById("copyBtn");
+    const copiedMsg = document.getElementById("copiedMsg");
+    const urlBox = document.getElementById("urlBox");
 
-    function isInWebView() {
-      const ua = navigator.userAgent || '';
-      return /BytedanceWebview|musical_ly|TikTok/i.test(ua)
-        || /FBAN|FBAV|Instagram/i.test(ua)
-        || (/wv/.test(ua) && /Android/.test(ua));
+    urlBox.textContent = TARGET;
+
+    async function copyLink() {
+      try {
+        await navigator.clipboard.writeText(TARGET);
+        copiedMsg.style.display = "block";
+      } catch (error) {
+        const textArea = document.createElement("textarea");
+        textArea.value = TARGET;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        copiedMsg.style.display = "block";
+      }
     }
 
-    const btn = document.getElementById("openBtn");
-    const msg = document.getElementById("msg");
-    const hint = document.getElementById("hint");
-    const isAndroid = /Android/i.test(navigator.userAgent);
-
-    if (isInWebView()) {
-      // Está no WebView — tenta abrir no Chrome/Safari
-      msg.textContent = "O navegador do TikTok não abre o site direto. Clique abaixo para abrir no Chrome ou Safari.";
-      btn.innerHTML = "Abrir no navegador →";
-      hint.textContent = isAndroid
-        ? "Será aberto no Chrome automaticamente."
-        : "Será aberto no Safari automaticamente.";
-
-      btn.addEventListener("click", function(e) {
-        e.preventDefault();
-        if (isAndroid) {
-          window.location.href = "intent://" + TARGET.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
-        } else {
-          window.open(TARGET, "_blank");
-        }
-      });
-
-      // Tenta redirecionar automaticamente após 1s
-      setTimeout(function() {
-        if (isAndroid) {
-          window.location.href = "intent://" + TARGET.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
-        } else {
-          window.open(TARGET, "_blank");
-        }
-      }, 1000);
-
-    } else {
-      // Não está no WebView — redireciona direto
-      window.location.replace(TARGET);
-    }
+    copyBtn.addEventListener("click", copyLink);
   </script>
 </body>
 </html>
