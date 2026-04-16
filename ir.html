@@ -45,12 +45,53 @@
     }
 
     .box{
-      background:linear-gradient(180deg, rgba(20,28,39,.98), rgba(16,23,34,.96));
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:18px;
-    }
+  position:relative;
+  background:linear-gradient(180deg, rgba(20,28,39,.98), rgba(16,23,34,.96));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+}
+
+  .top-arrow{
+  position:absolute;
+  top:5px;
+  right:35px;
+  width:70px;
+  height:70px;
+  pointer-events:none;
+}
+
+.top-arrow::before{
+  content:"";
+  position:absolute;
+  right:3px;
+  top:20px;
+  width:30px;
+  height:30px;
+  border-top:5px solid red;
+  border-right:5px solid red;
+ transform:rotate(-9deg);
+}
+
+.top-arrow::after{
+  content:"";
+  position:absolute;
+  right:20px;
+  top:34px;
+  width:42px;
+  height:5px;
+  background:red;
+  border-radius:999px;
+  transform:rotate(-55deg);
+  transform-origin:right center;
+}
+
+     .wrap{
+  background:linear-gradient(180deg, rgba(20,28,39,.98), rgba(16,23,34,.96));
+  border-radius:24px;
+  padding:18px;
+}
 
     .badge{
       display:inline-flex;
@@ -86,111 +127,29 @@
       font-weight:700;
       text-align:center;
     }
+    .phone-real img{
+  width:min(220px, 62vw);
+  height:auto;
+  display:block;
+  background:transparent;
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+  filter:none;
+}
 
-    .phone{
-      position:relative;
-      width:min(360px, 100%);
-      margin:20px auto 18px;
-      background:linear-gradient(180deg, #0f1620, #121c2a);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:34px;
-      padding:16px;
-      box-shadow:0 30px 60px rgba(0,0,0,.34);
-    }
+    .phone-real{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:20px auto 18px;
+  padding:0;
+  background:transparent;
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+}
 
-    .phone-top{
-      height:24px;
-      position:relative;
-      margin-bottom:12px;
-    }
-
-    .notch{
-      width:120px;
-      height:20px;
-      border-radius:999px;
-      background:#05080d;
-      margin:0 auto;
-      opacity:.92;
-    }
-
-    .menu-spot{
-      position:absolute;
-      right:10px;
-      top:0;
-      width:58px;
-      height:58px;
-      border-radius:18px;
-      border:3px solid var(--yellow);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:rgba(255,255,255,.04);
-      box-shadow:0 0 0 6px rgba(248,201,76,.12);
-    }
-
-    .dots{
-      font-size:32px;
-      line-height:1;
-      transform:translateY(-2px);
-      font-weight:900;
-    }
-
-    .arrow-label{
-      position:absolute;
-      right:74px;
-      top:8px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-size:18px;
-      font-weight:900;
-      color:#fff3bf;
-      text-shadow:0 3px 12px rgba(0,0,0,.26);
-    }
-
-    .arrow-line{
-      width:88px;
-      height:6px;
-      border-radius:999px;
-      background:linear-gradient(90deg, var(--yellow2), var(--yellow));
-      position:relative;
-    }
-
-    .arrow-line::after{
-      content:"";
-      position:absolute;
-      right:-12px;
-      top:50%;
-      transform:translateY(-50%);
-      border-top:12px solid transparent;
-      border-bottom:12px solid transparent;
-      border-left:18px solid var(--yellow);
-    }
-
-    .phone-card{
-      margin-top:36px;
-      border-radius:24px;
-      padding:20px;
-      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
-      border:1px solid rgba(255,255,255,.09);
-      text-align:center;
-    }
-
-    .phone-card strong{
-      display:block;
-      font-size:28px;
-      line-height:1.05;
-      letter-spacing:-.03em;
-      margin-bottom:8px;
-    }
-
-    .phone-card p{
-      margin:0;
-      color:#d5e0ef;
-      line-height:1.6;
-      font-size:15px;
-      font-weight:700;
-    }
 
     .big-action{
       display:block;
@@ -259,28 +218,9 @@
 
     @media (max-width:640px){
       .box{padding:14px}
-      .arrow-label{
-        right:70px;
-        top:10px;
-        font-size:15px;
-        gap:8px;
-      }
-      .arrow-line{
-        width:62px;
-      }
-      .menu-spot{
-        width:54px;
-        height:54px;
-      }
-      .dots{
-        font-size:30px;
-      }
       .big-action{
         min-height:58px;
         font-size:18px;
-      }
-      .phone-card strong{
-        font-size:24px;
       }
     }
   </style>
@@ -288,27 +228,14 @@
 <body>
   <div class="wrap">
     <section class="box">
+      <div class="top-arrow"></div>
       <div class="badge">WMT Market</div>
 
       <h1>Abra no navegador</h1>
-      <div class="sub">Toque nos 3 pontinhos e abra no navegador.</div>
+      <div class="sub">Toque nos 3 pontinhos.</div>
 
-      <div class="phone">
-        <div class="phone-top">
-          <div class="notch"></div>
-          <div class="arrow-label">
-            <span>CLIQUE AQUI</span>
-            <div class="arrow-line"></div>
-          </div>
-          <div class="menu-spot" aria-hidden="true">
-            <div class="dots">⋮</div>
-          </div>
-        </div>
-
-        <div class="phone-card">
-          <strong>3 pontinhos</strong>
-          <p>Depois toque em abrir no navegador.</p>
-        </div>
+      <div class="phone-real">
+        <img src="celular.png" alt="Celular mostrando onde clicar" />
       </div>
 
       <button id="copyBtn" class="big-action" type="button">COPIAR LINK</button>
@@ -329,6 +256,15 @@
     const targetFromQuery = params.get("to");
     const defaultTarget = "https://wmtcreator-cyber.github.io/wmtstreamer/";
     const target = targetFromQuery && targetFromQuery.trim() ? targetFromQuery.trim() : defaultTarget;
+    const ua = navigator.userAgent || "";
+const isTikTokWebView =
+  /TikTok/i.test(ua) ||
+  /musical_ly/i.test(ua) ||
+  /bytelocale/i.test(ua);
+
+if (!isTikTokWebView) {
+  window.location.replace(target);
+}
 
     const siteLink = document.getElementById("siteLink");
     const copyBtn = document.getElementById("copyBtn");
