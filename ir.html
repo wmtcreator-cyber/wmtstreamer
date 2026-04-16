@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abrindo WMT Market...</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a0d12;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      color: #f5f7fb;
+      padding: 24px;
+    }
+    .card {
+      background: #141a22;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 24px;
+      padding: 32px 24px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 55px rgba(0,0,0,.28);
+    }
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #6f98ff, #4d8dff);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 auto 20px;
+      box-shadow: 0 12px 24px rgba(94,145,255,.22);
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.01em;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #9aa7bb;
+      font-size: 14px;
+      line-height: 1.7;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #4d8dff, #2d74ff);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: .01em;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 14px 28px rgba(45,116,255,.22);
+      transition: .2s ease;
+    }
+    .btn:hover { opacity: .9; transform: translateY(-1px); }
+    .hint {
+      margin-top: 16px;
+      color: #748196;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2.5px solid rgba(255,255,255,.15);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">WMT</div>
+    <h1>Abrindo WMT Market</h1>
+    <p id="msg">Redirecionando automaticamente para o navegador...</p>
+    <a class="btn" id="openBtn" href="#">
+      <span class="spinner"></span>
+      Abrindo...
+    </a>
+    <div class="hint" id="hint"></div>
+  </div>
+
+  <script>
+    const TARGET = "https://wmtcreator-cyber.github.io/wmtstreamer/";
+
+    function isInWebView() {
+      const ua = navigator.userAgent || '';
+      return /BytedanceWebview|musical_ly|TikTok/i.test(ua)
+        || /FBAN|FBAV|Instagram/i.test(ua)
+        || (/wv/.test(ua) && /Android/.test(ua));
+    }
+
+    const btn = document.getElementById("openBtn");
+    const msg = document.getElementById("msg");
+    const hint = document.getElementById("hint");
+    const isAndroid = /Android/i.test(navigator.userAgent);
+
+    if (isInWebView()) {
+      // Está no WebView — tenta abrir no Chrome/Safari
+      msg.textContent = "O navegador do TikTok não abre o site direto. Clique abaixo para abrir no Chrome ou Safari.";
+      btn.innerHTML = "Abrir no navegador →";
+      hint.textContent = isAndroid
+        ? "Será aberto no Chrome automaticamente."
+        : "Será aberto no Safari automaticamente.";
+
+      btn.addEventListener("click", function(e) {
+        e.preventDefault();
+        if (isAndroid) {
+          window.location.href = "intent://" + TARGET.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
+        } else {
+          window.open(TARGET, "_blank");
+        }
+      });
+
+      // Tenta redirecionar automaticamente após 1s
+      setTimeout(function() {
+        if (isAndroid) {
+          window.location.href = "intent://" + TARGET.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
+        } else {
+          window.open(TARGET, "_blank");
+        }
+      }, 1000);
+
+    } else {
+      // Não está no WebView — redireciona direto
+      window.location.replace(TARGET);
+    }
+  </script>
+</body>
+</html>
