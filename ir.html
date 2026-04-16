@@ -45,10 +45,46 @@
     }
 
     .box{
-  background:transparent;
-  border:none;
-  box-shadow:none;
-  padding:0;
+  position:relative;
+  background:linear-gradient(180deg, rgba(20,28,39,.98), rgba(16,23,34,.96));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+}
+
+  .top-arrow{
+  position:absolute;
+  top:5px;
+  right:35px;
+  width:70px;
+  height:70px;
+  pointer-events:none;
+}
+
+.top-arrow::before{
+  content:"";
+  position:absolute;
+  right:3px;
+  top:20px;
+  width:30px;
+  height:30px;
+  border-top:5px solid red;
+  border-right:5px solid red;
+ transform:rotate(-9deg);
+}
+
+.top-arrow::after{
+  content:"";
+  position:absolute;
+  right:20px;
+  top:34px;
+  width:42px;
+  height:5px;
+  background:red;
+  border-radius:999px;
+  transform:rotate(-55deg);
+  transform-origin:right center;
 }
 
      .wrap{
@@ -192,6 +228,7 @@
 <body>
   <div class="wrap">
     <section class="box">
+      <div class="top-arrow"></div>
       <div class="badge">WMT Market</div>
 
       <h1>Abra no navegador</h1>
